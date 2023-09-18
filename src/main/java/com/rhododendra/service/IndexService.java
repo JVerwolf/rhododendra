@@ -2,10 +2,7 @@ package com.rhododendra.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rhododendra.model.Botanist;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.FieldType;
-import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
@@ -21,11 +18,9 @@ public class IndexService {
     public final static String BOTANIST_INDEX_PATH = BASE_INDEX_PATH + "/botanists";
 
     public final static String SOURCE_KEY = "_source";
-    public final static String BOTANIST_FULL_NAME_KEY = "full_name";
-    public final static String BOTANIST_BOTANICAL_SHORT_KEY = "botanical_short";
-
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
 
     public static FieldType souceFieldType() {
         var sourceFieldType = new FieldType();
@@ -50,11 +45,10 @@ public class IndexService {
 
             Document document = new Document();
             document.add(new Field(SOURCE_KEY, source, souceFieldType()));
-            document.add(new TextField(BOTANIST_FULL_NAME_KEY, botanist.getFullName(), Field.Store.NO));
-            document.add(new TextField(BOTANIST_BOTANICAL_SHORT_KEY, botanist.getBotanicalShort(), Field.Store.NO));
-            indexWriter.updateDocument(new Term(botanist.getPrimaryID()), document);
+            document.add(new TextField(Botanist.FULL_NAME_KEY, botanist.getFullName(), Field.Store.NO));
+            document.add(new StringField(Botanist.PRIMARY_ID_KEY, botanist.getBotanicalShort(), Field.Store.YES));
+            indexWriter.updateDocument(new Term(Botanist.PRIMARY_ID_KEY, botanist.getPrimaryID()), document);
         }
         indexWriter.close();
     }
-
 }

@@ -1,35 +1,30 @@
 package com.rhododendra.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rhododendra.model.Botanist;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static com.rhododendra.service.IndexService.indexBotanists;
-import static com.rhododendra.service.IndexService.souceFieldType;
+import static com.rhododendra.service.SearchService.getBotanistById;
 import static com.rhododendra.service.SearchService.searchBotanists;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ServiceTests {
 
-
+    @BeforeAll
+    void setup() throws IOException {
+        indexBotanists();
+    }
 
     @Test
     void testIndexAndSearchBotanists() throws IOException, ParseException {
-        indexBotanists();
-        var botanists = searchBotanists("full_name", "Forrest");
-        assertThat(botanists).isNotEmpty();
+        assertThat(searchBotanists("Forrest")).isNotEmpty();
+        assertEquals(1, getBotanistById("Forrest").size());
     }
 
 

@@ -1,13 +1,28 @@
 package com.rhododendra.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Botanist implements PrimaryID {
-    @JsonProperty("botanical_short") String botanicalShort;
+    public static final String BOTANICAL_SHORT_KEY = "botanical_short";
+    public static final String LOCATION_KEY = "location";
+    public static final String BORN_DIED_KEY = "born_died";
+    public static final String FULL_NAME_KEY = "full_name";
+    public static final String IMAGE_KEY = "image";
+    public static final String PRIMARY_ID_KEY = BOTANICAL_SHORT_KEY;
+
+    @JsonProperty(BOTANICAL_SHORT_KEY)
+    String botanicalShort;
+    @JsonProperty(LOCATION_KEY)
     String location;
-    @JsonProperty("born_died")String bornDied;
-    @JsonProperty("full_name")String fullName;
+    @JsonProperty(BORN_DIED_KEY)
+    String bornDied;
+    @JsonProperty(FULL_NAME_KEY)
+    String fullName;
+    @JsonProperty(IMAGE_KEY)
     String image;
 
     public String getBotanicalShort() {
@@ -50,6 +65,7 @@ public class Botanist implements PrimaryID {
         this.image = image;
     }
 
+    @JsonIgnore
     @Override
     public String getPrimaryID() {
         return getBotanicalShort();
