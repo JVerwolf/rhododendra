@@ -67,7 +67,7 @@ public class Botanist implements PrimaryID {
 
     @JsonIgnore
     @Override
-    public String getPrimaryID() {
+    public String primaryIdValue() {
         return getBotanicalShort();
     }
 }

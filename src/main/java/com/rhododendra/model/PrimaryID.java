@@ -1,7 +1,9 @@
 package com.rhododendra.model;
 
-import org.apache.lucene.index.Term;
-
 public interface PrimaryID {
-    public String getPrimaryID();
+    static String primaryIdKey() {
+        return null;
+    }
+
+    public String primaryIdValue();
 }

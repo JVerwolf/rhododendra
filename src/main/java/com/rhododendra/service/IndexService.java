@@ -2,6 +2,7 @@ package com.rhododendra.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rhododendra.model.Botanist;
+import com.rhododendra.model.Species;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -16,6 +17,7 @@ import java.nio.file.Paths;
 public class IndexService {
     public final static String BASE_INDEX_PATH = "/Users/john.verwolf/code/rhododendra/src/main/resources/index";
     public final static String BOTANIST_INDEX_PATH = BASE_INDEX_PATH + "/botanists";
+    public final static String SPECIES_INDEX_PATH = BASE_INDEX_PATH + "/species";
 
     public final static String SOURCE_KEY = "_source";
 
@@ -40,14 +42,36 @@ public class IndexService {
         IndexWriterConfig indexWriterConfig = new IndexWriterConfig().setOpenMode(IndexWriterConfig.OpenMode.CREATE);
         IndexWriter indexWriter = new IndexWriter(indexDirectory, indexWriterConfig);
 
-        for (Botanist botanist : JSONLoaderService.readBotanists()) {
+        for (Botanist botanist : JSONLoaderService.loadBotanists()) {
             String source = objectMapper.writeValueAsString(botanist);
 
             Document document = new Document();
             document.add(new Field(SOURCE_KEY, source, souceFieldType()));
             document.add(new TextField(Botanist.FULL_NAME_KEY, botanist.getFullName(), Field.Store.NO));
-            document.add(new StringField(Botanist.PRIMARY_ID_KEY, botanist.getBotanicalShort(), Field.Store.YES));
-            indexWriter.updateDocument(new Term(Botanist.PRIMARY_ID_KEY, botanist.getPrimaryID()), document);
+            document.add(new StringField(Botanist.PRIMARY_ID_KEY, botanist.primaryIdValue(), Field.Store.YES));
+            indexWriter.updateDocument(new Term(Botanist.PRIMARY_ID_KEY, botanist.primaryIdValue()), document);
+        }
+        indexWriter.close();
+    }
+
+
+    public static void indexSpecies() throws IOException {
+        Directory indexDirectory = FSDirectory.open(
+            Paths.get(SPECIES_INDEX_PATH)
+        );
+        // OPEN mode overwrites the existing index.
+        IndexWriterConfig indexWriterConfig = new IndexWriterConfig().setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+        IndexWriter indexWriter = new IndexWriter(indexDirectory, indexWriterConfig);
+
+        for (Species species : JSONLoaderService.loadSpecies()) {
+            String source = objectMapper.writeValueAsString(species);
+
+            Document document = new Document();
+            document.add(new Field(SOURCE_KEY, source, souceFieldType()));
+            document.add(new TextField(Species.NAME_KEY, species.name(), Field.Store.NO));
+            document.add(new StringField(Species.PRIMARY_ID_KEY, species.primaryIdValue(), Field.Store.YES));
+
+            indexWriter.updateDocument(new Term(Species.PRIMARY_ID_KEY, species.primaryIdValue()), document);
         }
         indexWriter.close();
     }
