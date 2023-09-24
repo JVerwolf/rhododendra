@@ -1,0 +1,17 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<!--/*@thymesVar id="species" type="com.rhododendra.model.Species"*/-->
+<th:block th:fragment="preview(species)">
+    <dl>
+        <dt>Subgenus</dt>
+        <dd th:text="${species.subgenus}"></dd>
+
+        <dt>Section</dt>
+        <dd th:text="${species.subsection}"></dd>
+
+        <dt>subsection</dt>
+        <dd th:text="${species.subsection}"></dd>
+    </dl>
+
+
+</th:block>
+</html>

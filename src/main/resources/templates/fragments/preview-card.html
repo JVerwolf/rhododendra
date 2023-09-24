@@ -1,7 +1,15 @@
+<html xmlns:th="http://www.thymeleaf.org">
 <tr th:fragment="card(rhodo)">
+    <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Species"*/-->
+
     <td>
         <h2><span th:text="${rhodo.name}"></span></h2>
+        <th:block th:if="${rhodo.class.name == 'com.rhododendra.model.Species'}" >
+            <th:block th:insert="~{fragments/species-preview-info :: preview(${rhodo})}"></th:block>
+        </th:block>
     </td>
     <td>
+        <!--        picture-->
     </td>
 </tr>
+</html>
