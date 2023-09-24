@@ -1,6 +1,13 @@
 package com.rhododendra.controller;
 
+import com.rhododendra.service.SearchService;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.io.IOException;
 
 @Controller
 public class WebController {
@@ -8,17 +15,13 @@ public class WebController {
         return "index";
     }
 
-//    @RequestMapping(value = "/test")
-//    public String test(Model model) {
-//        model.addAttribute("rhodos",
-//            List.of(
-//                new Species("TestRhodo1"),
-//                new Species("TestRhodo2"),
-//                new Species("TestRhodo3")
-//            )
-//        );
-//        return "test";
-//    }
+    @RequestMapping(value = "/search")
+    public String test(Model model, @RequestParam("q") String query) throws IOException, ParseException {
+        model.addAttribute(
+            "search_results",
+            SearchService.searchSpecies(query)
+        );
 
-
+        return "search-results";
+    }
 }

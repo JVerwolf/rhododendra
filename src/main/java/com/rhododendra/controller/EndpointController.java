@@ -1,6 +1,5 @@
 package com.rhododendra.controller;
 
-import com.rhododendra.model.SearchResult;
 import com.rhododendra.service.SearchService;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.HttpStatus;
@@ -15,13 +14,24 @@ import java.io.IOException;
 @RestController
 public class EndpointController {
 
-    @GetMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/search_json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getProduct(@RequestParam("q") String query) throws IOException, ParseException {
         System.out.println(query);
 
         return new ResponseEntity<>(
-            SearchService.searchSpecies(query),
+            SearchService.searchBotanists(query),
             HttpStatus.OK
         );
     }
+
+
+//    @GetMapping(value = "/search_json", produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<Object> getProduct(@RequestParam("q") String query) throws IOException, ParseException {
+//        System.out.println(query);
+//
+//        return new ResponseEntity<>(
+//            SearchService.searchSpecies(query),
+//            HttpStatus.OK
+//        );
+//    }
 }

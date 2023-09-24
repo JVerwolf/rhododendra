@@ -1,27 +1,10 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-    <meta charset="ISO-8859-1"/>
-    <link href="css/styles.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <title>Spring Boot Application</title>
-    <script type="text/javascript" th:src="@{/js/actions.js}" defer></script>
-</head>
+<head th:replace="~{fragments/head}"></head>
 
 <body>
-
-<div class="topnav">
-    <a class="active" href="#home">Home</a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
-    <div class="search-container">
-        <form action="/search">
-            <input type="text" placeholder="Search.." name="q">
-            <button type="submit"><i class="fa fa-search"></i></button>
-        </form>
-    </div>
-</div>
+<div th:replace="~{fragments/header}"></div>
 
 <div style="padding-left:16px">
     <h2>Rhododendra</h2>
@@ -29,7 +12,5 @@
 </div>
 
 </body>
-
-</html>
 
 </html>
