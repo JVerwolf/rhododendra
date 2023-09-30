@@ -57,11 +57,11 @@ public record Species(
     public static final String SYNONYMS_KEY = "synonyms";
     public static final String PHOTOS_KEY = "photos";
     public static final String EXTRA_INFORMATION_KEY = "extra_information";
-    public static final String PRIMARY_ID_KEY = "extra_information";
+    public static final String PRIMARY_ID_KEY = ID_KEY;
 
     @JsonIgnore
     @Override
     public String primaryIdValue() {
-        return this.name;
+        return this.id;
     }
 }

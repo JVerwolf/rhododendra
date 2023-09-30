@@ -8,6 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 
 @RestController
 public class EndpointController {
@@ -22,10 +27,16 @@ public class EndpointController {
         );
     }
 
-//    @RequestMapping(value = "/pictures/normal/{id:.+}", method = RequestMethod.GET)
-//    public ResponseEntity<byte[]> getImage(@PathVariable("id") String id) {
-//        System.out.println(id);
-////        byte[] image = imageService.getImage(id);
-//        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(image);
-//    }
+    @GetMapping(value = "/pictures/normal/{id:.+}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<Resource> getImage(@PathVariable("id") String id) throws IOException {
+        System.out.println(id);
+        final ByteArrayResource inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(
+            "/Users/john.verwolf/code/hirsutum_save/websites/www.hirsutum.info/rhododendron/species/pictures/normal/" + id
+        )));
+        return ResponseEntity
+            .ok()
+            .contentType(MediaType.IMAGE_JPEG)
+            .contentLength(inputStream.contentLength())
+            .body(inputStream);
+    }
 }

@@ -1,15 +1,15 @@
 <html xmlns:th="http://www.thymeleaf.org">
-<tr th:fragment="card(rhodo)">
-    <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Species"*/-->
+<tr th:fragment="card(species)">
+    <!--/*@thymesVar id="species" type="com.rhododendra.model.Species"*/-->
     <td>
-        <h2><span th:text="${rhodo.name}"></span></h2>
-        <th:block th:if="${rhodo.class.name == 'com.rhododendra.model.Species'}">
-            <th:block th:insert="~{fragments/species-preview-info :: preview(${rhodo})}"></th:block>
+        <h2><span th:text="${species.name}"></span></h2>
+        <th:block th:if="${species.class.name == 'com.rhododendra.model.Species'}">
+            <th:block th:insert="~{fragments/species-preview-info :: preview(${species})}"></th:block>
         </th:block>
     </td>
     <td>
-        <th:block th:if="${not #lists.isEmpty(rhodo.photos)}">
-            <img th:src="${rhodo.photos[0]}" width="500" height="600">
+        <th:block th:if="${not #lists.isEmpty(species.photos)}">
+            <img th:src="${species.photos[0]}" width="500" height="600">
         </th:block>
     </td>
 </tr>
