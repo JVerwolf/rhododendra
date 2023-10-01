@@ -11,7 +11,6 @@
         <dt>subsection</dt>
         <dd th:text="${species.subsection}"></dd>
     </dl>
-
-
+    <a th:href="@{'/species/'+ ${species.id}}">More information and pictures</a>
 </th:block>
 </html>

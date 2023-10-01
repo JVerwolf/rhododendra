@@ -27,11 +27,11 @@ public class EndpointController {
         );
     }
 
-    @GetMapping(value = "/pictures/normal/{id:.+}", produces = MediaType.IMAGE_JPEG_VALUE)
+    @GetMapping(value = "/img/{id:.+}", produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<Resource> getImage(@PathVariable("id") String id) throws IOException {
         System.out.println(id);
         final ByteArrayResource inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(
-            "/Users/john.verwolf/code/hirsutum_save/websites/www.hirsutum.info/rhododendron/species/pictures/normal/" + id
+            "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/species_photos/" + id
         )));
         return ResponseEntity
             .ok()

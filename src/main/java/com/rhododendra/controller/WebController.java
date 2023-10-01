@@ -1,5 +1,7 @@
 package com.rhododendra.controller;
 
+import com.rhododendra.service.ImageResolver;
+import com.rhododendra.service.Rhodos;
 import com.rhododendra.service.SearchService;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Controller;
@@ -20,14 +22,14 @@ public class WebController {
     public String handleSearch(Model model, @RequestParam("q") String query) throws IOException, ParseException {
         model.addAttribute(
             "search_results",
-            SearchService.searchSpecies(query)
+            Rhodos.searchSpecies(query)
         );
         return "search-results";
     }
 
     @RequestMapping(value = "/species/{id}")
     public String handleGetSpecies(Model model, @PathVariable("id") String id) throws IOException {
-        var species = SearchService.getSpeciesById(id);
+        var species = Rhodos.getSpeciesById(id);
         if (!species.isEmpty()) {
             model.addAttribute(
                 "species",

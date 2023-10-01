@@ -4,10 +4,16 @@
 <body>
 <div th:replace="~{fragments/header}"></div>
 
-<h1 th:text="${species.name}"></h1>
+<h1 th:text="'R. ' + ${species.name}"></h1>
 <table>
-    <tr>
-        <td></td>
+    <thead>Pictures</thead>
+    <tr th:each="photo : ${species.getPhotos()}">
+        <td>
+            <img th:src="${photo}" width="400">
+        </td>
+        <td>
+            todo
+        </td>
     </tr>
 </table>
 
