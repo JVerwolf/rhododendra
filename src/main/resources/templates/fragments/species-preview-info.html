@@ -3,13 +3,13 @@
 <th:block th:fragment="preview(species)">
     <dl>
         <dt>Subgenus</dt>
-        <dd th:text="${species.subgenus}"></dd>
+        <dd th:text="${species.getSubgenus()}"></dd>
 
         <dt>Section</dt>
-        <dd th:text="${species.subsection}"></dd>
+        <dd th:text="${species.getSection()}"></dd>
 
         <dt>subsection</dt>
-        <dd th:text="${species.subsection}"></dd>
+        <dd th:text="${species.getSubsection()}"></dd>
     </dl>
     <a th:href="@{'/species/'+ ${species.id}}">More information and pictures</a>
 </th:block>

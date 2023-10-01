@@ -5,8 +5,67 @@
 <div th:replace="~{fragments/header}"></div>
 
 <h1 th:text="'R. ' + ${speciesDetail.getSpecies().getName()}"></h1>
+
 <table>
-    <thead>Pictures</thead>
+    <tr>
+        <td>
+            <dl>
+                <dt>Subgenus:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getSubgenus()}"></dd>
+
+                <dt>Section:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getSection()}"></dd>
+
+                <dt>subsection:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getSubsection()}"></dd>
+            </dl>
+        </td>
+        <td>
+            <dt>Synonyms:</dt>
+            <dd th:each="synonym : ${speciesDetail.getSpecies().getSynonyms()}"
+                th:text="${synonym.synonym()} + ' ('+ ${synonym.botanical_shorts() + ')'}"></dd>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <dt>In cultivation since:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getCultivation_since()}"></dd>
+
+            <dt>First described:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getFirst_described()}"></dd>
+
+            <dt>Origin:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getOrigin()}"></dd>
+
+            <dt>Corolla:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getCorolla()}"></dd>
+
+            <dt>Leaves:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getLeaves()}"></dd>
+
+            <dt>Habit:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getHabit()}"></dd>
+
+            <dt>Winter:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getWinter()}"></dd>
+
+            <dt>Bloom Time:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getBloom_time()}"></dd>
+
+            <dt>Hardiness:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getHardiness()}"></dd>
+
+            <dt>Predominant Colour:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getPredominant_colour()}"></dd>
+
+            <dt>Height Observed in the Wild:</dt>
+            <dd th:text="${speciesDetail.getSpecies().getHeight()}"></dd>
+        </td>
+    </tr>
+</table>
+
+<table>
+    <thead><h2>Pictures</h2></thead>
     <tr th:each="photoRowInfo : ${speciesDetail.getPhotoRowInfoList()}">
         <td>
             <img th:src="${photoRowInfo.getResolvedURL()}" width="400">
