@@ -6,13 +6,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Botanist implements PrimaryID {
+public class Botanist extends PrimaryID {
     public static final String BOTANICAL_SHORT_KEY = "botanical_short";
     public static final String LOCATION_KEY = "location";
     public static final String BORN_DIED_KEY = "born_died";
     public static final String FULL_NAME_KEY = "full_name";
     public static final String IMAGE_KEY = "image";
-    public static final String PRIMARY_ID_KEY = BOTANICAL_SHORT_KEY;
 
     @JsonProperty(BOTANICAL_SHORT_KEY)
     String botanicalShort;
@@ -24,6 +23,10 @@ public class Botanist implements PrimaryID {
     String fullName;
     @JsonProperty(IMAGE_KEY)
     String image;
+
+    public Botanist() {
+        super(BOTANICAL_SHORT_KEY);
+    }
 
     public String getBotanicalShort() {
         return botanicalShort;

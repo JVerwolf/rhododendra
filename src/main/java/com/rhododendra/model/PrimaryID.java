@@ -1,9 +1,11 @@
 package com.rhododendra.model;
 
-public interface PrimaryID {
-    static String primaryIdKey() {
-        return null;
+public abstract class PrimaryID {
+    public static String primaryIdKey;
+
+    public PrimaryID(String primaryID) {
+        primaryIdKey = primaryID;
     }
 
-    public String primaryIdValue();
+    public abstract String primaryIdValue();
 }

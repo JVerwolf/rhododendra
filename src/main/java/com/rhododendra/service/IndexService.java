@@ -48,8 +48,8 @@ public class IndexService {
             Document document = new Document();
             document.add(new Field(SOURCE_KEY, source, souceFieldType()));
             document.add(new TextField(Botanist.FULL_NAME_KEY, botanist.getFullName(), Field.Store.NO));
-            document.add(new StringField(Botanist.PRIMARY_ID_KEY, botanist.primaryIdValue(), Field.Store.YES));
-            indexWriter.updateDocument(new Term(Botanist.PRIMARY_ID_KEY, botanist.primaryIdValue()), document);
+            document.add(new StringField(Botanist.primaryIdKey, botanist.primaryIdValue(), Field.Store.YES));
+            indexWriter.updateDocument(new Term(Botanist.primaryIdKey, botanist.primaryIdValue()), document);
         }
         indexWriter.close();
     }
@@ -69,9 +69,9 @@ public class IndexService {
             Document document = new Document();
             document.add(new Field(SOURCE_KEY, source, souceFieldType()));
             document.add(new TextField(Species.NAME_KEY, species.getName(), Field.Store.NO));
-            document.add(new StringField(Species.PRIMARY_ID_KEY, species.primaryIdValue(), Field.Store.YES));
+            document.add(new StringField(Species.primaryIdKey, species.primaryIdValue(), Field.Store.YES));
 
-            indexWriter.updateDocument(new Term(Species.PRIMARY_ID_KEY, species.primaryIdValue()), document);
+            indexWriter.updateDocument(new Term(Species.primaryIdKey, species.primaryIdValue()), document);
         }
         indexWriter.close();
     }

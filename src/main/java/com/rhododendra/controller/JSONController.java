@@ -15,7 +15,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
 @RestController
-public class EndpointController {
+public class JSONController {
 
     @GetMapping(value = "/search_json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> searchJson(@RequestParam("q") String query) throws IOException, ParseException {

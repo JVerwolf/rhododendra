@@ -53,7 +53,7 @@ public class SearchService {
     }
 
     public static List<Botanist> getBotanistById(String id) throws IOException {
-        Query query = new TermQuery(new Term(Botanist.PRIMARY_ID_KEY, id));
+        Query query = new TermQuery(new Term(Botanist.primaryIdKey, id));
         Directory indexDirectory = FSDirectory.open(Paths.get(BOTANIST_INDEX_PATH));
         IndexReader indexReader = DirectoryReader.open(indexDirectory);
         IndexSearcher searcher = new IndexSearcher(indexReader);
@@ -94,7 +94,7 @@ public class SearchService {
     }
 
     public static List<Species> getSpeciesById(String id) throws IOException {
-        Query query = new TermQuery(new Term(Species.PRIMARY_ID_KEY, id));
+        Query query = new TermQuery(new Term(Species.primaryIdKey, id));
         Directory indexDirectory = FSDirectory.open(Paths.get(SPECIES_INDEX_PATH));
         IndexReader indexReader = DirectoryReader.open(indexDirectory);
         IndexSearcher searcher = new IndexSearcher(indexReader);

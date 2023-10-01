@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Species implements PrimaryID {
+public class Species extends PrimaryID {
     public static final String ID_KEY = "id";
     public static final String NAME_KEY = "name";
     public static final String SUBGENUS_KEY = "subgenus";
@@ -32,7 +32,6 @@ public class Species implements PrimaryID {
     public static final String SYNONYMS_KEY = "synonyms";
     public static final String PHOTOS_KEY = "photos";
     public static final String EXTRA_INFORMATION_KEY = "extra_information";
-    public static final String PRIMARY_ID_KEY = ID_KEY;
 
     @JsonProperty(ID_KEY)
     String id;
@@ -81,7 +80,11 @@ public class Species implements PrimaryID {
     @JsonProperty(PHOTOS_KEY)
     List<String> photos;
     @JsonProperty(EXTRA_INFORMATION_KEY)
-    String extra_informatio;
+    String extra_information;
+
+    public Species() {
+        super(ID_KEY);
+    }
 
     public String getId() {
         return id;
@@ -267,12 +270,12 @@ public class Species implements PrimaryID {
         this.photos = photos;
     }
 
-    public String getExtra_informatio() {
-        return extra_informatio;
+    public String getExtra_information() {
+        return extra_information;
     }
 
-    public void setExtra_informatio(String extra_informatio) {
-        this.extra_informatio = extra_informatio;
+    public void setExtra_information(String extra_information) {
+        this.extra_information = extra_information;
     }
 
     @JsonIgnore
