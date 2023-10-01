@@ -13,6 +13,8 @@ public class Botanist extends PrimaryID {
     public static final String FULL_NAME_KEY = "full_name";
     public static final String IMAGE_KEY = "image";
 
+    public static final String PRIMARY_ID_KEY = BOTANICAL_SHORT_KEY;
+
     @JsonProperty(BOTANICAL_SHORT_KEY)
     String botanicalShort;
     @JsonProperty(LOCATION_KEY)
@@ -23,10 +25,6 @@ public class Botanist extends PrimaryID {
     String fullName;
     @JsonProperty(IMAGE_KEY)
     String image;
-
-    public Botanist() {
-        super(BOTANICAL_SHORT_KEY);
-    }
 
     public String getBotanicalShort() {
         return botanicalShort;

@@ -33,6 +33,8 @@ public class Species extends PrimaryID {
     public static final String PHOTOS_KEY = "photos";
     public static final String EXTRA_INFORMATION_KEY = "extra_information";
 
+    public static final String PRIMARY_ID_KEY = ID_KEY;
+
     @JsonProperty(ID_KEY)
     String id;
     @JsonProperty(NAME_KEY)
@@ -81,10 +83,6 @@ public class Species extends PrimaryID {
     List<String> photos;
     @JsonProperty(EXTRA_INFORMATION_KEY)
     String extra_information;
-
-    public Species() {
-        super(ID_KEY);
-    }
 
     public String getId() {
         return id;

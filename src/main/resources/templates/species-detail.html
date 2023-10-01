@@ -4,15 +4,24 @@
 <body>
 <div th:replace="~{fragments/header}"></div>
 
-<h1 th:text="'R. ' + ${species.name}"></h1>
+<h1 th:text="'R. ' + ${speciesDetail.getSpecies().getName()}"></h1>
 <table>
     <thead>Pictures</thead>
-    <tr th:each="photo : ${species.getPhotos()}">
+    <tr th:each="photoRowInfo : ${speciesDetail.getPhotoRowInfoList()}">
         <td>
-            <img th:src="${photo}" width="400">
+            <img th:src="${photoRowInfo.getResolvedURL()}" width="400">
         </td>
         <td>
-            todo
+            <dl>
+                <dt>Photo By:</dt>
+                <dd th:text="${photoRowInfo.getPhotoDetails().getPhotoBy()}"></dd>
+
+                <dt>Date:</dt>
+                <dd th:text="${photoRowInfo.getPhotoDetails().getDate()}"></dd>
+
+                <dt>Location</dt>
+                <dd th:text="${photoRowInfo.getPhotoDetails().getLocation()}"></dd>
+            </dl>
         </td>
     </tr>
 </table>

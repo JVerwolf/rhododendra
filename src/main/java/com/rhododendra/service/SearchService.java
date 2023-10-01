@@ -3,112 +3,142 @@ package com.rhododendra.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rhododendra.model.Botanist;
+import com.rhododendra.model.PhotoDetails;
 import com.rhododendra.model.Species;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.rhododendra.service.IndexService.*;
 
 public class SearchService {
+    private static Logger logger = LoggerFactory.getLogger(SearchService.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static List<Botanist> searchBotanists(String queryString) throws IOException, ParseException {
-        return searchBotanists(queryString, Botanist.FULL_NAME_KEY);
+    public static List<Botanist> searchBotanists(String queryString) {
+        try {
+            return search(
+                new QueryParser(Botanist.FULL_NAME_KEY, new StandardAnalyzer()).parse(queryString),
+                BOTANIST_INDEX_PATH,
+                new TypeReference<>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search searchBotanists", e);
+            return Collections.emptyList();
+        }
     }
 
-    public static List<Species> searchSpecies(String queryString) throws IOException, ParseException {
-        return searchSpecies(queryString, Species.NAME_KEY);
+    public static List<Species> searchSpecies(String queryString) {
+        try {
+            return search(
+                new QueryParser(Species.NAME_KEY, new StandardAnalyzer()).parse(queryString),
+                SPECIES_INDEX_PATH,
+                new TypeReference<>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search searchSpecies", e);
+            return Collections.emptyList();
+        }
     }
 
-    private static List<Botanist> searchBotanists(String queryString, String inField) throws IOException, ParseException {
-        Query query = new QueryParser(inField, new StandardAnalyzer()).parse(queryString);
-        Directory indexDirectory = FSDirectory.open(Paths.get(BOTANIST_INDEX_PATH));
+    public static List<PhotoDetails> searchPhotoDetails(String queryString) {
+        try {
+            return search(
+                new QueryParser(PhotoDetails.PHOTO_BY, new StandardAnalyzer()).parse(queryString),
+                PHOTO_DETAIL_INDEX_PATH,
+                new TypeReference<>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search searchPhotoDetails", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static List<Botanist> getBotanistById(String id) {
+        try {
+            return search(
+                new TermQuery(new Term(Botanist.PRIMARY_ID_KEY, id)),
+                BOTANIST_INDEX_PATH,
+                new TypeReference<>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search getBotanistById", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static List<Species> getSpeciesById(String id) {
+        try {
+            return search(
+                new TermQuery(new Term(Species.PRIMARY_ID_KEY, id)),
+                SPECIES_INDEX_PATH,
+                new TypeReference<Species>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search getSpeciesById", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static List<PhotoDetails> getPhotoDetailsById(String id) {
+        try {
+            return search(
+                new TermQuery(new Term(PhotoDetails.PRIMARY_ID_KEY, id)),
+                PHOTO_DETAIL_INDEX_PATH,
+                new TypeReference<>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search getPhotoDetailsById", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static List<List<PhotoDetails>> getMultiplePhotoDetailsById(List<String> ids) {
+        try {
+            List<List<PhotoDetails>> results = Collections.emptyList();
+            for (var id : ids) {
+                results.add(getPhotoDetailsById(id));
+            }
+            return results;
+        } catch (Exception e) {
+            logger.error("Could not search getMultiplePhotoDetailsById", e);
+            return Collections.emptyList();
+        }
+    }
+
+    private static <T> List<T> search(Query query, String indexPath, TypeReference<T> tr) throws IOException {
+        Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));
         IndexReader indexReader = DirectoryReader.open(indexDirectory);
         IndexSearcher searcher = new IndexSearcher(indexReader);
         TopDocs topDocs = searcher.search(query, 10);
 
-        List<Botanist> searchResults = new ArrayList<>();
+        List<T> searchResults = new ArrayList<>();
         for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-
-            var test = searcher.doc(scoreDoc.doc);
-            for (var field : test.getFields(SOURCE_KEY)) {
-                var botanist = objectMapper.readValue(field.stringValue(), new TypeReference<Botanist>() {
-                });
-                searchResults.add(botanist);
-            }
-        }
-        return searchResults;
-    }
-
-    public static List<Botanist> getBotanistById(String id) throws IOException {
-        Query query = new TermQuery(new Term(Botanist.primaryIdKey, id));
-        Directory indexDirectory = FSDirectory.open(Paths.get(BOTANIST_INDEX_PATH));
-        IndexReader indexReader = DirectoryReader.open(indexDirectory);
-        IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs topDocs = searcher.search(query, 1);
-
-        List<Botanist> searchResults = new ArrayList<>();
-        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-            var test = searcher.doc(scoreDoc.doc);
-            for (var field : test.getFields(SOURCE_KEY)) {
-                var botanist = objectMapper.readValue(
+            var document = searcher.doc(scoreDoc.doc);
+            for (var field : document.getFields(SOURCE_KEY)) {
+                T result = objectMapper.readValue(
                     field.stringValue(),
-                    new TypeReference<Botanist>() {
-                    });
-                searchResults.add(botanist);
-            }
-        }
-        return searchResults;
-    }
-
-    private static List<Species> searchSpecies(String queryString, String inField) throws IOException, ParseException {
-        Query query = new QueryParser(inField, new StandardAnalyzer()).parse(queryString);
-        Directory indexDirectory = FSDirectory.open(Paths.get(SPECIES_INDEX_PATH));
-        IndexReader indexReader = DirectoryReader.open(indexDirectory);
-        IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs topDocs = searcher.search(query, 10);
-
-        List<Species> searchResults = new ArrayList<>();
-        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-
-            var test = searcher.doc(scoreDoc.doc);
-            for (var field : test.getFields(SOURCE_KEY)) {
-                var species = objectMapper.readValue(field.stringValue(), new TypeReference<Species>() {
-                });
-                searchResults.add(species);
-            }
-        }
-        return searchResults;
-    }
-
-    public static List<Species> getSpeciesById(String id) throws IOException {
-        Query query = new TermQuery(new Term(Species.primaryIdKey, id));
-        Directory indexDirectory = FSDirectory.open(Paths.get(SPECIES_INDEX_PATH));
-        IndexReader indexReader = DirectoryReader.open(indexDirectory);
-        IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs topDocs = searcher.search(query, 1);
-
-        List<Species> searchResults = new ArrayList<>();
-        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-            var test = searcher.doc(scoreDoc.doc);
-            for (var field : test.getFields(SOURCE_KEY)) {
-                var species = objectMapper.readValue(
-                    field.stringValue(),
-                    new TypeReference<Species>() {
-                    });
-                searchResults.add(species);
+                    tr);
+                searchResults.add(result);
             }
         }
         return searchResults;
