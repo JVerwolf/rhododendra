@@ -19,7 +19,7 @@ import java.util.function.BiConsumer;
 
 
 public class IndexService {
-    public final static String BASE_INDEX_PATH = "/Users/john.verwolf/code/rhododendra/src/main/resources/index";
+    public final static String BASE_INDEX_PATH = "index";
     public final static String BOTANIST_INDEX_PATH = BASE_INDEX_PATH + "/botanists";
     public final static String SPECIES_INDEX_PATH = BASE_INDEX_PATH + "/species";
     public final static String PHOTO_DETAIL_INDEX_PATH = BASE_INDEX_PATH + "/photo_details";
