@@ -15,7 +15,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
 @RestController
-public class JSONController {
+public class RestResourceController {
 
     @GetMapping(value = "/search_json", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> searchJson(@RequestParam("q") String query) throws IOException, ParseException {
@@ -27,6 +27,9 @@ public class JSONController {
         );
     }
 
+    /**
+     * This is just for local hosting and testing.
+     */
     @GetMapping(value = "/img/{id:.+}", produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<Resource> getImage(@PathVariable("id") String id) throws IOException {
         System.out.println(id);
