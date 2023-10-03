@@ -25,6 +25,11 @@ public class WebController {
         return "search-results";
     }
 
+    @RequestMapping(value = "/about")
+    public String handleAbout() throws IOException, ParseException {
+        return "about";
+    }
+
     @RequestMapping(value = "/species/{id}")
     public String handleGetSpecies(Model model, @PathVariable("id") String id) throws IOException {
         var speciesDetail = RhodoLogicService.getSpeciesDetailForView(id);
