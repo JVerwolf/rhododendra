@@ -9,6 +9,16 @@ import java.io.IOException;
 import java.util.List;
 
 public class RhodoLogicService {
+
+    public static List<Species> scrollSpeciesByLetter(String letter, int pageSize, int offset) throws IOException {
+        // todo validate input
+        return SearchService.getAllByFirstLetter(letter.toLowerCase()).stream()
+            .peek(rhodo ->
+                rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
+            )
+            .toList();
+    }
+
     public static List<Species> searchSpecies(String queryString) throws IOException, ParseException {
         return SearchService.searchSpecies(queryString).stream()
             .peek(rhodo ->

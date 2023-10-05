@@ -5,12 +5,14 @@ import com.rhododendra.model.Botanist;
 import com.rhododendra.model.PhotoDetails;
 import com.rhododendra.model.PrimaryID;
 import com.rhododendra.model.Species;
+import com.rhododendra.util.Util;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -25,6 +27,10 @@ public class IndexService {
     public final static String PHOTO_DETAIL_INDEX_PATH = BASE_INDEX_PATH + "/photo_details";
 
 
+    //Additional Search/Index keys
+    public static final String LETTER_KEY = "letter";
+
+
     public final static String SOURCE_KEY = "_source";
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
@@ -37,6 +43,8 @@ public class IndexService {
             Species.PRIMARY_ID_KEY,
             (document, species) -> {
                 document.add(new TextField(Species.NAME_KEY, species.getName(), Field.Store.NO));
+                document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(species.getName()), Field.Store.NO));
+                document.add(new SortedDocValuesField(Species.NAME_KEY, new BytesRef(species.getName())));
             }
         );
     }

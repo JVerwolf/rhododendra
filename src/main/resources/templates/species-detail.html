@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/head}"></head>
 <body>
 <div th:replace="~{fragments/header}"></div>
-
+<div style="padding-left:16px">
 <h1 th:text="'R. ' + ${speciesDetail.getSpecies().getName()}"></h1>
 
 <table>
@@ -84,6 +84,6 @@
         </td>
     </tr>
 </table>
-
+</div>
 </body>
 </html>

@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ServiceTests {
 
+
     @Test
     void testIndexAndSearchBotanists() throws IOException, ParseException {
         indexBotanists();
@@ -26,7 +27,9 @@ public class ServiceTests {
     void testIndexAndSearchSpecies() throws IOException, ParseException {
         indexSpecies();
         assertThat(searchSpecies("microphyton")).isNotEmpty();
+//        assertThat(getSpeciesByLetter("a")).isNotEmpty();
         assertEquals(1, getSpeciesById("2373").size());
+        assertThat(getAllByFirstLetter("a")).hasSize(95);
     }
 
     @Test

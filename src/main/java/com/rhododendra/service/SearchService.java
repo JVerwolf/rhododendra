@@ -15,12 +15,8 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -102,6 +98,20 @@ public class SearchService {
         }
     }
 
+//    public static List<Species> getSpeciesByLetter(String letter) {
+//        try {
+//            return search(
+//                new TermQuery(new Term(LETTER_KEY, letter)),
+//                SPECIES_INDEX_PATH,
+//                new TypeReference<Species>() {
+//                }
+//            );
+//        } catch (Exception e) {
+//            logger.error("Could not search getSpeciesByLetter", e);
+//            return Collections.emptyList();
+//        }
+//    }
+
     public static List<PhotoDetails> getPhotoDetailsById(String id) {
         try {
             return search(
@@ -129,11 +139,25 @@ public class SearchService {
         }
     }
 
-    private static <T> List<T> search(Query query, String indexPath, TypeReference<T> tr) throws IOException {
+    private static <T> List<T> search(
+        Query query,
+        String indexPath,
+        TypeReference<T> tr
+    ) throws IOException {
+        return search(query, indexPath, tr, 10);
+    }
+
+
+    private static <T> List<T> search(
+        Query query,
+        String indexPath,
+        TypeReference<T> tr,
+        int numResults
+    ) throws IOException {
         Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));
         IndexReader indexReader = DirectoryReader.open(indexDirectory);
         IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs topDocs = searcher.search(query, 10);
+        TopDocs topDocs = searcher.search(query, numResults);
 
         List<T> searchResults = new ArrayList<>();
         for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
@@ -142,6 +166,35 @@ public class SearchService {
                 T result = objectMapper.readValue(
                     field.stringValue(),
                     tr);
+                searchResults.add(result);
+            }
+        }
+        return searchResults;
+    }
+
+
+    public static List<Species> getAllByFirstLetter(
+        String letter
+    ) throws IOException {
+        var MAX_RESULTS = 5000;
+
+        Query query = new TermQuery(new Term(LETTER_KEY, letter));
+        Sort sort = new Sort(new SortField(Species.NAME_KEY, SortField.Type.STRING));
+
+        Directory indexDirectory = FSDirectory.open(Paths.get(SPECIES_INDEX_PATH));
+        IndexReader indexReader = DirectoryReader.open(indexDirectory);
+        IndexSearcher searcher = new IndexSearcher(indexReader);
+        TopDocs topDocs = searcher.search(query, MAX_RESULTS, sort);
+
+        List<Species> searchResults = new ArrayList<>();
+        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            var document = searcher.doc(scoreDoc.doc);
+            for (var field : document.getFields(SOURCE_KEY)) {
+                Species result = objectMapper.readValue(
+                    field.stringValue(),
+                    new TypeReference<Species>() {
+                    }
+                );
                 searchResults.add(result);
             }
         }
