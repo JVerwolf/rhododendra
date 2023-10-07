@@ -3,8 +3,6 @@ package com.rhododendra.service;
 import com.rhododendra.model.PhotoDetails;
 import com.rhododendra.model.Species;
 import com.rhododendra.model.SpeciesDetail;
-import com.rhododendra.model.Synonym;
-import org.apache.logging.log4j.util.Strings;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 import java.io.IOException;

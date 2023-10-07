@@ -2,10 +2,22 @@
 <!--/*@thymesVar id="species" type="com.rhododendra.model.Species"*/-->
 <tr th:fragment="card(species)">
     <td>
-        <h2><span th:text="'R. ' + ${species.name}"></span></h2>
-        <th:block th:if="${species.class.name == 'com.rhododendra.model.Species'}">
-            <th:block th:insert="~{fragments/species-preview-info :: preview(${species})}"></th:block>
-        </th:block>
+        <h2>
+            <span th:if="${not species.getIs_natural_hybrid()}" th:text="'R. ' + ${species.name}"></span>
+            <span th:if="${species.getIs_natural_hybrid()}" th:text="'R. x ' + ${species.name}"></span>
+<!--            <span th:text="'R. ' + ${species.name}"></span>-->
+        </h2>
+        <dl>
+            <dt>Subgenus</dt>
+            <dd th:text="${species.getSubgenus()}"></dd>
+
+            <dt>Section</dt>
+            <dd th:text="${species.getSection()}"></dd>
+
+            <dt>subsection</dt>
+            <dd th:text="${species.getSubsection()}"></dd>
+        </dl>
+        <a th:href="@{'/species/'+ ${species.id}}">More information and pictures</a>
     </td>
     <td>
         <th:block th:if="${not #lists.isEmpty(species.photos)}">

@@ -98,20 +98,6 @@ public class SearchService {
         }
     }
 
-//    public static List<Species> getSpeciesByLetter(String letter) {
-//        try {
-//            return search(
-//                new TermQuery(new Term(LETTER_KEY, letter)),
-//                SPECIES_INDEX_PATH,
-//                new TypeReference<Species>() {
-//                }
-//            );
-//        } catch (Exception e) {
-//            logger.error("Could not search getSpeciesByLetter", e);
-//            return Collections.emptyList();
-//        }
-//    }
-
     public static List<PhotoDetails> getPhotoDetailsById(String id) {
         try {
             return search(
@@ -179,7 +165,7 @@ public class SearchService {
         var MAX_RESULTS = 5000;
 
         Query query = new TermQuery(new Term(LETTER_KEY, letter));
-        Sort sort = new Sort(new SortField(Species.NAME_KEY, SortField.Type.STRING));
+        Sort sort = new Sort(new SortField(Species.NAME_KEY_FOR_SORT, SortField.Type.STRING));
 
         Directory indexDirectory = FSDirectory.open(Paths.get(SPECIES_INDEX_PATH));
         IndexReader indexReader = DirectoryReader.open(indexDirectory);

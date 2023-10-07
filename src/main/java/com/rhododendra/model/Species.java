@@ -10,6 +10,7 @@ import java.util.List;
 public class Species extends PrimaryID {
     public static final String ID_KEY = "id";
     public static final String NAME_KEY = "name";
+    public static final String NAME_KEY_FOR_SORT = "name_key_for_sort";
     public static final String SUBGENUS_KEY = "subgenus";
     public static final String SECTION_KEY = "section";
     public static final String SUBSECTION_KEY = "subsection";

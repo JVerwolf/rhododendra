@@ -44,7 +44,7 @@ public class IndexService {
             (document, species) -> {
                 document.add(new TextField(Species.NAME_KEY, species.getName(), Field.Store.NO));
                 document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(species.getName()), Field.Store.NO));
-                document.add(new SortedDocValuesField(Species.NAME_KEY, new BytesRef(species.getName())));
+                document.add(new SortedDocValuesField(Species.NAME_KEY_FOR_SORT, new BytesRef(species.getName().toLowerCase())));
             }
         );
     }
