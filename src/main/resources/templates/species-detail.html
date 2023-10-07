@@ -4,7 +4,10 @@
 <body>
 <div th:replace="~{fragments/header}"></div>
 <div style="padding-left:16px">
-    <h1 th:text="'R. ' + ${speciesDetail.getSpecies().getName()}"></h1>
+    <h1 th:if="${speciesDetail.getSpecies().getIs_natural_hybrid()}"
+        th:text="'R. x ' + ${speciesDetail.getSpecies().getName()}"></h1>
+    <h1 th:if="${not speciesDetail.getSpecies().getIs_natural_hybrid()}"
+        th:text="'R. ' + ${speciesDetail.getSpecies().getName()}"></h1>
 
     <table>
         <tr>
@@ -31,6 +34,11 @@
         </tr>
         <tr>
             <td>
+                <th:block th:if="${speciesDetail.getSpecies().getIs_natural_hybrid()}">
+                    <dt th:text="'R. x '+${speciesDetail.getSpecies().getName()}+' is a natural hybrid (seed x pollen):'"></dt>
+                    <dd th:text="'R. '+${speciesDetail.getSpecies().getSeed_parent()}+' x R.'+${speciesDetail.getSpecies().getPollen_parent()}"></dd>
+                </th:block>
+
                 <dt>In cultivation since:</dt>
                 <dd th:text="${speciesDetail.getSpecies().getCultivation_since()}"></dd>
 

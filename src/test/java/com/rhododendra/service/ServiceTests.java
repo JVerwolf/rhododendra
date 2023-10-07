@@ -26,7 +26,7 @@ public class ServiceTests {
     @Test
     void testIndexAndSearchSpecies() throws IOException, ParseException {
         indexSpecies();
-        assertThat(searchSpecies("microphyton")).isNotEmpty();
+        assertThat(searchSpecies("lemon")).isNotEmpty();
         assertEquals(1, getSpeciesById("2373").size());
         assertThat(getAllByFirstLetter("s")).hasSize(130);
     }

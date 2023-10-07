@@ -16,7 +16,7 @@ public class Species extends PrimaryID {
     public static final String SUBSECTION_KEY = "subsection";
     public static final String IS_NATURAL_HYBRID_KEY = "is_natural_hybrid";
     public static final String SEED_PARENT_KEY = "seed_parent";
-    public static final String POLLENT_PARENT_KEY = "pollent_parent";
+    public static final String POLLEN_PARENT_KEY = "pollen_parent";
     public static final String CULTIVATION_SINCE_KEY = "cultivation_since";
     public static final String FIRST_DESCRIBED_KEY = "first_described";
     public static final String FIRST_DESCRIBED_BOTANISTS_KEY = "first_described_botanists";
@@ -50,7 +50,7 @@ public class Species extends PrimaryID {
     Boolean is_natural_hybrid;
     @JsonProperty(SEED_PARENT_KEY)
     String seed_parent;
-    @JsonProperty(POLLENT_PARENT_KEY)
+    @JsonProperty(POLLEN_PARENT_KEY)
     String pollen_parent;
     @JsonProperty(CULTIVATION_SINCE_KEY)
     String cultivation_since;
