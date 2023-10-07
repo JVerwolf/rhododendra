@@ -36,7 +36,7 @@ public class ServiceTests {
     void testIndexAndSearchPhotoDetails() throws IOException, ParseException {
         indexPhotoDetails();
         assertThat(searchPhotoDetails("Wedemire")).isNotEmpty();
-        assertEquals(1, getPhotoDetailsById("leucaspis_628_normal_2.jpg").size());
+        assertEquals(1, getPhotoDetailsById("390_denudatum_17_normal.jpg").size());
     }
 
 

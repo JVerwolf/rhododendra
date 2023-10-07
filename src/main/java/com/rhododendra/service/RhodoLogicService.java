@@ -42,6 +42,8 @@ public class RhodoLogicService {
                         .map((photoDetails) ->
                             new SpeciesDetail.PhotoRowInfo(
                                 ImageResolver.resolveImagePath(imgFileName),
+                                ImageResolver.resolveImagePath(photoDetails.getHiResPhoto()),
+                                ImageResolver.resolveImagePath(photoDetails.getTag()),
                                 photoDetails
                             )
                         )

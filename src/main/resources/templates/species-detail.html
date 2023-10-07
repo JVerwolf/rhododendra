@@ -4,89 +4,99 @@
 <body>
 <div th:replace="~{fragments/header}"></div>
 <div style="padding-left:16px">
-<h1 th:text="'R. ' + ${speciesDetail.getSpecies().getName()}"></h1>
+    <h1 th:text="'R. ' + ${speciesDetail.getSpecies().getName()}"></h1>
 
-<table>
-    <tr>
-        <td>
-            <dl>
-                <dt>Subgenus:</dt>
-                <dd th:text="${speciesDetail.getSpecies().getSubgenus()}"></dd>
+    <table>
+        <tr>
+            <td>
+                <dl>
+                    <dt>Subgenus:</dt>
+                    <dd th:text="${speciesDetail.getSpecies().getSubgenus()}"></dd>
 
-                <dt>Section:</dt>
-                <dd th:text="${speciesDetail.getSpecies().getSection()}"></dd>
+                    <dt>Section:</dt>
+                    <dd th:text="${speciesDetail.getSpecies().getSection()}"></dd>
 
-                <dt>subsection:</dt>
-                <dd th:text="${speciesDetail.getSpecies().getSubsection()}"></dd>
-            </dl>
-        </td>
-        <td>
-            <dt>Synonyms:</dt>
-            <th:block th:each="synonym : ${speciesDetail.getSpecies().getSynonyms()}">
-               <dd th:if="${synonym.botanical_shorts().isEmpty()}" th:text="${synonym.synonym()}"></dd>
-               <dd th:if="${not synonym.botanical_shorts().isEmpty()}"
-                   th:text="${synonym.synonym()} + ' ('+ ${synonym.botanical_shorts() + ')'}"></dd>
-            </th:block>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            <dt>In cultivation since:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getCultivation_since()}"></dd>
+                    <dt>subsection:</dt>
+                    <dd th:text="${speciesDetail.getSpecies().getSubsection()}"></dd>
+                </dl>
+            </td>
+            <td>
+                <dt>Synonyms:</dt>
+                <th:block th:each="synonym : ${speciesDetail.getSpecies().getSynonyms()}">
+                    <dd th:if="${synonym.botanical_shorts().isEmpty()}" th:text="${synonym.synonym()}"></dd>
+                    <dd th:if="${not synonym.botanical_shorts().isEmpty()}"
+                        th:text="${synonym.synonym()} + ' ('+ ${synonym.botanical_shorts() + ')'}"></dd>
+                </th:block>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <dt>In cultivation since:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getCultivation_since()}"></dd>
 
-            <dt>First described:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getFirst_described()}"></dd>
+                <dt>First described:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getFirst_described()}"></dd>
 
-            <dt>Origin:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getOrigin()}"></dd>
+                <dt>Origin:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getOrigin()}"></dd>
 
-            <dt>Corolla:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getCorolla()}"></dd>
+                <dt>Corolla:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getCorolla()}"></dd>
 
-            <dt>Leaves:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getLeaves()}"></dd>
+                <dt>Leaves:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getLeaves()}"></dd>
 
-            <dt>Habit:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getHabit()}"></dd>
+                <dt>Habit:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getHabit()}"></dd>
 
-            <dt>Winter:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getWinter()}"></dd>
+                <dt>Winter:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getWinter()}"></dd>
 
-            <dt>Bloom Time:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getBloom_time()}"></dd>
+                <dt>Bloom Time:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getBloom_time()}"></dd>
 
-            <dt>Hardiness:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getHardiness()}"></dd>
+                <dt>Hardiness:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getHardiness()}"></dd>
 
-            <dt>Predominant Colour:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getPredominant_colour()}"></dd>
+                <dt>Predominant Colour:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getPredominant_colour()}"></dd>
 
-            <dt>Height Observed in the Wild:</dt>
-            <dd th:text="${speciesDetail.getSpecies().getHeight()}"></dd>
-        </td>
-    </tr>
-</table>
+                <dt>Height Observed in the Wild:</dt>
+                <dd th:text="${speciesDetail.getSpecies().getHeight()}"></dd>
+            </td>
+        </tr>
+    </table>
 
-<table>
-    <thead><h2>Pictures</h2></thead>
-    <tr th:each="photoRowInfo : ${speciesDetail.getPhotoRowInfoList()}">
-        <td>
-            <img th:src="${photoRowInfo.getResolvedURL()}" width="400">
-        </td>
-        <td>
-            <dl>
-                <dt>Photo By:</dt>
-                <dd th:text="${photoRowInfo.getPhotoDetails().getPhotoBy()}"></dd>
+    <table>
+        <thead><h2>Pictures</h2></thead>
+        <tr th:each="photoRowInfo : ${speciesDetail.getPhotoRowInfoList()}">
+            <td>
+                <img th:src="${photoRowInfo.getResolvedNormalURL()}" width="400">
+            </td>
+            <td>
+                <dl>
+                    <dt>Photo By:</dt>
+                    <dd th:text="${photoRowInfo.getPhotoDetails().getPhotoBy()}"></dd>
 
-                <dt>Date:</dt>
-                <dd th:text="${photoRowInfo.getPhotoDetails().getDate()}"></dd>
+                    <dt>Date:</dt>
+                    <dd th:text="${photoRowInfo.getPhotoDetails().getDate()}"></dd>
 
-                <dt>Location</dt>
-                <dd th:text="${photoRowInfo.getPhotoDetails().getLocation()}"></dd>
-            </dl>
-        </td>
-    </tr>
-</table>
+                    <dt>Location</dt>
+                    <dd th:text="${photoRowInfo.getPhotoDetails().getLocation()}"></dd>
+
+                    <th:block th:if="${photoRowInfo.getPhotoDetails().getHiResPhoto() != null}">
+                        <dt>Hi-Resolution Version:</dt>
+                        <dd><a th:href="${photoRowInfo.getResolvedHiResURL()}">Hi-res photo</a></dd>
+                    </th:block>
+
+                    <th:block th:if="${photoRowInfo.getPhotoDetails().getTag() != null}">
+                        <dt>Tag:</dt>
+                        <dd><img th:src="${photoRowInfo.getResolvedTagURL()}"></dd>
+                    </th:block>
+                </dl>
+            </td>
+        </tr>
+    </table>
 </div>
 </body>
 </html>

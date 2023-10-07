@@ -12,6 +12,7 @@ public class PhotoDetails extends PrimaryID {
     public static final String PHOTO = "photo";
     public static final String DESCRIPTION = "description";
     public static final String NAME = "name";
+    public static final String TAG = "tag";
 
     public static final String PRIMARY_ID_KEY = PHOTO;
 
@@ -29,6 +30,8 @@ public class PhotoDetails extends PrimaryID {
     String description;
     @JsonProperty(NAME)
     String name;
+    @JsonProperty(TAG)
+    String tag;
 
     @Override
     public String primaryIdValue() {
@@ -89,5 +92,13 @@ public class PhotoDetails extends PrimaryID {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 }

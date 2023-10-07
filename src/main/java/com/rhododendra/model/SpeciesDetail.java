@@ -20,16 +20,33 @@ public class SpeciesDetail {
     }
 
     public static class PhotoRowInfo {
-        public String resolvedURL;
+        public String resolvedNormalURL;
+        public String resolvedHiResURL;
+        public String resolvedTagURL;
         public PhotoDetails photoDetails;
 
-        public PhotoRowInfo(String resolvedURL, PhotoDetails photoDetails) {
-            this.resolvedURL = resolvedURL;
+        public PhotoRowInfo(
+            String resolvedNormalURL,
+            String resolvedHiResURL,
+            String resolvedTagURL,
+            PhotoDetails photoDetails
+        ) {
+            this.resolvedNormalURL = resolvedNormalURL;
+            this.resolvedHiResURL = resolvedHiResURL;
+            this.resolvedTagURL = resolvedTagURL;
             this.photoDetails = photoDetails;
         }
 
-        public String getResolvedURL() {
-            return resolvedURL;
+        public String getResolvedNormalURL() {
+            return resolvedNormalURL;
+        }
+
+        public String getResolvedHiResURL() {
+            return resolvedHiResURL;
+        }
+
+        public String getResolvedTagURL() {
+            return resolvedTagURL;
         }
 
         public PhotoDetails getPhotoDetails() {
