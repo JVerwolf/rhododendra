@@ -22,8 +22,11 @@
         </td>
         <td>
             <dt>Synonyms:</dt>
-            <dd th:each="synonym : ${speciesDetail.getSpecies().getSynonyms()}"
-                th:text="${synonym.synonym()} + ' ('+ ${synonym.botanical_shorts() + ')'}"></dd>
+            <th:block th:each="synonym : ${speciesDetail.getSpecies().getSynonyms()}">
+               <dd th:if="${synonym.botanical_shorts().isEmpty()}" th:text="${synonym.synonym()}"></dd>
+               <dd th:if="${not synonym.botanical_shorts().isEmpty()}"
+                   th:text="${synonym.synonym()} + ' ('+ ${synonym.botanical_shorts() + ')'}"></dd>
+            </th:block>
         </td>
     </tr>
     <tr>

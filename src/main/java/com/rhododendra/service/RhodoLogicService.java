@@ -3,6 +3,8 @@ package com.rhododendra.service;
 import com.rhododendra.model.PhotoDetails;
 import com.rhododendra.model.Species;
 import com.rhododendra.model.SpeciesDetail;
+import com.rhododendra.model.Synonym;
+import org.apache.logging.log4j.util.Strings;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 import java.io.IOException;
@@ -27,7 +29,7 @@ public class RhodoLogicService {
             .toList();
     }
 
-    public static SpeciesDetail getSpeciesDetailForView(String id) throws IOException {
+    public static SpeciesDetail getSpeciesDetailForView(String id) {
         var rawSpecies = SearchService.getSpeciesById(id);
         if (!rawSpecies.isEmpty()) {
             var species = rawSpecies.get(0);
@@ -51,13 +53,13 @@ public class RhodoLogicService {
         }
     }
 
-    public static List<Species> getSpeciesById(String id) throws IOException {
+    public static List<Species> getSpeciesById(String id) {
         return SearchService.getSpeciesById(id).stream()
             .peek(rhodo -> rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos())))
             .toList();
     }
 
-    public static List<PhotoDetails> getPhotoDetails(List<String> photoLinks) throws IOException {
+    public static List<PhotoDetails> getPhotoDetails(List<String> photoLinks) {
         return SearchService.getMultiplePhotoDetailsById(photoLinks)
             .stream()
             .filter(details -> !details.isEmpty())
