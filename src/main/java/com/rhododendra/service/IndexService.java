@@ -1,10 +1,7 @@
 package com.rhododendra.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rhododendra.model.Botanist;
-import com.rhododendra.model.PhotoDetails;
-import com.rhododendra.model.PrimaryID;
-import com.rhododendra.model.Species;
+import com.rhododendra.model.*;
 import com.rhododendra.util.Util;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -24,6 +21,7 @@ public class IndexService {
     public final static String BASE_INDEX_PATH = "index";
     public final static String BOTANIST_INDEX_PATH = BASE_INDEX_PATH + "/botanists";
     public final static String SPECIES_INDEX_PATH = BASE_INDEX_PATH + "/species";
+    public final static String HYBRIDS_INDEX_PATH = BASE_INDEX_PATH + "/hybrids";
     public final static String PHOTO_DETAIL_INDEX_PATH = BASE_INDEX_PATH + "/photo_details";
 
 
@@ -45,6 +43,19 @@ public class IndexService {
                 document.add(new TextField(Species.NAME_KEY, species.getName(), Field.Store.NO));
                 document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(species.getName()), Field.Store.NO));
                 document.add(new SortedDocValuesField(Species.NAME_KEY_FOR_SORT, new BytesRef(species.getName().toLowerCase())));
+            }
+        );
+    }
+
+    public static void indexHybrids() throws IOException {
+        index(
+            JSONLoaderService.loadHybrids(),
+            HYBRIDS_INDEX_PATH,
+            Hybrid.PRIMARY_ID_KEY,
+            (document, hybrid) -> {
+                document.add(new TextField(Hybrid.NAME_KEY, hybrid.getName(), Field.Store.NO));
+                document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(hybrid.getName()), Field.Store.NO));
+                document.add(new SortedDocValuesField(Hybrid.NAME_KEY_FOR_SORT, new BytesRef(hybrid.getName().toLowerCase())));
             }
         );
     }

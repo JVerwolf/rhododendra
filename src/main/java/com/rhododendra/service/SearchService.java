@@ -3,6 +3,7 @@ package com.rhododendra.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rhododendra.model.Botanist;
+import com.rhododendra.model.Hybrid;
 import com.rhododendra.model.PhotoDetails;
 import com.rhododendra.model.Species;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -52,6 +53,20 @@ public class SearchService {
             );
         } catch (Exception e) {
             logger.error("Could not search searchSpecies", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static List<Hybrid> searchHybrids(String queryString) {
+        try {
+            return search(
+                new QueryParser(Hybrid.NAME_KEY, new StandardAnalyzer()).parse(queryString),
+                HYBRIDS_INDEX_PATH,
+                new TypeReference<>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search searchHybrid", e);
             return Collections.emptyList();
         }
     }
@@ -159,7 +174,7 @@ public class SearchService {
     }
 
 
-    public static List<Species> getAllByFirstLetter(
+    public static List<Species> getAllSpeciesByFirstLetter(
         String letter
     ) throws IOException {
         var MAX_RESULTS = 5000;
@@ -179,6 +194,34 @@ public class SearchService {
                 Species result = objectMapper.readValue(
                     field.stringValue(),
                     new TypeReference<Species>() {
+                    }
+                );
+                searchResults.add(result);
+            }
+        }
+        return searchResults;
+    }
+
+    public static List<Hybrid> getAllHybridsByFirstLetter(
+        String letter
+    ) throws IOException {
+        var MAX_RESULTS = 5000;
+
+        Query query = new TermQuery(new Term(LETTER_KEY, letter));
+        Sort sort = new Sort(new SortField(Hybrid.NAME_KEY_FOR_SORT, SortField.Type.STRING));
+
+        Directory indexDirectory = FSDirectory.open(Paths.get(HYBRIDS_INDEX_PATH));
+        IndexReader indexReader = DirectoryReader.open(indexDirectory);
+        IndexSearcher searcher = new IndexSearcher(indexReader);
+        TopDocs topDocs = searcher.search(query, MAX_RESULTS, sort);
+
+        List<Hybrid> searchResults = new ArrayList<>();
+        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+            var document = searcher.doc(scoreDoc.doc);
+            for (var field : document.getFields(SOURCE_KEY)) {
+                Hybrid result = objectMapper.readValue(
+                    field.stringValue(),
+                    new TypeReference<Hybrid>() {
                     }
                 );
                 searchResults.add(result);

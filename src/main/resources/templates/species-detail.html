@@ -35,8 +35,8 @@
         <tr>
             <td>
                 <th:block th:if="${speciesDetail.getSpecies().getIs_natural_hybrid()}">
-                    <dt th:text="'R. x '+${speciesDetail.getSpecies().getName()}+' is a natural hybrid (seed x pollen):'"></dt>
-                    <dd th:text="'R. '+${speciesDetail.getSpecies().getSeed_parent()}+' x R.'+${speciesDetail.getSpecies().getPollen_parent()}"></dd>
+                    <dt th:text="'R. x '+${speciesDetail.getSpecies().getName()}+' is a natural hybrid:'"></dt>
+                    <dd th:text="'R. '+${speciesDetail.getSpecies().getSeed_parent()}+' x R.'+${speciesDetail.getSpecies().getPollen_parent()}+' (seed x pollen)'"></dd>
                 </th:block>
 
                 <dt>In cultivation since:</dt>
@@ -84,13 +84,24 @@
             <td>
                 <dl>
                     <dt>Photo By:</dt>
-                    <dd th:text="${photoRowInfo.getPhotoDetails().getPhotoBy()}"></dd>
+                    <dd th:if="${photoRowInfo.getPhotoDetails().getPhotoBy() != null}"
+                        th:text="${photoRowInfo.getPhotoDetails().getPhotoBy()}"></dd>
+                    <dd th:if="${photoRowInfo.getPhotoDetails().getPhotoBy() == null}">Unknown</dd>
 
-                    <dt>Date:</dt>
-                    <dd th:text="${photoRowInfo.getPhotoDetails().getDate()}"></dd>
+                    <th:block th:if="${photoRowInfo.getPhotoDetails().getDate() != null}">
+                        <dt>Date:</dt>
+                        <dd th:text="${photoRowInfo.getPhotoDetails().getDate()}"></dd>
+                    </th:block>
 
-                    <dt>Location</dt>
-                    <dd th:text="${photoRowInfo.getPhotoDetails().getLocation()}"></dd>
+                    <th:block th:if="${photoRowInfo.getPhotoDetails().getLocation() != null}">
+                        <dt>Location:</dt>
+                        <dd th:text="${photoRowInfo.getPhotoDetails().getLocation()}"></dd>
+                    </th:block>
+
+                    <th:block th:if="${photoRowInfo.getPhotoDetails().getDescription() != null && !photoRowInfo.getPhotoDetails().getDescription().isEmpty()}">
+                        <dt>Description:</dt>
+                        <dd th:text="${photoRowInfo.getPhotoDetails().getDescription()}"></dd>
+                    </th:block>
 
                     <th:block th:if="${photoRowInfo.getPhotoDetails().getHiResPhoto() != null}">
                         <dt>Hi-Resolution Version:</dt>

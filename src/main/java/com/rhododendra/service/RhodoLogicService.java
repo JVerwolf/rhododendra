@@ -1,5 +1,6 @@
 package com.rhododendra.service;
 
+import com.rhododendra.model.Hybrid;
 import com.rhododendra.model.PhotoDetails;
 import com.rhododendra.model.Species;
 import com.rhododendra.model.SpeciesDetail;
@@ -12,7 +13,16 @@ public class RhodoLogicService {
 
     public static List<Species> scrollSpeciesByLetter(String letter, int pageSize, int offset) throws IOException {
         // todo validate input
-        return SearchService.getAllByFirstLetter(letter.toLowerCase()).stream()
+        return SearchService.getAllSpeciesByFirstLetter(letter.toLowerCase()).stream()
+            .peek(rhodo ->
+                rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
+            )
+            .toList();
+    }
+
+    public static List<Hybrid> scrollHybridByLetter(String letter, int pageSize, int offset) throws IOException {
+        // todo validate input
+        return SearchService.getAllHybridsByFirstLetter(letter.toLowerCase()).stream()
             .peek(rhodo ->
                 rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
             )
@@ -21,6 +31,14 @@ public class RhodoLogicService {
 
     public static List<Species> searchSpecies(String queryString) throws IOException, ParseException {
         return SearchService.searchSpecies(queryString).stream()
+            .peek(rhodo ->
+                rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
+            )
+            .toList();
+    }
+
+    public static List<Hybrid> searchHybrids(String queryString) throws IOException, ParseException {
+        return SearchService.searchHybrids(queryString).stream()
             .peek(rhodo ->
                 rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
             )

@@ -1,6 +1,7 @@
 package com.rhododendra.service;
 
 import com.rhododendra.model.Botanist;
+import com.rhododendra.model.Hybrid;
 import com.rhododendra.model.Species;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,15 @@ public class ServiceTests {
         indexSpecies();
         assertThat(searchSpecies("lemon")).isNotEmpty();
         assertEquals(1, getSpeciesById("2373").size());
-        assertThat(getAllByFirstLetter("s")).hasSize(130);
+        assertThat(getAllSpeciesByFirstLetter("s")).hasSize(130);
+    }
+
+    @Test
+    void testIndexAndSearchHybrids() throws IOException {
+        indexHybrids();
+        assertThat(searchHybrids("lemon")).isNotEmpty();
+        assertEquals(1, getSpeciesById("1").size());
+        assertThat(getAllSpeciesByFirstLetter("s")).isNotEmpty();
     }
 
     @Test
@@ -50,5 +59,14 @@ public class ServiceTests {
         List<Species> botanists = JSONLoaderService.loadSpecies();
         assertThat(botanists).isNotEmpty();
     }
-}
 
+    @Test
+    void testLoadHybrid() throws IOException {
+        try {
+            List<Hybrid> hybrids = JSONLoaderService.loadHybrids();
+            assertThat(hybrids).isNotEmpty();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+}
