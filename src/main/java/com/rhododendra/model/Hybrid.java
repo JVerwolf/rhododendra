@@ -14,7 +14,7 @@ public class Hybrid extends PrimaryID {
 
     String id;
     String name;
-    String is_cultivar_group;
+    boolean is_cultivar_group;
     String hybridizer;
     String hybridizer_link;
     Integer hybridizer_id;
@@ -48,11 +48,11 @@ public class Hybrid extends PrimaryID {
         this.name = name;
     }
 
-    public String getIs_cultivar_group() {
+    public boolean getIs_cultivar_group() {
         return is_cultivar_group;
     }
 
-    public void setIs_cultivar_group(String is_cultivar_group) {
+    public void setIs_cultivar_group(boolean is_cultivar_group) {
         this.is_cultivar_group = is_cultivar_group;
     }
 
@@ -128,7 +128,7 @@ public class Hybrid extends PrimaryID {
         this.additional_parentage_info = additional_parentage_info;
     }
 
-    public boolean isIs_species_selection() {
+    public boolean getIs_species_selection() {
         return is_species_selection;
     }
 

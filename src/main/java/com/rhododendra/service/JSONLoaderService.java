@@ -15,7 +15,7 @@ public class JSONLoaderService {
     final static String BOTANISTS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/species_botanists.json";
     final static String SPECIES_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/species.json";
     final static String HYBRIDS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/hybrids.json";
-    final static String PHOTO_DETAILS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/species_photo_details.json";
+    final static String PHOTO_DETAILS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/photo_details.json";
 
     public static List<Botanist> loadBotanists() throws IOException {
         File file = new File(BOTANISTS_PATH);

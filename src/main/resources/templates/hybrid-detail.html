@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head}"></head>
+<body>
+<div th:replace="~{fragments/header}"></div>
+<!--/*@thymesVar id="hybrid" type="com.rhododendra.model.Hybrid"*/-->
+
+<div style="padding-left:16px">
+    <h1>
+        <span th:if="${hybrid.getIs_cultivar_group()}" th:text="|Cultivar Group '${hybrid.name}'|"></span>
+        <span th:if="${hybrid.getIs_species_selection()}" th:text="|Species Selection '${hybrid.name}'|"></span>
+        <span th:if="${!hybrid.getIs_species_selection() && !hybrid.getIs_cultivar_group()}"
+              th:text="|Rhododedron'${hybrid.name}'|"></span>
+    </h1>
+
+    <table>
+        <tr> Test
+        </tr>
+    </table>
+
+    <table>
+        <thead><h2>Pictures</h2></thead>
+        <tr th:each="resolvedPhotoDetail : ${resolvedPhotoDetails}">
+            <td>
+                <img th:src="${resolvedPhotoDetail.getResolvedNormalURL()}" width="400">
+            </td>
+            <td>
+                <dl>
+                    <dt>Photo By:</dt>
+                    <dd th:if="${resolvedPhotoDetail.getPhotoDetails().getPhotoBy() != null}"
+                        th:text="${resolvedPhotoDetail.getPhotoDetails().getPhotoBy()}"></dd>
+                    <dd th:if="${resolvedPhotoDetail.getPhotoDetails().getPhotoBy() == null}">Unknown</dd>
+
+                    <th:block th:if="${resolvedPhotoDetail.getPhotoDetails().getDate() != null}">
+                        <dt>Date:</dt>
+                        <dd th:text="${resolvedPhotoDetail.getPhotoDetails().getDate()}"></dd>
+                    </th:block>
+
+                    <th:block th:if="${resolvedPhotoDetail.getPhotoDetails().getLocation() != null}">
+                        <dt>Location:</dt>
+                        <dd th:text="${resolvedPhotoDetail.getPhotoDetails().getLocation()}"></dd>
+                    </th:block>
+
+                    <th:block
+                            th:if="${resolvedPhotoDetail.getPhotoDetails().getDescription() != null && !resolvedPhotoDetail.getPhotoDetails().getDescription().isEmpty()}">
+                        <dt>Description:</dt>
+                        <dd th:text="${resolvedPhotoDetail.getPhotoDetails().getDescription()}"></dd>
+                    </th:block>
+
+                    <th:block th:if="${resolvedPhotoDetail.getResolvedHiResURL() != null}">
+                        <dt>Hi-Resolution Version:</dt>
+                        <dd><a th:href="${resolvedPhotoDetail.getResolvedHiResURL()}">Hi-res photo</a></dd>
+                    </th:block>
+
+                    <th:block th:if="${resolvedPhotoDetail.getResolvedTagURL() != null}">
+                        <dt>Tag:</dt>
+                        <dd><img th:src="${resolvedPhotoDetail.getResolvedTagURL()}"></dd>
+                    </th:block>
+                </dl>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

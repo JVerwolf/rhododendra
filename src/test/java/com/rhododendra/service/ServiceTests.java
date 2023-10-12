@@ -28,7 +28,7 @@ public class ServiceTests {
     void testIndexAndSearchSpecies() throws IOException, ParseException {
         indexSpecies();
         assertThat(searchSpecies("lemon")).isNotEmpty();
-        assertEquals(1, getSpeciesById("2373").size());
+        assertEquals(1, getSpeciesById("s2373").size());
         assertThat(getAllSpeciesByFirstLetter("s")).hasSize(130);
     }
 
@@ -36,7 +36,7 @@ public class ServiceTests {
     void testIndexAndSearchHybrids() throws IOException {
         indexHybrids();
         assertThat(searchHybrids("lemon")).isNotEmpty();
-        assertEquals(1, getSpeciesById("1").size());
+        assertEquals(1, getHybridById("h1").size());
         assertThat(getAllSpeciesByFirstLetter("s")).isNotEmpty();
     }
 
@@ -44,7 +44,8 @@ public class ServiceTests {
     void testIndexAndSearchPhotoDetails() throws IOException, ParseException {
         indexPhotoDetails();
         assertThat(searchPhotoDetails("Wedemire")).isNotEmpty();
-        assertEquals(1, getPhotoDetailsById("390_denudatum_17_normal.jpg").size());
+        assertEquals(1, getPhotoDetailsById("s390_denudatum_17_normal.jpg").size());
+        assertEquals(1, getPhotoDetailsById("h11579_Douglas_R_Stephens_1_normal.jpg").size());
     }
 
 

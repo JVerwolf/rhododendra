@@ -113,6 +113,20 @@ public class SearchService {
         }
     }
 
+    public static List<Hybrid> getHybridById(String id) {
+        try {
+            return search(
+                new TermQuery(new Term(Hybrid.PRIMARY_ID_KEY, id)),
+                HYBRIDS_INDEX_PATH,
+                new TypeReference<Hybrid>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search getHybridById", e);
+            return Collections.emptyList();
+        }
+    }
+
     public static List<PhotoDetails> getPhotoDetailsById(String id) {
         try {
             return search(
@@ -127,13 +141,13 @@ public class SearchService {
         }
     }
 
-    public static List<List<PhotoDetails>> getMultiplePhotoDetailsById(List<String> ids) {
+    public static List<PhotoDetails> getMultiplePhotoDetailsById(List<String> ids) {
         try {
-            List<List<PhotoDetails>> results = Collections.emptyList();
-            for (var id : ids) {
-                results.add(getPhotoDetailsById(id));
-            }
-            return results;
+            return ids.stream()
+                .map(SearchService::getPhotoDetailsById)
+                .filter(photoDetails -> photoDetails != null && !photoDetails.isEmpty())
+                .map((photoDetails) -> photoDetails.get(0))
+                .toList();
         } catch (Exception e) {
             logger.error("Could not search getMultiplePhotoDetailsById", e);
             return Collections.emptyList();

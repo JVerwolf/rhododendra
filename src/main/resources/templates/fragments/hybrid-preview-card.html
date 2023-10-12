@@ -1,23 +1,14 @@
 <html xmlns:th="http://www.thymeleaf.org">
-<!--/*@thymesVar id="hybrid" type="com.rhododendra.model.Hybrid"*/-->
 <tr th:fragment="card(hybrid)">
+    <!--/*@thymesVar id="hybrid" type="com.rhododendra.model.Hybrid"*/-->
     <td>
         <h2>
-            <span th:if="${not hybrid.getIs_natural_hybrid()}" th:text="'R. ' + ${hybrid.name}"></span>
-            <span th:if="${hybrid.getIs_natural_hybrid()}" th:text="'R. x ' + ${hybrid.name}"></span>
-<!--            <span th:text="'R. ' + ${hybrid.name}"></span>-->
+            <span th:if="${hybrid.getIs_cultivar_group()}" th:text="|Cultivar Group '${hybrid.name}'|"></span>
+            <span th:if="${hybrid.getIs_species_selection()}" th:text="|Species Selection '${hybrid.name}'|"></span>
+            <span th:if="${!hybrid.getIs_species_selection() && !hybrid.getIs_cultivar_group()}"
+                  th:text="|Rhododendron '${hybrid.name}'|"></span>
         </h2>
-        <dl>
-            <dt>Subgenus</dt>
-            <dd th:text="${hybrid.getSubgenus()}"></dd>
-
-            <dt>Section</dt>
-            <dd th:text="${hybrid.getSection()}"></dd>
-
-            <dt>subsection</dt>
-            <dd th:text="${hybrid.getSubsection()}"></dd>
-        </dl>
-        <a th:href="@{'/species/'+ ${hybrid.id}}">More information and pictures</a>
+        <a th:href="@{'/hybrids/'+ ${hybrid.id}}">More information and pictures</a>
     </td>
     <td>
         <th:block th:if="${not #lists.isEmpty(hybrid.photos)}">

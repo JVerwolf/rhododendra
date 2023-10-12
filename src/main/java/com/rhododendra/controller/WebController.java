@@ -16,6 +16,8 @@ public class WebController {
         return "index";
     }
 
+    final static String[] ALPHABET = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
+
     @RequestMapping("/species_index")
     public String handleSpeciesIndex(
         Model model,
@@ -29,9 +31,27 @@ public class WebController {
             )
             .addAttribute(
                 "letters",
-                new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
+                ALPHABET
             );
         return "species-index";
+    }
+
+    @RequestMapping("/hybrid_index")
+    public String handleHybridIndex(
+        Model model,
+        @RequestParam("letter") String letter,
+        @RequestParam("size") int size,
+        @RequestParam("offset") int offset
+    ) throws IOException {
+        model.addAttribute(
+                "hybrid",
+                RhodoLogicService.scrollHybridsByLetter(letter, size, offset)
+            )
+            .addAttribute(
+                "letters",
+                ALPHABET
+            );
+        return "hybrid-index";
     }
 
     @RequestMapping(value = "/search")
@@ -44,7 +64,7 @@ public class WebController {
     }
 
     @RequestMapping(value = "/about")
-    public String handleAbout() throws IOException, ParseException {
+    public String handleAbout() {
         return "about";
     }
 
@@ -54,6 +74,19 @@ public class WebController {
         if (speciesDetail != null) {
             model.addAttribute("speciesDetail", speciesDetail);
             return "species-detail";
+        } else {
+            return "404";
+        }
+    }
+
+    @RequestMapping(value = "/hybrids/{id}")
+    public String handleGetHybrid(Model model, @PathVariable("id") String id) {
+        var result = RhodoLogicService.getHybridById(id);
+        if (!result.isEmpty()) {
+            var hybrid = result.get(0);
+            model.addAttribute("hybrid", hybrid);
+            model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(hybrid.getPhotos()));
+            return "hybrid-detail";
         } else {
             return "404";
         }

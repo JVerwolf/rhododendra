@@ -32,10 +32,19 @@ public class RestResourceController {
      */
     @GetMapping(value = "/img/{id:.+}", produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<Resource> getImage(@PathVariable("id") String id) throws IOException {
-        System.out.println(id);
-        final ByteArrayResource inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(
-            "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/species_photos/" + id
-        )));
+//        System.out.println(id);
+        final ByteArrayResource inputStream;
+        if (id.startsWith("s")) {
+            inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(
+                "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/species_photos/" + id
+            )));
+        } else if (id.startsWith("h")) {
+            inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(
+                "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/hybrid_photos/" + id
+            )));
+        } else {
+            throw new IOException("invalid image id: " + id);
+        }
         return ResponseEntity
             .ok()
             .contentType(MediaType.IMAGE_JPEG)

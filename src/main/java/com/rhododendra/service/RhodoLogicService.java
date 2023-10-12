@@ -1,9 +1,6 @@
 package com.rhododendra.service;
 
-import com.rhododendra.model.Hybrid;
-import com.rhododendra.model.PhotoDetails;
-import com.rhododendra.model.Species;
-import com.rhododendra.model.SpeciesDetail;
+import com.rhododendra.model.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 import java.io.IOException;
@@ -20,7 +17,7 @@ public class RhodoLogicService {
             .toList();
     }
 
-    public static List<Hybrid> scrollHybridByLetter(String letter, int pageSize, int offset) throws IOException {
+    public static List<Hybrid> scrollHybridsByLetter(String letter, int pageSize, int offset) throws IOException {
         // todo validate input
         return SearchService.getAllHybridsByFirstLetter(letter.toLowerCase()).stream()
             .peek(rhodo ->
@@ -73,15 +70,28 @@ public class RhodoLogicService {
 
     public static List<Species> getSpeciesById(String id) {
         return SearchService.getSpeciesById(id).stream()
-            .peek(rhodo -> rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos())))
+//            .peek(rhodo -> rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos())))
             .toList();
     }
 
-    public static List<PhotoDetails> getPhotoDetails(List<String> photoLinks) {
-        return SearchService.getMultiplePhotoDetailsById(photoLinks)
-            .stream()
-            .filter(details -> !details.isEmpty())
-            .map(details -> details.get(0))
+    public static List<Hybrid> getHybridById(String id) {
+        return SearchService.getHybridById(id).stream()
+//            .peek(rhodo -> rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos())))
             .toList();
     }
+
+    public static List<ResolvedPhotoDetails> getResolvedPhotoDetails(List<String> ids) {
+        return SearchService.getMultiplePhotoDetailsById(ids)
+            .stream()
+            .map(photoDetails ->
+                new ResolvedPhotoDetails(
+                    ImageResolver.resolveImagePath(photoDetails.getPhoto()),
+                    ImageResolver.resolveImagePath(photoDetails.getHiResPhoto()),
+                    ImageResolver.resolveImagePath(photoDetails.getTag()),
+                    photoDetails
+                ))
+            .toList();
+    }
+
+
 }
