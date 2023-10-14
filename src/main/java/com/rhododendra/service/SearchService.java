@@ -216,8 +216,58 @@ public class SearchService {
         return searchResults;
     }
 
-    public static List<Hybrid> getAllHybridsByFirstLetter(
-        String letter
+    public static class IndexPage {
+        public String startValue;
+        public int startPos;
+        public String endValue;
+        public int endPos;
+
+        public IndexPage(String startValue, int startPos, String endValue, int endPos) {
+            this.startValue = startValue;
+            this.startPos = startPos;
+            this.endValue = endValue;
+            this.endPos = endPos;
+        }
+    }
+
+    public static class IndexResults {
+        public List<IndexPage> indexPages;
+        public int indexPagePos;
+        public List<Hybrid> hybrids;
+
+        public IndexResults(List<IndexPage> indexPages, int indexPagePos, List<Hybrid> hybrids) {
+            this.indexPages = indexPages;
+            this.indexPagePos = indexPagePos;
+            this.hybrids = hybrids;
+        }
+    }
+
+    private static String readPaginationDescriptor(
+        ScoreDoc scoreDoc,
+        IndexSearcher searcher
+    ) throws IOException {
+        var document = searcher.doc(scoreDoc.doc);
+        var field = document.getField(PAGINATION_DESCRIPTOR_KEY);
+        return field.stringValue();
+    }
+
+    private static Hybrid readSource(
+        ScoreDoc scoreDoc,
+        IndexSearcher searcher
+    ) throws IOException {
+        var document = searcher.doc(scoreDoc.doc);
+        var field = document.getField(SOURCE_KEY);
+        return objectMapper.readValue(
+            field.stringValue(),
+            new TypeReference<Hybrid>() {
+            }
+        );
+    }
+
+    public static IndexResults getAllHybridsByFirstLetter(
+        String letter,
+        int pageSize,
+        int offset
     ) throws IOException {
         var MAX_RESULTS = 5000;
 
@@ -229,18 +279,39 @@ public class SearchService {
         IndexSearcher searcher = new IndexSearcher(indexReader);
         TopDocs topDocs = searcher.search(query, MAX_RESULTS, sort);
 
-        List<Hybrid> searchResults = new ArrayList<>();
-        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-            var document = searcher.doc(scoreDoc.doc);
-            for (var field : document.getFields(SOURCE_KEY)) {
-                Hybrid result = objectMapper.readValue(
-                    field.stringValue(),
-                    new TypeReference<Hybrid>() {
-                    }
-                );
-                searchResults.add(result);
-            }
+        // Read the Source values.
+        var startPos = Math.min(topDocs.scoreDocs.length, offset); // todo off by 1?
+        var endPos = Math.min(topDocs.scoreDocs.length, offset + pageSize); // todo off by 1?
+        List<Hybrid> hybrids = new ArrayList<>();
+        for (int i = startPos; i <= endPos; i++) {
+            var hybrid = readSource(topDocs.scoreDocs[i], searcher);
+            hybrids.add(hybrid);
         }
-        return searchResults;
+
+        // Read the index pages.
+        var numPages = (topDocs.scoreDocs.length / pageSize) + 1;
+        List<IndexPage> indexPages = new ArrayList<>();
+        for (int pageNum = 0; pageNum < numPages; pageNum++) {
+            int pageStart = pageNum * pageSize;
+            int pageEnd = Math.min(pageStart + pageSize, topDocs.scoreDocs.length - 1);
+
+            var indexPage = new IndexPage(
+                readPaginationDescriptor(topDocs.scoreDocs[pageStart], searcher),
+                pageStart,
+                readPaginationDescriptor(topDocs.scoreDocs[pageEnd], searcher),
+                pageEnd
+            );
+            indexPages.add(indexPage);
+        }
+
+        var pageNum = offset / pageSize;
+        var indexPagePosition = Math.min(numPages, pageNum);
+
+        return new IndexResults(
+            indexPages,
+            indexPagePosition,
+            hybrids
+        );
     }
 }
+

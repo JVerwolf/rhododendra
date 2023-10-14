@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Species extends PrimaryID {
+public class Species extends Indexable {
     public static final String ID_KEY = "id";
     public static final String NAME_KEY = "name";
     public static final String NAME_KEY_FOR_SORT = "name_key_for_sort";

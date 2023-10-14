@@ -30,6 +30,7 @@ public class IndexService {
 
 
     public final static String SOURCE_KEY = "_source";
+    public final static String PAGINATION_DESCRIPTOR_KEY = "descriptor"; // for pagination
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -53,6 +54,7 @@ public class IndexService {
             HYBRIDS_INDEX_PATH,
             Hybrid.PRIMARY_ID_KEY,
             (document, hybrid) -> {
+                document.add(new StringField(PAGINATION_DESCRIPTOR_KEY, hybrid.getName(), Field.Store.YES));
                 document.add(new TextField(Hybrid.NAME_KEY, hybrid.getName(), Field.Store.NO));
                 document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(hybrid.getName()), Field.Store.NO));
                 document.add(new SortedDocValuesField(Hybrid.NAME_KEY_FOR_SORT, new BytesRef(hybrid.getName().toLowerCase())));
@@ -84,7 +86,7 @@ public class IndexService {
     }
 
 
-    private static <T extends PrimaryID> void index(
+    private static <T extends Indexable> void index(
         List<T> searchDocs,
         String indexPath,
         String primaryIdKey,

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PhotoDetails extends PrimaryID {
+public class PhotoDetails extends Indexable {
     public static final String PHOTO_BY = "photo_by";
     public static final String DATE = "date";
     public static final String LOCATION = "location";

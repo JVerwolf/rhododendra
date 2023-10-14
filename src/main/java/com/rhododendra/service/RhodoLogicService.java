@@ -17,13 +17,13 @@ public class RhodoLogicService {
             .toList();
     }
 
-    public static List<Hybrid> scrollHybridsByLetter(String letter, int pageSize, int offset) throws IOException {
+    public static SearchService.IndexResults scrollHybridsByLetter(String letter, int pageSize, int offset) throws IOException {
         // todo validate input
-        return SearchService.getAllHybridsByFirstLetter(letter.toLowerCase()).stream()
-            .peek(rhodo ->
-                rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
-            )
-            .toList();
+        var result = SearchService.getAllHybridsByFirstLetter(letter.toLowerCase(), pageSize, offset);
+        result.hybrids.forEach(rhodo ->
+            rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
+        );
+        return result;
     }
 
     public static List<Species> searchSpecies(String queryString) throws IOException, ParseException {

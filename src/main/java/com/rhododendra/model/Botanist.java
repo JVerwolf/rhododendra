@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Botanist extends PrimaryID {
+public class Botanist extends Indexable {
     public static final String BOTANICAL_SHORT_KEY = "botanical_short";
     public static final String LOCATION_KEY = "location";
     public static final String BORN_DIED_KEY = "born_died";

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Hybrid extends PrimaryID {
+public class Hybrid extends Indexable {
     public static final String  PRIMARY_ID_KEY = "id";
     public static final String  NAME_KEY = "name";
     public static final String NAME_KEY_FOR_SORT = "name_key_for_sort";

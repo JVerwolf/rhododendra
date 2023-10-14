@@ -43,14 +43,14 @@ public class WebController {
         @RequestParam("size") int size,
         @RequestParam("offset") int offset
     ) throws IOException {
-        model.addAttribute(
-                "hybrid",
-                RhodoLogicService.scrollHybridsByLetter(letter, size, offset)
-            )
-            .addAttribute(
-                "letters",
-                ALPHABET
-            );
+        var set_size = 50;
+        var results = RhodoLogicService.scrollHybridsByLetter(letter, set_size, offset);
+        model.addAttribute("hybrids", results.hybrids)
+            .addAttribute("indexPages", results.indexPages)
+            .addAttribute("indexPagePos", results.indexPagePos)
+            .addAttribute("currentLetter", letter)
+            .addAttribute("pageSize", set_size)
+            .addAttribute("letters", ALPHABET);
         return "hybrid-index";
     }
 
