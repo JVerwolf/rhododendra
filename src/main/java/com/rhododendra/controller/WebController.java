@@ -86,6 +86,13 @@ public class WebController {
             var hybrid = result.get(0);
             model.addAttribute("hybrid", hybrid);
             model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(hybrid.getPhotos()));
+            if (hybrid.getIs_species_selection()) {
+                var speciesResult = RhodoLogicService.getSpeciesById(hybrid.getSpecies_id());
+                if (!speciesResult.isEmpty()) {
+                    model.addAttribute("original_species", speciesResult.get(0));
+
+                }
+            }
             return "hybrid-detail";
         } else {
             return "404";

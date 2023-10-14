@@ -31,6 +31,15 @@ public class Hybrid extends PrimaryID {
     String type;
     String hardiness;
     Genetics genetics;
+    String species_id;
+
+    public String getSpecies_id() {
+        return species_id;
+    }
+
+    public void setSpecies_id(String species_id) {
+        this.species_id = species_id;
+    }
 
     public String getId() {
         return id;
