@@ -40,7 +40,7 @@ public class WebController {
     public String handleHybridIndex(
         Model model,
         @RequestParam("letter") String letter,
-        @RequestParam("size") int size,
+        @RequestParam(value = "size", defaultValue = "50") int size,
         @RequestParam("offset") int offset
     ) throws IOException {
         var set_size = 50;

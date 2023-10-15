@@ -6,6 +6,7 @@ import com.rhododendra.model.Botanist;
 import com.rhododendra.model.Hybrid;
 import com.rhododendra.model.PhotoDetails;
 import com.rhododendra.model.Species;
+import com.rhododendra.util.CheckedBiFunction;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -22,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import static com.rhododendra.service.IndexService.*;
 
@@ -281,7 +283,7 @@ public class SearchService {
 
         // Read the Source values.
         var startPos = Math.min(topDocs.scoreDocs.length, offset); // todo off by 1?
-        var endPos = Math.min(topDocs.scoreDocs.length, offset + pageSize); // todo off by 1?
+        var endPos = Math.min(topDocs.scoreDocs.length - 1, offset + pageSize); // todo off by 1?
         List<Hybrid> hybrids = new ArrayList<>();
         for (int i = startPos; i <= endPos; i++) {
             var hybrid = readSource(topDocs.scoreDocs[i], searcher);
@@ -289,29 +291,44 @@ public class SearchService {
         }
 
         // Read the index pages.
-        var numPages = (topDocs.scoreDocs.length / pageSize) + 1;
-        List<IndexPage> indexPages = new ArrayList<>();
-        for (int pageNum = 0; pageNum < numPages; pageNum++) {
-            int pageStart = pageNum * pageSize;
-            int pageEnd = Math.min(pageStart + pageSize, topDocs.scoreDocs.length - 1);
-
-            var indexPage = new IndexPage(
-                readPaginationDescriptor(topDocs.scoreDocs[pageStart], searcher),
+        var indexPages = paginationOffsets(
+            pageSize,
+            topDocs.scoreDocs.length,
+            (pageStart, pageEnd) -> new IndexPage(
+                readPaginationDescriptor(topDocs.scoreDocs[pageStart], searcher).substring(0,3),
                 pageStart,
-                readPaginationDescriptor(topDocs.scoreDocs[pageEnd], searcher),
+                readPaginationDescriptor(topDocs.scoreDocs[pageEnd], searcher).substring(0,3),
                 pageEnd
-            );
-            indexPages.add(indexPage);
-        }
+            )
+        );
 
         var pageNum = offset / pageSize;
-        var indexPagePosition = Math.min(numPages, pageNum);
+        var indexPagePosition = Math.min(indexPages.size(), pageNum);
 
         return new IndexResults(
             indexPages,
             indexPagePosition,
             hybrids
         );
+    }
+
+
+    public static int getPageIndex(int offset, int pageSize, int resultsLen) {
+        var lastPageIndex = Math.max((resultsLen - 1) / pageSize, 0);
+        var pageIndex = offset / pageSize;
+        return Math.min(pageIndex, lastPageIndex);
+    }
+
+
+    public static <T> List<T> paginationOffsets(int pageSize, int listLength, CheckedBiFunction<Integer, Integer, T, IOException> fun) throws IOException {
+        var numPages = (listLength / pageSize) + 1;
+        List<T> results = new ArrayList<>();
+        for (int pageNum = 0; pageNum < numPages; pageNum++) {
+            int pageStart = pageNum * pageSize;
+            int pageEnd = Math.min(pageStart + pageSize - 1, listLength - 1);
+            results.add(fun.apply(pageStart, pageEnd));
+        }
+        return results;
     }
 }
 

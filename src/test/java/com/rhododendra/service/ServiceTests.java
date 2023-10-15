@@ -70,4 +70,14 @@ public class ServiceTests {
             System.out.println(e);
         }
     }
+
+    @Test
+    void testGetPageIndex() {
+        assertThat(SearchService.getPageIndex(5,5,10)).isEqualTo(1);
+        assertThat(SearchService.getPageIndex(2,5,10)).isEqualTo(0);
+        assertThat(SearchService.getPageIndex(0,1,0)).isEqualTo(0);
+        assertThat(SearchService.getPageIndex(9,5,10)).isEqualTo(1);
+        assertThat(SearchService.getPageIndex(10,5,10)).isEqualTo(1);
+        assertThat(SearchService.getPageIndex(1,1,1)).isEqualTo(0);
+    }
 }

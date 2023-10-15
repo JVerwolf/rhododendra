@@ -18,11 +18,16 @@
     </table>
     <table>
         <tr>
-            <td th:each="indexPage : ${indexPages}">
-                <a th:href="@{/hybrid_index(letter=${currentLetter},size=${pageSize},offset=${indexPage.startPos})}" style="padding:8px">
-                    <b th:text="|${indexPage.startValue} to ${indexPage.endValue}|"></b>
-                </a>
-            </td>
+            <th:block th:each="indexPage, stat : ${indexPages}">
+                <td th:style="${stat.index == indexPagePos ? 'background-color: #55aaaa;': _} "
+                    th:styleappend="${'padding:8px'}">
+                    <a th:href=" @{/hybrid_index(letter=${currentLetter},size=${pageSize},offset=${indexPage.startPos})}">
+                        <b th:text="|${indexPage.startPos+1} - ${indexPage.endPos+1}|"></b>
+                        <br/>
+                        <b th:text="|${indexPage.startValue} - ${indexPage.endValue}|"></b>
+                    </a>
+                </td>
+            </th:block>
         </tr>
     </table>
     <table>
