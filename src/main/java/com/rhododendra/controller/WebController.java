@@ -68,6 +68,11 @@ public class WebController {
         return "about";
     }
 
+    @RequestMapping(value = "/contact")
+    public String handleContact() {
+        return "contact";
+    }
+
     @RequestMapping(value = "/species/{id}")
     public String handleGetSpecies(Model model, @PathVariable("id") String id) throws IOException {
         var speciesDetail = RhodoLogicService.getSpeciesDetailForView(id);
