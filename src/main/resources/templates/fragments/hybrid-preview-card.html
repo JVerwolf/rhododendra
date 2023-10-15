@@ -12,7 +12,7 @@
     </td>
     <td>
         <th:block th:if="${not #lists.isEmpty(hybrid.photos)}">
-            <img th:src="${hybrid.photos[0]}" width="400">
+            <a th:href="@{'/hybrids/'+ ${hybrid.id}}"><img th:src="${hybrid.photos[0]}" width="400"></a>
         </th:block>
     </td>
 </tr>

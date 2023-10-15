@@ -294,12 +294,16 @@ public class SearchService {
         var indexPages = paginationOffsets(
             pageSize,
             topDocs.scoreDocs.length,
-            (pageStart, pageEnd) -> new IndexPage(
-                readPaginationDescriptor(topDocs.scoreDocs[pageStart], searcher).substring(0,3),
-                pageStart,
-                readPaginationDescriptor(topDocs.scoreDocs[pageEnd], searcher).substring(0,3),
-                pageEnd
-            )
+            (pageStart, pageEnd) -> {
+                var startValue = readPaginationDescriptor(topDocs.scoreDocs[pageStart], searcher);
+                var endValue = readPaginationDescriptor(topDocs.scoreDocs[pageEnd], searcher);
+                return new IndexPage(
+                    startValue.substring(0, Math.min(3, startValue.length())),
+                    pageStart,
+                    endValue.substring(0, Math.min(3, endValue.length())),
+                    pageEnd
+                );
+            }
         );
 
         var pageNum = offset / pageSize;
