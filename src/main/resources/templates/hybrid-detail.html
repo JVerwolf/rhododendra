@@ -13,8 +13,8 @@
               th:text="|Rhododedron '${hybrid.name}'|"></span>
     </h1>
     <h2 th:if="${hybrid.getIs_species_selection()}" th:inline="text">
-        [[|'${hybrid.name}' is a selection of R. ${original_species.getName()}|]]
-        <a th:href="@{'/species/'+ ${original_species.getId()}}">(More information)</a>
+        [[|'${hybrid.name}' is a selection of |]]
+        <a th:href="@{'/species/'+ ${original_species.getId()}}" th:text="|R. ${original_species.getName()}|"></a>
     </h2>
 
     <table>

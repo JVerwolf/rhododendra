@@ -2,12 +2,7 @@
 <tr th:fragment="card(hybrid)">
     <!--/*@thymesVar id="hybrid" type="com.rhododendra.model.Hybrid"*/-->
     <td>
-        <h3>
-            <span th:if="${hybrid.getIs_cultivar_group()}" th:text="|Cultivar Group '${hybrid.name}'|"></span>
-            <span th:if="${hybrid.getIs_species_selection()}" th:text="|Species Selection '${hybrid.name}'|"></span>
-            <span th:if="${!hybrid.getIs_species_selection() && !hybrid.getIs_cultivar_group()}"
-                  th:text="|Rhododendron '${hybrid.name}'|"></span>
-        </h3>
+        <h3><span th:text="${hybrid.name}"></span></h3>
         <a th:if="${not #lists.isEmpty(hybrid.photos)}" th:href="@{'/hybrids/'+ ${hybrid.id}}">More information and
             pictures</a>
     </td>
