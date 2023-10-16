@@ -73,32 +73,33 @@ public class WebController {
         return "contact";
     }
 
-    @RequestMapping(value = "/species/{id}")
-    public String handleGetSpecies(Model model, @PathVariable("id") String id) throws IOException {
-        var speciesDetail = RhodoLogicService.getSpeciesDetailForView(id);
-        if (speciesDetail != null) {
-            model.addAttribute("speciesDetail", speciesDetail);
-            return "species-detail";
-        } else {
-            return "404";
-        }
-    }
-
-    @RequestMapping(value = "/hybrids/{id}")
+    @RequestMapping(value = "/rhodos/{id}")
     public String handleGetHybrid(Model model, @PathVariable("id") String id) {
-        var result = RhodoLogicService.getHybridById(id);
-        if (!result.isEmpty()) {
-            var hybrid = result.get(0);
-            model.addAttribute("hybrid", hybrid);
-            model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(hybrid.getPhotos()));
-            if (hybrid.getIs_species_selection()) {
-                var speciesResult = RhodoLogicService.getSpeciesById(hybrid.getSpecies_id());
-                if (!speciesResult.isEmpty()) {
-                    model.addAttribute("original_species", speciesResult.get(0));
-
-                }
+        if (id.startsWith("s")) {
+            var speciesDetail = RhodoLogicService.getSpeciesDetailForView(id);
+            if (speciesDetail != null) {
+                model.addAttribute("speciesDetail", speciesDetail);
+                return "species-detail";
+            } else {
+                return "404";
             }
-            return "hybrid-detail";
+        } else if (id.startsWith("h")) {
+            var result = RhodoLogicService.getHybridById(id);
+            if (!result.isEmpty()) {
+                var hybrid = result.get(0);
+                model.addAttribute("hybrid", hybrid);
+                model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(hybrid.getPhotos()));
+                if (hybrid.getIs_species_selection()) {
+                    var speciesResult = RhodoLogicService.getSpeciesById(hybrid.getSpecies_id());
+                    if (!speciesResult.isEmpty()) {
+                        model.addAttribute("original_species", speciesResult.get(0));
+
+                    }
+                }
+                return "hybrid-detail";
+            } else {
+                return "404";
+            }
         } else {
             return "404";
         }

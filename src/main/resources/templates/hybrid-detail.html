@@ -14,7 +14,7 @@
     </h1>
     <h2 th:if="${hybrid.getIs_species_selection()}" th:inline="text">
         [[|'${hybrid.name}' is a selection of |]]
-        <a th:href="@{'/species/'+ ${original_species.getId()}}" th:text="|R. ${original_species.getName()}|"></a>
+        <a th:href="@{'/rhodos/'+ ${original_species.getId()}}" th:text="|R. ${original_species.getName()}|"></a>
     </h2>
 
     <table>
@@ -34,14 +34,32 @@
             </tr>
             <tr>
                 <td><b>Pollen Parent:</b></td>
-                <td th:if="${hybrid.getGenetics().getPollen_parent() != null}"
-                    th:text="${hybrid.getGenetics().getPollen_parent()}"></td>
+                <th:block th:if="${hybrid.getGenetics().getPollen_parent() != null}">
+                    <td th:if="${hybrid.getGenetics().getPollen_parent_id() != null}">
+                        <a th:href="@{'/rhodos/'+ ${hybrid.getGenetics().getPollen_parent_id}}"
+                           th:text="${hybrid.getGenetics().getPollen_parent()}">
+
+                        </a>
+                    </td>
+                    <td th:if="${hybrid.getGenetics().getPollen_parent_id() == null}"
+                        th:text="${hybrid.getGenetics().getPollen_parent()}">
+                    </td>
+                </th:block>
                 <td th:if="${hybrid.getGenetics().getPollen_parent() == null}">?</td>
             </tr>
             <tr>
                 <td><b>Seed Parent:</b></td>
-                <td th:if="${hybrid.getGenetics().getSeed_parent() != null}"
-                    th:text="${hybrid.getGenetics().getSeed_parent()}"></td>
+                <th:block th:if="${hybrid.getGenetics().getSeed_parent() != null}">
+                    <td th:if="${hybrid.getGenetics().getSeed_parent_id() != null}">
+                        <a th:href="@{'/rhodos/'+ ${hybrid.getGenetics().getSeed_parent_id}}"
+                           th:text="${hybrid.getGenetics().getSeed_parent()}">
+
+                        </a>
+                    </td>
+                    <td th:if="${hybrid.getGenetics().getSeed_parent_id() == null}"
+                        th:text="${hybrid.getGenetics().getSeed_parent()}">
+                    </td>
+                </th:block>
                 <td th:if="${hybrid.getGenetics().getSeed_parent() == null}">?</td>
             </tr>
             <tr>

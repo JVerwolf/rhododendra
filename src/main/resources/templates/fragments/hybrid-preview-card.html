@@ -3,15 +3,15 @@
     <!--/*@thymesVar id="hybrid" type="com.rhododendra.model.Hybrid"*/-->
     <td>
         <h3><span th:text="${hybrid.name}"></span></h3>
-        <a th:if="${not #lists.isEmpty(hybrid.photos)}" th:href="@{'/hybrids/'+ ${hybrid.id}}">More information and
+        <a th:if="${not #lists.isEmpty(hybrid.photos)}" th:href="@{'/rhodos/'+ ${hybrid.id}}">More information and
             pictures</a>
     </td>
     <td>
         <th:block th:if="${not #lists.isEmpty(hybrid.photos)}">
-            <a th:href="@{'/hybrids/'+ ${hybrid.id}}"><img th:src="${hybrid.photos[0]}" width="400"></a>
+            <a th:href="@{'/rhodos/'+ ${hybrid.id}}"><img th:src="${hybrid.photos[0]}" width="400"></a>
         </th:block>
         <th:block th:if="${#lists.isEmpty(hybrid.photos)}">
-            <a th:href="@{'/hybrids/'+ ${hybrid.id}}">More information</a>
+            <a th:href="@{'/rhodos/'+ ${hybrid.id}}">More information</a>
         </th:block>
     </td>
 </tr>
