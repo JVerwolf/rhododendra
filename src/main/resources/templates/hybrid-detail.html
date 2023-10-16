@@ -93,7 +93,9 @@
         <thead><h2>Pictures</h2></thead>
         <tr th:each="resolvedPhotoDetail : ${resolvedPhotoDetails}">
             <td>
-                <img th:src="${resolvedPhotoDetail.getResolvedNormalURL()}" width="400">
+                <a th:href="${resolvedPhotoDetail.getResolvedHiResURL() != null ? resolvedPhotoDetail.getResolvedHiResURL() : resolvedPhotoDetail.getResolvedNormalURL()}">
+                    <img th:src="${resolvedPhotoDetail.getResolvedNormalURL()}" width="400">
+                </a>
             </td>
             <td>
                 <dl>
