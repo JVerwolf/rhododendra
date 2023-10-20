@@ -21,20 +21,6 @@ public class JSONLoaderService {
         });
     }
 
-    public static List<Species> loadSpecies() throws IOException {
-        File file = new File(SPECIES_PATH);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(file, new TypeReference<>() {
-        });
-    }
-
-    public static List<Hybrid> loadHybrids() throws IOException {
-        File file = new File(HYBRIDS_PATH);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(file, new TypeReference<List<Hybrid>>() {
-        });
-    }
-
     public static List<Rhododendron> loadRhodos() throws IOException {
         File speciesFile = new File(SPECIES_PATH);
         File hybridsFile = new File(HYBRIDS_PATH);

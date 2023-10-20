@@ -1,10 +1,7 @@
 package com.rhododendra.service;
 
 import com.rhododendra.model.Botanist;
-import com.rhododendra.model.Hybrid;
 import com.rhododendra.model.Rhododendron;
-import com.rhododendra.model.Species;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -19,26 +16,10 @@ public class ServiceTests {
 
 
     @Test
-    void testIndexAndSearchBotanists() throws IOException, ParseException {
+    void testIndexAndSearchBotanists() throws IOException {
         indexBotanists();
         assertThat(searchBotanists("Forrest")).isNotEmpty();
         assertEquals(1, getBotanistById("Forrest").size());
-    }
-
-    @Test
-    void testIndexAndSearchSpecies() throws IOException, ParseException {
-        indexSpecies();
-        assertThat(searchSpecies("lemon")).isNotEmpty();
-        assertEquals(1, getSpeciesById("s2373").size());
-        assertThat(getAllSpeciesByFirstLetter("s")).hasSize(130);
-    }
-
-    @Test
-    void testIndexAndSearchHybrids() throws IOException {
-        indexHybrids();
-        assertThat(searchHybrids("lemon")).isNotEmpty();
-        assertEquals(1, getHybridById("h1").size());
-        assertThat(getAllSpeciesByFirstLetter("s")).isNotEmpty();
     }
 
     @Test
@@ -52,7 +33,7 @@ public class ServiceTests {
     }
 
     @Test
-    void testIndexAndSearchPhotoDetails() throws IOException, ParseException {
+    void testIndexAndSearchPhotoDetails() throws IOException {
         indexPhotoDetails();
         assertThat(searchPhotoDetails("Wedemire")).isNotEmpty();
         assertEquals(1, getPhotoDetailsById("s390_denudatum_17_normal.jpg").size());
@@ -67,26 +48,11 @@ public class ServiceTests {
     }
 
     @Test
-    void testLoadSpecies() throws IOException {
-        List<Species> botanists = JSONLoaderService.loadSpecies();
-        assertThat(botanists).isNotEmpty();
-    }
-
-    @Test
     void testLoadRhodos() throws IOException {
         List<Rhododendron> rhodos = JSONLoaderService.loadRhodos();
         assertThat(rhodos).isNotEmpty();
     }
 
-    @Test
-    void testLoadHybrid() throws IOException {
-        try {
-            List<Hybrid> hybrids = JSONLoaderService.loadHybrids();
-            assertThat(hybrids).isNotEmpty();
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-    }
 
     @Test
     void testGetPageIndex() {

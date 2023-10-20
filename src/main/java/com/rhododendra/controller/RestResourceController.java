@@ -17,15 +17,6 @@ import org.springframework.core.io.Resource;
 @RestController
 public class RestResourceController {
 
-    @GetMapping(value = "/search_json", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> searchJson(@RequestParam("q") String query) throws IOException, ParseException {
-        System.out.println(query);
-
-        return new ResponseEntity<>(
-            SearchService.searchSpecies(query),
-            HttpStatus.OK
-        );
-    }
 
     /**
      * This is just for local hosting and testing.

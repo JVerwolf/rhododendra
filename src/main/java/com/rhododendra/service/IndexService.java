@@ -35,34 +35,6 @@ public class IndexService {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-
-    public static void indexSpecies() throws IOException {
-        index(
-            JSONLoaderService.loadSpecies(),
-            SPECIES_INDEX_PATH,
-            Species.PRIMARY_ID_KEY,
-            (document, species) -> {
-                document.add(new TextField(Species.NAME_KEY, species.getName(), Field.Store.NO));
-                document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(species.getName()), Field.Store.NO));
-                document.add(new SortedDocValuesField(Species.NAME_KEY_FOR_SORT, new BytesRef(species.getName().toLowerCase())));
-            }
-        );
-    }
-
-    public static void indexHybrids() throws IOException {
-        index(
-            JSONLoaderService.loadHybrids(),
-            HYBRIDS_INDEX_PATH,
-            Hybrid.PRIMARY_ID_KEY,
-            (document, hybrid) -> {
-                document.add(new StringField(PAGINATION_DESCRIPTOR_KEY, hybrid.getName(), Field.Store.YES));
-                document.add(new TextField(Hybrid.NAME_KEY, hybrid.getName(), Field.Store.NO));
-                document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(hybrid.getName()), Field.Store.NO));
-                document.add(new SortedDocValuesField(Hybrid.NAME_KEY_FOR_SORT, new BytesRef(hybrid.getName().toLowerCase())));
-            }
-        );
-    }
-
     public static void indexRhodos() throws IOException {
         index(
             JSONLoaderService.loadRhodos(),

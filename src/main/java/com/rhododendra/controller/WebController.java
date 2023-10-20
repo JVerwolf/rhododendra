@@ -71,7 +71,7 @@ public class WebController {
             model.addAttribute("hybrid", rhodo);
             model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(rhodo.getPhotos()));
             if (rhodo.getRhodoDataType() == SPECIES_SELECTION) {
-                var speciesResult = SearchService.getSpeciesById(rhodo.getSpecies_id());
+                var speciesResult = SearchService.getRhodoById(rhodo.getSpecies_id());
                 if (!speciesResult.isEmpty()) {
                     model.addAttribute("original_species", speciesResult.get(0));
 

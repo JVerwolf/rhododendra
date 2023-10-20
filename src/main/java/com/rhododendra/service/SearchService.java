@@ -41,34 +41,6 @@ public class SearchService {
         }
     }
 
-    public static List<Species> searchSpecies(String queryString) {
-        try {
-            return search(
-                new QueryParser(Species.NAME_KEY, new StandardAnalyzer()).parse(queryString),
-                SPECIES_INDEX_PATH,
-                new TypeReference<>() {
-                }
-            );
-        } catch (Exception e) {
-            logger.error("Could not search searchSpecies", e);
-            return Collections.emptyList();
-        }
-    }
-
-    public static List<Hybrid> searchHybrids(String queryString) {
-        try {
-            return search(
-                new QueryParser(Hybrid.NAME_KEY, new StandardAnalyzer()).parse(queryString),
-                HYBRIDS_INDEX_PATH,
-                new TypeReference<>() {
-                }
-            );
-        } catch (Exception e) {
-            logger.error("Could not search searchHybrid", e);
-            return Collections.emptyList();
-        }
-    }
-
     public static List<Rhododendron> searchRhodos(String queryString) {
         try {
             return search(
@@ -111,33 +83,6 @@ public class SearchService {
         }
     }
 
-    public static List<Species> getSpeciesById(String id) {
-        try {
-            return search(
-                new TermQuery(new Term(Species.PRIMARY_ID_KEY, id)),
-                SPECIES_INDEX_PATH,
-                new TypeReference<Species>() {
-                }
-            );
-        } catch (Exception e) {
-            logger.error("Could not search getSpeciesById", e);
-            return Collections.emptyList();
-        }
-    }
-
-    public static List<Hybrid> getHybridById(String id) {
-        try {
-            return search(
-                new TermQuery(new Term(Hybrid.PRIMARY_ID_KEY, id)),
-                HYBRIDS_INDEX_PATH,
-                new TypeReference<Hybrid>() {
-                }
-            );
-        } catch (Exception e) {
-            logger.error("Could not search getHybridById", e);
-            return Collections.emptyList();
-        }
-    }
 
     public static List<Rhododendron> getRhodoById(String id) {
         try {
@@ -214,34 +159,6 @@ public class SearchService {
     }
 
 
-    public static List<Species> getAllSpeciesByFirstLetter(
-        String letter
-    ) throws IOException {
-        var MAX_RESULTS = 5000;
-
-        Query query = new TermQuery(new Term(LETTER_KEY, letter));
-        Sort sort = new Sort(new SortField(Species.NAME_KEY_FOR_SORT, SortField.Type.STRING));
-
-        Directory indexDirectory = FSDirectory.open(Paths.get(SPECIES_INDEX_PATH));
-        IndexReader indexReader = DirectoryReader.open(indexDirectory);
-        IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs topDocs = searcher.search(query, MAX_RESULTS, sort);
-
-        List<Species> searchResults = new ArrayList<>();
-        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-            var document = searcher.doc(scoreDoc.doc);
-            for (var field : document.getFields(SOURCE_KEY)) {
-                Species result = objectMapper.readValue(
-                    field.stringValue(),
-                    new TypeReference<Species>() {
-                    }
-                );
-                searchResults.add(result);
-            }
-        }
-        return searchResults;
-    }
-
     public static class IndexPage {
         public String startValue;
         public int startPos;
@@ -256,17 +173,6 @@ public class SearchService {
         }
     }
 
-    public static class IndexResults {
-        public List<IndexPage> indexPages;
-        public int indexPagePos;
-        public List<Hybrid> hybrids;
-
-        public IndexResults(List<IndexPage> indexPages, int indexPagePos, List<Hybrid> hybrids) {
-            this.indexPages = indexPages;
-            this.indexPagePos = indexPagePos;
-            this.hybrids = hybrids;
-        }
-    }
 
     public static class RhodoIndexResults {
         public List<IndexPage> indexPages;
@@ -289,18 +195,6 @@ public class SearchService {
         return field.stringValue();
     }
 
-    private static Hybrid readSource(
-        ScoreDoc scoreDoc,
-        IndexSearcher searcher
-    ) throws IOException {
-        var document = searcher.doc(scoreDoc.doc);
-        var field = document.getField(SOURCE_KEY);
-        return objectMapper.readValue(
-            field.stringValue(),
-            new TypeReference<Hybrid>() {
-            }
-        );
-    }
 
     private static Rhododendron readRhodoSource(
         ScoreDoc scoreDoc,
@@ -315,55 +209,6 @@ public class SearchService {
         );
     }
 
-    public static IndexResults getAllHybridsByFirstLetter(
-        String letter,
-        int pageSize,
-        int offset
-    ) throws IOException {
-        var MAX_RESULTS = 5000;
-
-        Query query = new TermQuery(new Term(LETTER_KEY, letter));
-        Sort sort = new Sort(new SortField(Hybrid.NAME_KEY_FOR_SORT, SortField.Type.STRING));
-
-        Directory indexDirectory = FSDirectory.open(Paths.get(HYBRIDS_INDEX_PATH));
-        IndexReader indexReader = DirectoryReader.open(indexDirectory);
-        IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs topDocs = searcher.search(query, MAX_RESULTS, sort);
-
-        // Read the Source values.
-        var startPos = Math.min(topDocs.scoreDocs.length, offset); // todo off by 1?
-        var endPos = Math.min(topDocs.scoreDocs.length - 1, offset + pageSize); // todo off by 1?
-        List<Hybrid> hybrids = new ArrayList<>();
-        for (int i = startPos; i <= endPos; i++) {
-            var hybrid = readSource(topDocs.scoreDocs[i], searcher);
-            hybrids.add(hybrid);
-        }
-
-        // Read the index pages.
-        var indexPages = paginationOffsets(
-            pageSize,
-            topDocs.scoreDocs.length,
-            (pageStart, pageEnd) -> {
-                var startValue = readPaginationDescriptor(topDocs.scoreDocs[pageStart], searcher);
-                var endValue = readPaginationDescriptor(topDocs.scoreDocs[pageEnd], searcher);
-                return new IndexPage(
-                    startValue.substring(0, Math.min(3, startValue.length())),
-                    pageStart,
-                    endValue.substring(0, Math.min(3, endValue.length())),
-                    pageEnd
-                );
-            }
-        );
-
-        var pageNum = offset / pageSize;
-        var indexPagePosition = Math.min(indexPages.size(), pageNum);
-
-        return new IndexResults(
-            indexPages,
-            indexPagePosition,
-            hybrids
-        );
-    }
 
     public static RhodoIndexResults getAllRhodosByFirstLetter(
         String letter,
