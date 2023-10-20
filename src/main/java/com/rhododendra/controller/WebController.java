@@ -21,42 +21,6 @@ public class WebController {
 
     final static String[] ALPHABET = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
 
-    @RequestMapping("/species_index")
-    public String handleSpeciesIndex(
-        Model model,
-        @RequestParam("letter") String letter,
-        @RequestParam("size") int size,
-        @RequestParam("offset") int offset
-    ) throws IOException {
-        model.addAttribute(
-                "species",
-                RhodoLogicService.scrollSpeciesByLetter(letter, size, offset)
-            )
-            .addAttribute(
-                "letters",
-                ALPHABET
-            );
-        return "species-index";
-    }
-
-    @RequestMapping("/hybrid_index")
-    public String handleHybridIndex(
-        Model model,
-        @RequestParam("letter") String letter,
-        @RequestParam(value = "size", defaultValue = "50") int size,
-        @RequestParam("offset") int offset
-    ) throws IOException {
-        var set_size = 50;
-        var results = RhodoLogicService.scrollHybridsByLetter(letter, set_size, offset);
-        model.addAttribute("hybrids", results.hybrids)
-            .addAttribute("indexPages", results.indexPages)
-            .addAttribute("indexPagePos", results.indexPagePos)
-            .addAttribute("currentLetter", letter)
-            .addAttribute("pageSize", set_size)
-            .addAttribute("letters", ALPHABET);
-        return "hybrid-index";
-    }
-
     @RequestMapping("/rhodo_index")
     public String handleRhodoIndex(
         Model model,
