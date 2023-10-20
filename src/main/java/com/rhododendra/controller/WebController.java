@@ -17,8 +17,10 @@ import static com.rhododendra.model.Rhododendron.RhodoDataType.SPECIES_SELECTION
 
 @Controller
 public class WebController {
+
+    @RequestMapping("/")
     public String index() {
-        return "index";
+        return "home";
     }
 
     final static String[] ALPHABET = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
