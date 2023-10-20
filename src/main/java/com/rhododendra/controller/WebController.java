@@ -1,7 +1,9 @@
 package com.rhododendra.controller;
 
 import com.rhododendra.model.Rhododendron;
+import com.rhododendra.service.ImageResolver;
 import com.rhododendra.service.RhodoLogicService;
+import com.rhododendra.service.SearchService;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,7 +45,10 @@ public class WebController {
     public String handleSearch(Model model, @RequestParam("q") String query) throws IOException, ParseException {
         model.addAttribute(
             "search_results",
-            RhodoLogicService.searchRhodos(query)
+            SearchService.searchRhodos(query)
+                .stream()
+                .peek(rhodo -> rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos())))
+                .toList()
         );
         return "search-results";
     }
@@ -60,13 +65,13 @@ public class WebController {
 
     @RequestMapping(value = "/rhodos/{id}")
     public String handleGetHybrid(Model model, @PathVariable("id") String id) {
-        var result = RhodoLogicService.getRhodoById(id);
+        var result = SearchService.getRhodoById(id);
         if (!result.isEmpty()) {
             var rhodo = result.get(0);
             model.addAttribute("hybrid", rhodo);
             model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(rhodo.getPhotos()));
             if (rhodo.getRhodoDataType() == SPECIES_SELECTION) {
-                var speciesResult = RhodoLogicService.getSpeciesById(rhodo.getSpecies_id());
+                var speciesResult = SearchService.getSpeciesById(rhodo.getSpecies_id());
                 if (!speciesResult.isEmpty()) {
                     model.addAttribute("original_species", speciesResult.get(0));
 
