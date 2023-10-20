@@ -1,0 +1,22 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<tr th:fragment="card(rhodo)">
+    <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Rhododendron"*/-->
+    <td>
+        <h3 th:text="${rhodo.getName()}"></h3>
+        <a th:if="${not #lists.isEmpty(rhodo.getPhotos())}" th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
+            More information and pictures
+        </a>
+    </td>
+    <td>
+        <th:block th:if="${not #lists.isEmpty(rhodo.getPhotos)}">
+            <a th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
+                <img th:src="${rhodo.getPhotos()[0]}" width="400">
+            </a>
+        </th:block>
+        <th:block th:if="${#lists.isEmpty(rhodo.getPhotos())}">
+            <a th:href="@{'/rhodos/'+ ${rhodo.getId()}}">More information</a>
+        </th:block>
+    </td>
+</tr>
+</tr>
+</html>

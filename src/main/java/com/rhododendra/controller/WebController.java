@@ -1,5 +1,6 @@
 package com.rhododendra.controller;
 
+import com.rhododendra.model.Rhododendron;
 import com.rhododendra.service.RhodoLogicService;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Controller;
@@ -9,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
+
+import static com.rhododendra.model.Rhododendron.RhodoDataType.SPECIES_SELECTION;
 
 @Controller
 public class WebController {
@@ -54,11 +57,29 @@ public class WebController {
         return "hybrid-index";
     }
 
+    @RequestMapping("/rhodo_index")
+    public String handleRhodoIndex(
+        Model model,
+        @RequestParam("letter") String letter,
+        @RequestParam(value = "size", defaultValue = "50") int size,
+        @RequestParam("offset") int offset
+    ) throws IOException {
+        var set_size = 50;
+        var results = RhodoLogicService.scrollRhodosByLetter(letter, set_size, offset);
+        model.addAttribute("rhodos", results.rhodos)
+            .addAttribute("indexPages", results.indexPages)
+            .addAttribute("indexPagePos", results.indexPagePos)
+            .addAttribute("currentLetter", letter)
+            .addAttribute("pageSize", set_size)
+            .addAttribute("letters", ALPHABET);
+        return "rhodo-index";
+    }
+
     @RequestMapping(value = "/search")
     public String handleSearch(Model model, @RequestParam("q") String query) throws IOException, ParseException {
         model.addAttribute(
             "search_results",
-            RhodoLogicService.searchSpecies(query)
+            RhodoLogicService.searchRhodos(query)
         );
         return "search-results";
     }
@@ -75,31 +96,19 @@ public class WebController {
 
     @RequestMapping(value = "/rhodos/{id}")
     public String handleGetHybrid(Model model, @PathVariable("id") String id) {
-        if (id.startsWith("s")) {
-            var speciesDetail = RhodoLogicService.getSpeciesDetailForView(id);
-            if (speciesDetail != null) {
-                model.addAttribute("speciesDetail", speciesDetail);
-                return "species-detail";
-            } else {
-                return "404";
-            }
-        } else if (id.startsWith("h")) {
-            var result = RhodoLogicService.getHybridById(id);
-            if (!result.isEmpty()) {
-                var hybrid = result.get(0);
-                model.addAttribute("hybrid", hybrid);
-                model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(hybrid.getPhotos()));
-                if (hybrid.getIs_species_selection()) {
-                    var speciesResult = RhodoLogicService.getSpeciesById(hybrid.getSpecies_id());
-                    if (!speciesResult.isEmpty()) {
-                        model.addAttribute("original_species", speciesResult.get(0));
+        var result = RhodoLogicService.getRhodoById(id);
+        if (!result.isEmpty()) {
+            var rhodo = result.get(0);
+            model.addAttribute("hybrid", rhodo);
+            model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(rhodo.getPhotos()));
+            if (rhodo.getRhodoDataType() == SPECIES_SELECTION) {
+                var speciesResult = RhodoLogicService.getSpeciesById(rhodo.getSpecies_id());
+                if (!speciesResult.isEmpty()) {
+                    model.addAttribute("original_species", speciesResult.get(0));
 
-                    }
                 }
-                return "hybrid-detail";
-            } else {
-                return "404";
             }
+            return "hybrid-detail";
         } else {
             return "404";
         }

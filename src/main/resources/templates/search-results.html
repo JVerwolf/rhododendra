@@ -7,8 +7,8 @@
 <div style="padding-left:16px">
     <h1>Search Results</h1>
     <table>
-        <th:block th:each="search_result : ${search_results}">
-            <th:block th:insert="~{fragments/species-preview-card :: card (${search_result}) }"></th:block>
+        <th:block th:each="rhodo : ${search_results}">
+            <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>
         </th:block>
     </table>
 </div>

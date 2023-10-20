@@ -2,10 +2,7 @@ package com.rhododendra.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rhododendra.model.Botanist;
-import com.rhododendra.model.Hybrid;
-import com.rhododendra.model.PhotoDetails;
-import com.rhododendra.model.Species;
+import com.rhododendra.model.*;
 import com.rhododendra.util.CheckedBiFunction;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
@@ -23,7 +20,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiFunction;
 
 import static com.rhododendra.service.IndexService.*;
 
@@ -69,6 +65,20 @@ public class SearchService {
             );
         } catch (Exception e) {
             logger.error("Could not search searchHybrid", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static List<Rhododendron> searchRhodos(String queryString) {
+        try {
+            return search(
+                new QueryParser(Rhododendron.NAME_KEY, new StandardAnalyzer()).parse(queryString),
+                RHODO_INDEX_PATH,
+                new TypeReference<>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search searchRhodos", e);
             return Collections.emptyList();
         }
     }
@@ -125,6 +135,20 @@ public class SearchService {
             );
         } catch (Exception e) {
             logger.error("Could not search getHybridById", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static List<Rhododendron> getRhodoById(String id) {
+        try {
+            return search(
+                new TermQuery(new Term(Rhododendron.PRIMARY_ID_KEY, id)),
+                RHODO_INDEX_PATH,
+                new TypeReference<Rhododendron>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search getRhodoById", e);
             return Collections.emptyList();
         }
     }
@@ -244,6 +268,18 @@ public class SearchService {
         }
     }
 
+    public static class RhodoIndexResults {
+        public List<IndexPage> indexPages;
+        public int indexPagePos;
+        public List<Rhododendron> rhodos;
+
+        public RhodoIndexResults(List<IndexPage> indexPages, int indexPagePos, List<Rhododendron> rhodos) {
+            this.indexPages = indexPages;
+            this.indexPagePos = indexPagePos;
+            this.rhodos = rhodos;
+        }
+    }
+
     private static String readPaginationDescriptor(
         ScoreDoc scoreDoc,
         IndexSearcher searcher
@@ -262,6 +298,19 @@ public class SearchService {
         return objectMapper.readValue(
             field.stringValue(),
             new TypeReference<Hybrid>() {
+            }
+        );
+    }
+
+    private static Rhododendron readRhodoSource(
+        ScoreDoc scoreDoc,
+        IndexSearcher searcher
+    ) throws IOException {
+        var document = searcher.doc(scoreDoc.doc);
+        var field = document.getField(SOURCE_KEY);
+        return objectMapper.readValue(
+            field.stringValue(),
+            new TypeReference<Rhododendron>() {
             }
         );
     }
@@ -313,6 +362,56 @@ public class SearchService {
             indexPages,
             indexPagePosition,
             hybrids
+        );
+    }
+
+    public static RhodoIndexResults getAllRhodosByFirstLetter(
+        String letter,
+        int pageSize,
+        int offset
+    ) throws IOException {
+        var MAX_RESULTS = 5000;
+
+        Query query = new TermQuery(new Term(LETTER_KEY, letter));
+        Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
+
+        Directory indexDirectory = FSDirectory.open(Paths.get(RHODO_INDEX_PATH));
+        IndexReader indexReader = DirectoryReader.open(indexDirectory);
+        IndexSearcher searcher = new IndexSearcher(indexReader);
+        TopDocs topDocs = searcher.search(query, MAX_RESULTS, sort);
+
+        // Read the Source values.
+        var startPos = Math.min(topDocs.scoreDocs.length, offset); // todo off by 1?
+        var endPos = Math.min(topDocs.scoreDocs.length - 1, offset + pageSize); // todo off by 1?
+        List<Rhododendron> rhododendrons = new ArrayList<>();
+        for (int i = startPos; i <= endPos; i++) {
+            var rhodo = readRhodoSource(topDocs.scoreDocs[i], searcher);
+            rhododendrons.add(rhodo);
+        }
+
+        // Read the index pages.
+        var indexPages = paginationOffsets(
+            pageSize,
+            topDocs.scoreDocs.length,
+            (pageStart, pageEnd) -> {
+                var startValue = readPaginationDescriptor(topDocs.scoreDocs[pageStart], searcher);
+                var endValue = readPaginationDescriptor(topDocs.scoreDocs[pageEnd], searcher);
+                return new IndexPage(
+                    startValue.substring(0, Math.min(3, startValue.length())),
+                    pageStart,
+                    endValue.substring(0, Math.min(3, endValue.length())),
+                    pageEnd
+                );
+            }
+        );
+
+        var pageNum = offset / pageSize;
+        var indexPagePosition = Math.min(indexPages.size(), pageNum);
+
+        return new RhodoIndexResults(
+            indexPages,
+            indexPagePosition,
+            rhododendrons
         );
     }
 

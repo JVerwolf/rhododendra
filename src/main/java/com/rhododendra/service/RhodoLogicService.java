@@ -26,8 +26,25 @@ public class RhodoLogicService {
         return result;
     }
 
+    public static SearchService.RhodoIndexResults scrollRhodosByLetter(String letter, int pageSize, int offset) throws IOException {
+        // todo validate input
+        var result = SearchService.getAllRhodosByFirstLetter(letter.toLowerCase(), pageSize, offset);
+        result.rhodos.forEach(rhodo ->
+            rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
+        );
+        return result;
+    }
+
     public static List<Species> searchSpecies(String queryString) throws IOException, ParseException {
         return SearchService.searchSpecies(queryString).stream()
+            .peek(rhodo ->
+                rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
+            )
+            .toList();
+    }
+
+    public static List<Rhododendron> searchRhodos(String queryString) {
+        return SearchService.searchRhodos(queryString).stream()
             .peek(rhodo ->
                 rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
             )
@@ -76,6 +93,12 @@ public class RhodoLogicService {
 
     public static List<Hybrid> getHybridById(String id) {
         return SearchService.getHybridById(id).stream()
+//            .peek(rhodo -> rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos())))
+            .toList();
+    }
+
+    public static List<Rhododendron> getRhodoById(String id) {
+        return SearchService.getRhodoById(id).stream()
 //            .peek(rhodo -> rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos())))
             .toList();
     }

@@ -23,6 +23,7 @@ public class IndexService {
     public final static String SPECIES_INDEX_PATH = BASE_INDEX_PATH + "/species";
     public final static String HYBRIDS_INDEX_PATH = BASE_INDEX_PATH + "/hybrids";
     public final static String PHOTO_DETAIL_INDEX_PATH = BASE_INDEX_PATH + "/photo_details";
+    public final static String RHODO_INDEX_PATH = BASE_INDEX_PATH + "/rhodos";
 
 
     //Additional Search/Index keys
@@ -58,6 +59,20 @@ public class IndexService {
                 document.add(new TextField(Hybrid.NAME_KEY, hybrid.getName(), Field.Store.NO));
                 document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(hybrid.getName()), Field.Store.NO));
                 document.add(new SortedDocValuesField(Hybrid.NAME_KEY_FOR_SORT, new BytesRef(hybrid.getName().toLowerCase())));
+            }
+        );
+    }
+
+    public static void indexRhodos() throws IOException {
+        index(
+            JSONLoaderService.loadRhodos(),
+            RHODO_INDEX_PATH,
+            Rhododendron.PRIMARY_ID_KEY,
+            (document, rhodo) -> {
+                document.add(new StringField(PAGINATION_DESCRIPTOR_KEY, rhodo.getName(), Field.Store.YES));
+                document.add(new TextField(Rhododendron.NAME_KEY, rhodo.getName(), Field.Store.NO));
+                document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(rhodo.getName()), Field.Store.NO));
+                document.add(new SortedDocValuesField(Rhododendron.NAME_KEY_FOR_SORT, new BytesRef(rhodo.getName().toLowerCase())));
             }
         );
     }

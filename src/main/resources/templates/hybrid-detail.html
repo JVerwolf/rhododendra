@@ -3,105 +3,126 @@
 <head th:replace="~{fragments/head}"></head>
 <body>
 <div th:replace="~{fragments/header}"></div>
-<!--/*@thymesVar id="hybrid" type="com.rhododendra.model.Hybrid"*/-->
+<!--/*@thymesVar id="hybrid" type="com.rhododendra.model.Rhododendron"*/-->
 
 <div style="padding-left:16px">
     <h1>
-        <span th:if="${hybrid.getIs_cultivar_group()}" th:text="|Cultivar Group '${hybrid.name}'|"></span>
-        <span th:if="${hybrid.getIs_species_selection()}" th:text="|Species Selection '${hybrid.name}'|"></span>
-        <span th:if="${!hybrid.getIs_species_selection() && !hybrid.getIs_cultivar_group()}"
-              th:text="|Rhododedron '${hybrid.name}'|"></span>
+        <span th:if="${hybrid.isCultivarGroup()}" th:text="|Cultivar Group: R. '${hybrid.name}'|"></span>
+        <span th:if="${hybrid.isSpeciesSelection()}" th:text="|Species Selection: R. '${hybrid.name}'|"></span>
+        <span th:if="${hybrid.isSpecies()}" th:text="|Species: R. '${hybrid.name}'|"></span>
+        <span th:if="${hybrid.isNaturalHybrid()}" th:text="|Natural Hybrid: R. '${hybrid.name}'|"></span>
+        <span th:if="${hybrid.isHybridRhodo()}" th:text="|Rhododendron Hybrid: R. '${hybrid.name}'|"></span>
+        <span th:if="${hybrid.isVireyaHybrid()}" th:text="|Vireya Hybrid: R. '${hybrid.name}'|"></span>
+        <span th:if="${hybrid.isAzaleaHybrid()}" th:text="|Azalea Hybrid: R. '${hybrid.name}'|"></span>
     </h1>
-    <h2 th:if="${hybrid.getIs_species_selection()}" th:inline="text">
+    <h2 th:if="${hybrid.isSpeciesSelection()}" th:inline="text">
         [[|'${hybrid.name}' is a selection of |]]
         <a th:href="@{'/rhodos/'+ ${original_species.getId()}}" th:text="|R. ${original_species.getName()}|"></a>
     </h2>
 
+
     <table>
-        <th:block th:if="${hybrid.getIs_species_selection()}">
+        <tr th:if="${not hybrid.getBotanical_synonyms().isEmpty()}">
+            <td><b>Botanical Synonyms:</b></td>
+            <td>
+                <th:block th:each="synonym : ${hybrid.getBotanical_synonyms()}">
+                    <dd th:if="${synonym.botanical_shorts().isEmpty()}" th:text="${synonym.synonym()}"></dd>
+                    <dd th:if="${not synonym.botanical_shorts().isEmpty()}"
+                        th:text="${synonym.synonym()} + ' ('+ ${synonym.botanical_shorts() + ')'}"></dd>
+                </th:block>
+            </td>
+        </tr>
+        <tr th:if="${not hybrid.getSynonyms().isEmpty()}">
+            <td><b>Synonyms:</b></td>
+            <td>
+                <th:block th:each="synonym : ${hybrid.getSynonyms()}">
+                    <dd th:text="${synonym}"></dd>
+                </th:block>
+            </td>
+        </tr>
+        <th:block th:if="${hybrid.isSpeciesSelection()}">
             <tr>
                 <td><b>Selected By:</b></td>
-                <td th:if="${hybrid.getHybridizer() != null}" th:text="${hybrid.getHybridizer()}"></td>
-                <td th:if="${hybrid.getHybridizer() == null}">Unknown</td>
+                <td th:if="${hybrid.getHybridizer().getHybridizer()  != null}"
+                    th:text="${hybrid.getHybridizer().getHybridizer() }"></td>
+                <td th:if="${hybrid.getHybridizer().getHybridizer()  == null}">Unknown</td>
             </tr>
         </th:block>
 
-        <th:block th:if="${!hybrid.getIs_species_selection()}">
+        <th:block th:if="${hybrid.isCultivar()}">
             <tr>
                 <td><b>Hybridized By:</b></td>
-                <td th:if="${hybrid.getHybridizer() != null}" th:text="${hybrid.getHybridizer()}"></td>
-                <td th:if="${hybrid.getHybridizer() == null}">Unknown</td>
+                <td th:if="${hybrid.getHybridizer().getHybridizer() != null}"
+                    th:text="${hybrid.getHybridizer().getHybridizer() }"></td>
+                <td th:if="${hybrid.getHybridizer().getHybridizer()  == null}">Unknown</td>
             </tr>
             <tr>
-                <td><b>Pollen Parent:</b></td>
-                <th:block th:if="${hybrid.getGenetics().getPollen_parent() != null}">
-                    <td th:if="${hybrid.getGenetics().getPollen_parent_id() != null}">
-                        <a th:href="@{'/rhodos/'+ ${hybrid.getGenetics().getPollen_parent_id}}"
-                           th:text="${hybrid.getGenetics().getPollen_parent()}">
+        </th:block>
+        <th:block th:if="${hybrid.isCultivar() || hybrid.isNaturalHybrid()}">
+            <td><b>Pollen Parent:</b></td>
+            <th:block th:if="${hybrid.getParentage().getPollen_parent() != null}">
+                <td th:if="${hybrid.getParentage().getPollen_parent_id() != null}">
+                    <a th:href="@{'/rhodos/'+ ${hybrid.getParentage().getPollen_parent_id}}"
+                       th:text="${hybrid.getParentage().getPollen_parent()}">
 
-                        </a>
-                    </td>
-                    <td th:if="${hybrid.getGenetics().getPollen_parent_id() == null}"
-                        th:text="${hybrid.getGenetics().getPollen_parent()}">
-                    </td>
-                </th:block>
-                <td th:if="${hybrid.getGenetics().getPollen_parent() == null}">?</td>
+                    </a>
+                </td>
+                <td th:if="${hybrid.getParentage().getPollen_parent_id() == null}"
+                    th:text="${hybrid.getParentage().getPollen_parent()}">
+                </td>
+            </th:block>
+            <td th:if="${hybrid.getParentage().getPollen_parent() == null}">?</td>
             </tr>
             <tr>
                 <td><b>Seed Parent:</b></td>
-                <th:block th:if="${hybrid.getGenetics().getSeed_parent() != null}">
-                    <td th:if="${hybrid.getGenetics().getSeed_parent_id() != null}">
-                        <a th:href="@{'/rhodos/'+ ${hybrid.getGenetics().getSeed_parent_id}}"
-                           th:text="${hybrid.getGenetics().getSeed_parent()}">
+                <th:block th:if="${hybrid.getParentage().getSeed_parent() != null}">
+                    <td th:if="${hybrid.getParentage().getSeed_parent_id() != null}">
+                        <a th:href="@{'/rhodos/'+ ${hybrid.getParentage().getSeed_parent_id}}"
+                           th:text="${hybrid.getParentage().getSeed_parent()}">
 
                         </a>
                     </td>
-                    <td th:if="${hybrid.getGenetics().getSeed_parent_id() == null}"
-                        th:text="${hybrid.getGenetics().getSeed_parent()}">
+                    <td th:if="${hybrid.getParentage().getSeed_parent_id() == null}"
+                        th:text="${hybrid.getParentage().getSeed_parent()}">
                     </td>
                 </th:block>
-                <td th:if="${hybrid.getGenetics().getSeed_parent() == null}">?</td>
+                <td th:if="${hybrid.getParentage().getSeed_parent() == null}">?</td>
             </tr>
-            <tr>
-                <td><b>10 Year Height:</b></td>
-                <td th:text="${hybrid.getTen_year_height()}"></td>
-            </tr>
-            <tr>
-                <td><b>Flower:</b></td>
-                <td th:text="${hybrid.getFlower()}"></td>
-            </tr>
-            <tr>
-                <td><b>Bloom Time:</b></td>
-                <td th:text="${hybrid.getBloom_time()}"></td>
-            </tr>
-            <tr>
-                <td><b>Leaves:</b></td>
-                <td th:text="${hybrid.getLeaves()}"></td>
-            </tr>
-            <tr>
-                <td><b>Additional Parentage Info:</td>
-                <td th:text="${hybrid.getAdditional_parentage_info()}"></td>
-            </tr>
-            <tr th:if="${not hybrid.getSynonymns().isEmpty()}">
-                <td><b>Synonyms:</b></td>
-                <td>
-                    <th:block th:each="synonym : ${hybrid.getSynonymns()}">
-                        <br th:text="${synonym}"></br>
-                    </th:block>
-                </td>
-            </tr>
-            <tr>
-                <td><b>Type:</b></td>
-                <td th:text="${hybrid.getType()}"></td>
-            </tr>
-            <tr>
-                <td><b>Hardiness:</b></td>
-                <td th:text="${hybrid.getHardiness()}"></td>
-            </tr>
-            <tr>
-                <td><b>Status:</b></td>
-                <td th:text="${hybrid.getStatus()}"></td>
-            </tr>
+        </th:block>
+        <tr>
+            <td><b>10 Year Height:</b></td>
+            <td th:text="${hybrid.getTen_year_height()}"></td>
+        </tr>
+        <tr>
+            <td><b>Bloom Time:</b></td>
+            <td th:text="${hybrid.getBloom_time()}"></td>
+        </tr>
+        <tr>
+            <td><b>Flower:</b></td>
+            <td th:text="${hybrid.getFlower_shape()}"></td>
+        </tr>
+        <tr>
+            <td><b>Leaves:</b></td>
+            <td th:text="${hybrid.getLeaf_shape()}"></td>
+        </tr>
+        <tr>
+            <td><b>Additional Parentage Info:</td>
+            <td th:text="${hybrid.getAdditional_parentage_info()}"></td>
+        </tr>
+
+        <tr>
+            <td><b>Type:</b></td>
+            <td th:if="${hybrid.isElepedote()}">Elepedote</td>
+            <td th:if="${hybrid.isLepedote()}">Lepedote</td>
+        </tr>
+        <tr>
+            <td><b>Hardiness:</b></td>
+            <td th:text="${hybrid.getHardiness()}"></td>
+        </tr>
+        <tr>
+            <td><b>Status:</b></td>
+            <td th:text="${hybrid.getIrrc_registered()}"></td>
+        </tr>
         </th:block>
 
 

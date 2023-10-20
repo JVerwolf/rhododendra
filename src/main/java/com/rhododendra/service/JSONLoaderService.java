@@ -2,10 +2,7 @@ package com.rhododendra.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rhododendra.model.Botanist;
-import com.rhododendra.model.Hybrid;
-import com.rhododendra.model.PhotoDetails;
-import com.rhododendra.model.Species;
+import com.rhododendra.model.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +33,17 @@ public class JSONLoaderService {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(file, new TypeReference<List<Hybrid>>() {
         });
+    }
+
+    public static List<Rhododendron> loadRhodos() throws IOException {
+        File speciesFile = new File(SPECIES_PATH);
+        File hybridsFile = new File(HYBRIDS_PATH);
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Rhododendron> result = objectMapper.readValue(speciesFile, new TypeReference<List<Rhododendron>>() {
+        });
+        result.addAll(objectMapper.readValue(hybridsFile, new TypeReference<List<Rhododendron>>() {
+        }));
+        return result;
     }
 
     public static List<PhotoDetails> loadPhotoDetails() throws IOException {
