@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head}"></head>
+<body>
+<div th:replace="~{fragments/header}"></div>
+<!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Rhododendron"*/-->
+
+<div style="padding-left:16px">
+    <h1>
+        <span th:if="${rhodo.isCultivarGroup()}" th:text="|Cultivar Group R. '${.name}'|"></span>
+        <span th:if="${rhodo.isSpeciesSelection()}" th:text="|Species Selection R. '${rhodo.name}'|"></span>
+        <span th:if="${rhodo.isSpecies()}" th:text="|Species R. '${rhodo.name}'|"></span>
+        <span th:if="${rhodo.isNaturalHybrid()}" th:text="|Natural Hybrid R. '${rhodo.name}'|"></span>
+        <span th:if="${rhodo.isHybridRhodo()}" th:text="|Rhododendron Hybrid R. '${rhodo.name}'|"></span>
+        <span th:if="${rhodo.isVireyaHybrid()}" th:text="|Vireya Hybrid R. '${rhodo.name}'|"></span>
+        <span th:if="${rhodo.isAzaleaHybrid()}" th:text="|Azalea Hybrid R. '${rhodo.name}'|"></span>
+    </h1>
+    <h2 th:if="${rhodo.isSpeciesSelection()}" th:inline="text">
+        [[|'${rhodo.name}' is a selection of |]]
+        <a th:href="@{'/rhodos/'+ ${original_species.getId()}}" th:text="|R. ${original_species.getName()}|"></a>
+    </h2>
+    <table>
+        <tr th:if="${not rhodo.getBotanical_synonyms().isEmpty()}">
+            <td><b>Botanical<br/>Synonyms:</b></td>
+            <td>
+                <th:block th:each="synonym, iterStat : ${rhodo.getBotanical_synonyms()}">
+
+                    <span th:if="${synonym.botanical_shorts().isEmpty()}"
+                          th:text="${synonym.synonym()}"></span>
+                    <span th:if="${not synonym.botanical_shorts().isEmpty()}"
+                          th:text="${synonym.synonym()} + ' ('+ ${#strings.listJoin(synonym.botanical_shorts(), ',')} + ')'"></span>
+                    <br th:if="${not iterStat.last}"/>
+                </th:block>
+            </td>
+        </tr>
+        <tr th:if="${not rhodo.getSynonyms().isEmpty()}">
+            <td><b>Synonyms:</b></td>
+            <td>
+                <th:block th:each="synonym : ${rhodo.getSynonyms()}">
+                    <span th:text="${synonym}"></span>
+                </th:block>
+            </td>
+        </tr>
+        <th:block th:if="${rhodo.isSpeciesSelection()}">
+            <tr>
+                <td><b>Selected By:</b></td>
+                <td th:if="${rhodo.getHybridizer().getHybridizer()  != null}"
+                    th:text="${rhodo.getHybridizer().getHybridizer() }"></td>
+                <td th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
+            </tr>
+        </th:block>
+        <th:block th:if="${rhodo.isCultivar()}">
+            <tr>
+                <td><b>Hybridized By:</b></td>
+                <td th:if="${rhodo.getHybridizer().getHybridizer() != null}"
+                    th:text="${rhodo.getHybridizer().getHybridizer() }"></td>
+                <td th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
+            </tr>
+            <tr>
+        </th:block>
+        <th:block th:if="${rhodo.getTaxonomy() != null}">
+            <tr>
+                <td><b>Subgenus</b></td>
+                <td th:text="${rhodo.getTaxonomy().getSubgenus()}"></td>
+            </tr>
+            <tr>
+                <td><b>Section</b></td>
+                <td th:text="${rhodo.getTaxonomy().getSection()}"></td>
+            </tr>
+            <tr>
+                <td><b>Subsection</b></td>
+                <td th:text="${rhodo.getTaxonomy().getSubsection()}"></td>
+            </tr>
+        </th:block>
+        <th:block th:if="${rhodo.isCultivar() || rhodo.isNaturalHybrid()}">
+            <td><b>Pollen Parent:</b></td>
+            <th:block th:if="${rhodo.getParentage().getPollen_parent() != null}">
+                <td th:if="${rhodo.getParentage().getPollen_parent_id() != null}">
+                    <a th:href="@{'/rhodos/'+ ${rhodo.getParentage().getPollen_parent_id}}"
+                       th:text="${rhodo.getParentage().getPollen_parent()}">
+                    </a>
+                </td>
+                <td th:if="${rhodo.getParentage().getPollen_parent_id() == null}"
+                    th:text="${rhodo.getParentage().getPollen_parent()}">
+                </td>
+            </th:block>
+            <td th:if="${rhodo.getParentage().getPollen_parent() == null}">?</td>
+            <tr>
+                <td><b>Seed Parent:</b></td>
+                <th:block th:if="${rhodo.getParentage().getSeed_parent() != null}">
+                    <td th:if="${rhodo.getParentage().getSeed_parent_id() != null}">
+                        <a th:href="@{'/rhodos/'+ ${rhodo.getParentage().getSeed_parent_id}}"
+                           th:text="${rhodo.getParentage().getSeed_parent()}">
+                        </a>
+                    </td>
+                    <td th:if="${rhodo.getParentage().getSeed_parent_id() == null}"
+                        th:text="${rhodo.getParentage().getSeed_parent()}">
+                    </td>
+                </th:block>
+                <td th:if="${rhodo.getParentage().getSeed_parent() == null}">?</td>
+            </tr>
+        </th:block>
+        <tr>
+            <td><b>10 Year Height:</b></td>
+            <td th:if="${rhodo.getTen_year_height() != null}" th:text="${rhodo.getTen_year_height()}"></td>
+            <td th:if="${rhodo.getTen_year_height() == null}">?</td>
+        </tr>
+        <tr>
+            <td><b>Bloom Time:</b></td>
+            <td th:if="${rhodo.getBloom_time() != null}" th:text="${rhodo.getBloom_time()}"></td>
+            <td th:if="${rhodo.getBloom_time() == null}">?</td>
+        </tr>
+        <tr>
+            <td><b>Flower:</b></td>
+            <td th:if="${rhodo.getFlower_shape() != null}" th:text="${rhodo.getFlower_shape()}"></td>
+            <td th:if="${rhodo.getFlower_shape() == null}">?</td>
+        </tr>
+        <tr>
+            <td><b>Leaves:</b></td>
+            <td th:if="${rhodo.getLeaf_shape()} != null" th:text="${rhodo.getLeaf_shape()}"></td>
+            <td th:if="${rhodo.getLeaf_shape()} == null">?</td>
+        </tr>
+        <tr th:if="${rhodo.getAdditional_parentage_info() != null}">
+            <td><b>Additional<br/>Parentage Info:</b></td>
+            <td th:text="${rhodo.getAdditional_parentage_info()}"></td>
+        </tr>
+        <tr th:if="${rhodo.isElepedote() || rhodo.isLepedote()}">
+            <td><b>Type:</b></td>
+            <td th:if="${rhodo.isElepedote()}">Elepedote</td>
+            <td th:if="${rhodo.isLepedote()}">Lepedote</td>
+        </tr>
+        <tr>
+            <td><b>Hardiness:</b></td>
+            <td th:if="${rhodo.getHardiness() != null}" th:text="${rhodo.getHardiness()}"></td>
+            <td th:if="${rhodo.getHardiness() == null}">?</td>
+        </tr>
+        <tr th:if="${rhodo.getIrrc_registered() != null}">
+            <td><b>Status:</b></td>
+            <td th:text="${rhodo.getIrrc_registered()}"></td>
+        </tr>
+    </table>
+    <table>
+        <thead><h2>Pictures</h2></thead>
+        <tr th:each="resolvedPhotoDetail : ${resolvedPhotoDetails}">
+            <td>
+                <a th:href="${resolvedPhotoDetail.getResolvedHiResURL() != null ? resolvedPhotoDetail.getResolvedHiResURL() : resolvedPhotoDetail.getResolvedNormalURL()}">
+                    <img th:src="${resolvedPhotoDetail.getResolvedNormalURL()}" width="400">
+                </a>
+            </td>
+            <td>
+                <dl>
+                    <dt>Photo By:</dt>
+                    <dd th:if="${resolvedPhotoDetail.getPhotoDetails().getPhotoBy() != null}"
+                        th:text="${resolvedPhotoDetail.getPhotoDetails().getPhotoBy()}"></dd>
+                    <dd th:if="${resolvedPhotoDetail.getPhotoDetails().getPhotoBy() == null}">Unknown</dd>
+
+                    <th:block th:if="${resolvedPhotoDetail.getPhotoDetails().getDate() != null}">
+                        <dt>Date:</dt>
+                        <dd th:text="${resolvedPhotoDetail.getPhotoDetails().getDate()}"></dd>
+                    </th:block>
+
+                    <th:block th:if="${resolvedPhotoDetail.getPhotoDetails().getLocation() != null}">
+                        <dt>Location:</dt>
+                        <dd th:text="${resolvedPhotoDetail.getPhotoDetails().getLocation()}"></dd>
+                    </th:block>
+
+                    <th:block
+                            th:if="${resolvedPhotoDetail.getPhotoDetails().getDescription() != null && !resolvedPhotoDetail.getPhotoDetails().getDescription().isEmpty()}">
+                        <dt>Description:</dt>
+                        <dd th:text="${resolvedPhotoDetail.getPhotoDetails().getDescription()}"></dd>
+                    </th:block>
+
+                    <th:block th:if="${resolvedPhotoDetail.getResolvedHiResURL() != null}">
+                        <dt>Hi-Resolution Version:</dt>
+                        <dd><a th:href="${resolvedPhotoDetail.getResolvedHiResURL()}">Hi-res photo</a></dd>
+                    </th:block>
+
+                    <th:block th:if="${resolvedPhotoDetail.getResolvedTagURL() != null}">
+                        <dt>Tag:</dt>
+                        <dd><img th:src="${resolvedPhotoDetail.getResolvedTagURL()}"></dd>
+                    </th:block>
+                </dl>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

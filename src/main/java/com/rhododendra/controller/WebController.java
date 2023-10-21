@@ -1,6 +1,5 @@
 package com.rhododendra.controller;
 
-import com.rhododendra.model.Rhododendron;
 import com.rhododendra.service.ImageResolver;
 import com.rhododendra.service.RhodoLogicService;
 import com.rhododendra.service.SearchService;
@@ -70,7 +69,7 @@ public class WebController {
         var result = SearchService.getRhodoById(id);
         if (!result.isEmpty()) {
             var rhodo = result.get(0);
-            model.addAttribute("hybrid", rhodo);
+            model.addAttribute("rhodo", rhodo);
             model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(rhodo.getPhotos()));
             if (rhodo.getRhodoDataType() == SPECIES_SELECTION) {
                 var speciesResult = SearchService.getRhodoById(rhodo.getSpecies_id());
@@ -79,7 +78,7 @@ public class WebController {
 
                 }
             }
-            return "hybrid-detail";
+            return "rhodo-detail";
         } else {
             return "404";
         }
