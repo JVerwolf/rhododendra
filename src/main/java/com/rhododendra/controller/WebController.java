@@ -3,7 +3,6 @@ package com.rhododendra.controller;
 import com.rhododendra.service.ImageResolver;
 import com.rhododendra.service.RhodoLogicService;
 import com.rhododendra.service.SearchService;
-import com.rhododendra.service.SearchService.RhodoIndexResults;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
-import java.util.List;
 
 import static com.rhododendra.model.Rhododendron.RhodoDataType.SPECIES_SELECTION;
 import static com.rhododendra.service.RhodoLogicService.ALPHABET;
@@ -35,12 +33,12 @@ public class WebController {
     ) throws IOException {
         var set_size = 50;
         var results = RhodoLogicService.scrollRhodosByLetter(letter, set_size, offset);
-        model.addAttribute("rhodos", results.rhodos)
+        model.addAttribute("rhodos", results.results)
             .addAttribute("indexPages", results.indexPages)
             .addAttribute("indexPagePos", results.indexPagePos)
-            .addAttribute("currentLetter", results.letter)
+            .addAttribute("currentLetter", letter)
             .addAttribute("pageSize", set_size)
-            .addAttribute("nextPage", RhodoLogicService.calculateNextPage(results))
+            .addAttribute("nextPage", RhodoLogicService.calculateNextIndexPage(results, letter))
             .addAttribute("letters", ALPHABET);
         return "rhodo-index";
     }

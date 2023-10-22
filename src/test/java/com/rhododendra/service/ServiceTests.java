@@ -29,7 +29,7 @@ public class ServiceTests {
         assertThat(searchRhodos("anna")).isNotEmpty();
         assertEquals(1, getRhodoById("h1").size());
         assertEquals(1, getRhodoById("s1").size());
-        assertThat(getAllRhodosByFirstLetter("s", 10, 5).rhodos).isNotEmpty();
+        assertThat(getAllRhodosByFirstLetter("s", 10, 5).results).isNotEmpty();
     }
 
     @Test

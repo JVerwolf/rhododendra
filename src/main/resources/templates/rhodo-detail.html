@@ -7,13 +7,13 @@
 
 <div style="padding-left:16px">
     <h1>
-        <span th:if="${rhodo.isCultivarGroup()}" th:text="|Cultivar Group R. '${.name}'|"></span>
-        <span th:if="${rhodo.isSpeciesSelection()}" th:text="|Species Selection R. '${rhodo.name}'|"></span>
-        <span th:if="${rhodo.isSpecies()}" th:text="|Species R. '${rhodo.name}'|"></span>
-        <span th:if="${rhodo.isNaturalHybrid()}" th:text="|Natural Hybrid R. '${rhodo.name}'|"></span>
-        <span th:if="${rhodo.isHybridRhodo()}" th:text="|Rhododendron Hybrid R. '${rhodo.name}'|"></span>
-        <span th:if="${rhodo.isVireyaHybrid()}" th:text="|Vireya Hybrid R. '${rhodo.name}'|"></span>
-        <span th:if="${rhodo.isAzaleaHybrid()}" th:text="|Azalea Hybrid R. '${rhodo.name}'|"></span>
+        <span th:if="${rhodo.isCultivarGroup()}" th:text="|Cultivar Group R. '${rhodo.getName()}'|"></span>
+        <span th:if="${rhodo.isSpeciesSelection()}" th:text="|Species Selection R. '${rhodo.getName()}'|"></span>
+        <span th:if="${rhodo.isSpecies()}" th:text="|Species R. '${rhodo.getName()}'|"></span>
+        <span th:if="${rhodo.isNaturalHybrid()}" th:text="|Natural Hybrid R. '${rhodo.getName()}'|"></span>
+        <span th:if="${rhodo.isHybridRhodo()}" th:text="|Rhododendron Hybrid R. '${rhodo.getName()}'|"></span>
+        <span th:if="${rhodo.isVireyaHybrid()}" th:text="|Vireya Hybrid R. '${rhodo.getName()}'|"></span>
+        <span th:if="${rhodo.isAzaleaHybrid()}" th:text="|Azalea Hybrid R. '${rhodo.getName()}'|"></span>
     </h1>
     <h2 th:if="${rhodo.isSpeciesSelection()}" th:inline="text">
         [[|'${rhodo.name}' is a selection of |]]

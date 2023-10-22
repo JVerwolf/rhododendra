@@ -34,6 +34,13 @@
             </th:block>
         </tr>
     </table>
+    <a th:if="${nextPage != null}"
+       th:href=" @{/rhodo_index(letter=${nextPage.letter()},size=${pageSize},offset=${nextPage.offset()})}"
+       style="display: flex; justify-content: flex-end; padding-right: 5%">
+        <h3>
+            Next Page
+        </h3>
+    </a>
     <table>
         <th:block th:each="rhodo : ${rhodos}">
             <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>

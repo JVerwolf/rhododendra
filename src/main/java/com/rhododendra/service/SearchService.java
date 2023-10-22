@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rhododendra.model.*;
 import com.rhododendra.util.CheckedBiFunction;
+import com.rhododendra.util.CheckedFunction;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -125,6 +126,26 @@ public class SearchService {
         }
     }
 
+    public static IndexResults<Rhododendron> getAllRhodosByFirstLetter(
+        String letter,
+        int pageSize,
+        int offset
+    ) throws IOException {
+        return paginatedSearch(
+            RHODO_INDEX_PATH,
+            new TypeReference<Rhododendron>() {
+            },
+            pageSize,
+            offset,
+            (searcher) -> {
+                var MAX_RESULTS = 5000;
+                Query query = new TermQuery(new Term(LETTER_KEY, letter));
+                Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
+                return searcher.search(query, MAX_RESULTS, sort);
+            }
+        );
+    }
+
     private static <T> List<T> search(
         Query query,
         String indexPath,
@@ -188,6 +209,18 @@ public class SearchService {
         }
     }
 
+    public static class IndexResults<T> {
+        public List<IndexPage> indexPages;
+        public int indexPagePos;
+        public List<T> results;
+
+        public IndexResults(List<IndexPage> indexPages, int indexPagePos, List<T> results) {
+            this.indexPages = indexPages;
+            this.indexPagePos = indexPagePos;
+            this.results = results;
+        }
+    }
+
     private static String readPaginationDescriptor(
         ScoreDoc scoreDoc,
         IndexSearcher searcher
@@ -197,43 +230,38 @@ public class SearchService {
         return field.stringValue();
     }
 
-
-    private static Rhododendron readRhodoSource(
+    private static <T> T readSource(
         ScoreDoc scoreDoc,
-        IndexSearcher searcher
+        IndexSearcher searcher,
+        TypeReference<T> tr
     ) throws IOException {
         var document = searcher.doc(scoreDoc.doc);
         var field = document.getField(SOURCE_KEY);
         return objectMapper.readValue(
             field.stringValue(),
-            new TypeReference<Rhododendron>() {
-            }
+            tr
         );
     }
 
-
-    public static RhodoIndexResults getAllRhodosByFirstLetter(
-        String letter,
+    private static <T> IndexResults<T> paginatedSearch(
+        String indexPath,
+        TypeReference<T> tr,
         int pageSize,
-        int offset
+        int offset,
+        CheckedFunction<IndexSearcher, TopDocs, IOException> performSearch
     ) throws IOException {
-        var MAX_RESULTS = 5000;
-
-        Query query = new TermQuery(new Term(LETTER_KEY, letter));
-        Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
-
-        Directory indexDirectory = FSDirectory.open(Paths.get(RHODO_INDEX_PATH));
+        Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));
         IndexReader indexReader = DirectoryReader.open(indexDirectory);
         IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs topDocs = searcher.search(query, MAX_RESULTS, sort);
+        TopDocs topDocs = performSearch.apply(searcher);
 
         // Read the Source values.
         var startPos = Math.min(topDocs.scoreDocs.length, offset); // todo off by 1?
         var endPos = Math.min(topDocs.scoreDocs.length - 1, offset + pageSize); // todo off by 1?
-        List<Rhododendron> rhododendrons = new ArrayList<>();
+        List<T> results = new ArrayList<>();
         for (int i = startPos; i <= endPos; i++) {
-            var rhodo = readRhodoSource(topDocs.scoreDocs[i], searcher);
-            rhododendrons.add(rhodo);
+            var result = readSource(topDocs.scoreDocs[i], searcher, tr);
+            results.add(result);
         }
 
         // Read the index pages.
@@ -255,11 +283,10 @@ public class SearchService {
         var pageNum = offset / pageSize;
         var indexPagePosition = Math.min(indexPages.size(), pageNum);
 
-        return new RhodoIndexResults(
+        return new IndexResults<>(
             indexPages,
             indexPagePosition,
-            letter,
-            rhododendrons
+            results
         );
     }
 
