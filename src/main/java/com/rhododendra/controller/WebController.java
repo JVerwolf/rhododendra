@@ -3,6 +3,7 @@ package com.rhododendra.controller;
 import com.rhododendra.service.ImageResolver;
 import com.rhododendra.service.RhodoLogicService;
 import com.rhododendra.service.SearchService;
+import com.rhododendra.service.SearchService.RhodoIndexResults;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.rhododendra.model.Rhododendron.RhodoDataType.SPECIES_SELECTION;
+import static com.rhododendra.service.RhodoLogicService.ALPHABET;
 
 @Controller
 public class WebController {
@@ -22,7 +25,6 @@ public class WebController {
         return "home";
     }
 
-    final static String[] ALPHABET = new String[]{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
 
     @RequestMapping("/rhodo_index")
     public String handleRhodoIndex(
@@ -36,8 +38,9 @@ public class WebController {
         model.addAttribute("rhodos", results.rhodos)
             .addAttribute("indexPages", results.indexPages)
             .addAttribute("indexPagePos", results.indexPagePos)
-            .addAttribute("currentLetter", letter)
+            .addAttribute("currentLetter", results.letter)
             .addAttribute("pageSize", set_size)
+            .addAttribute("nextPage", RhodoLogicService.calculateNextPage(results))
             .addAttribute("letters", ALPHABET);
         return "rhodo-index";
     }

@@ -9,11 +9,15 @@
     <h1>Rhododendron Index</h1>
     <table>
         <tr>
-            <td th:each="letter : ${letters}">
-                <a th:href="@{/rhodo_index(letter=${letter},size=10,offset=0)}" style="font-size: 26px; padding:8px">
-                    <b th:text="${letter}"></b>
-                </a>
-            </td>
+            <th:block th:each="letter, stat : ${letters}">
+                <td th:style="${letter.toLowerCase().equals(currentLetter.toLowerCase()) ? 'background-color: #55aaaa;': _}"
+                    th:styleappend="${'padding:8px'}">
+                    <a th:href="@{/rhodo_index(letter=${letter},size=10,offset=0)}"
+                       style="font-size: 26px">
+                        <b th:text="${letter}"></b>
+                    </a>
+                </td>
+            </th:block>
         </tr>
     </table>
     <table>
@@ -35,6 +39,17 @@
             <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>
         </th:block>
     </table>
+    <a th:if="${nextPage != null}"
+       th:href=" @{/rhodo_index(letter=${nextPage.letter()},size=${pageSize},offset=${nextPage.offset()})}"
+       style="display: flex; justify-content: flex-end; padding-right: 5%">
+        <h2>
+            Next Page
+        </h2>
+    </a>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
 </div>
 
 </body>

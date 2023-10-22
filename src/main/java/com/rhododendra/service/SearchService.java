@@ -177,11 +177,13 @@ public class SearchService {
     public static class RhodoIndexResults {
         public List<IndexPage> indexPages;
         public int indexPagePos;
+        public String letter;
         public List<Rhododendron> rhodos;
 
-        public RhodoIndexResults(List<IndexPage> indexPages, int indexPagePos, List<Rhododendron> rhodos) {
+        public RhodoIndexResults(List<IndexPage> indexPages, int indexPagePos, String letter, List<Rhododendron> rhodos) {
             this.indexPages = indexPages;
             this.indexPagePos = indexPagePos;
+            this.letter = letter;
             this.rhodos = rhodos;
         }
     }
@@ -256,6 +258,7 @@ public class SearchService {
         return new RhodoIndexResults(
             indexPages,
             indexPagePosition,
+            letter,
             rhododendrons
         );
     }
