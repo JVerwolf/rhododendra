@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
+import java.util.stream.IntStream;
 
 import static com.rhododendra.model.Rhododendron.RhodoDataType.SPECIES_SELECTION;
 import static com.rhododendra.service.RhodoLogicService.ALPHABET;
@@ -34,8 +35,8 @@ public class WebController {
         var set_size = 50;
         var results = RhodoLogicService.scrollRhodosByLetter(letter, set_size, offset);
         model.addAttribute("rhodos", results.results)
-            .addAttribute("indexPages", results.indexPages)
-            .addAttribute("indexPagePos", results.indexPagePos)
+            .addAttribute("resultPages", results.indexPages)
+            .addAttribute("resultPagePos", results.indexPagePos)
             .addAttribute("currentLetter", letter)
             .addAttribute("pageSize", set_size)
             .addAttribute("nextPage", RhodoLogicService.calculateNextIndexPage(results, letter))
@@ -44,14 +45,20 @@ public class WebController {
     }
 
     @RequestMapping(value = "/search")
-    public String handleSearch(Model model, @RequestParam("q") String query) throws IOException, ParseException {
-        model.addAttribute(
-            "search_results",
-            SearchService.searchRhodos(query)
-                .stream()
-                .peek(rhodo -> rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos())))
-                .toList()
-        );
+    public String handleSearch(
+        Model model,
+        @RequestParam("q") String query,
+        @RequestParam(value = "size", defaultValue = "50") int size,
+        @RequestParam(value = "offset", defaultValue = "0") int offset
+    ) throws IOException, ParseException {
+        var set_size = 50;
+        var results = RhodoLogicService.searchRhodos(query, size, offset);
+        model.addAttribute("rhodos", results.results)
+            .addAttribute("resultPages", results.indexPages)
+            .addAttribute("resultPagePos", results.indexPagePos)
+            .addAttribute("pageSize", set_size)
+            .addAttribute("query", query)
+            .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
         return "search-results";
     }
 

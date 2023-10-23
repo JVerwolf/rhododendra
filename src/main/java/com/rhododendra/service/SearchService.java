@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rhododendra.model.*;
 import com.rhododendra.util.CheckedBiFunction;
 import com.rhododendra.util.CheckedFunction;
+import org.apache.logging.log4j.util.Strings;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
@@ -42,18 +44,19 @@ public class SearchService {
         }
     }
 
-    public static List<Rhododendron> searchRhodos(String queryString) {
-        try {
-            return search(
-                new QueryParser(Rhododendron.NAME_KEY, new StandardAnalyzer()).parse(queryString),
-                RHODO_INDEX_PATH,
-                new TypeReference<>() {
-                }
-            );
-        } catch (Exception e) {
-            logger.error("Could not search searchRhodos", e);
-            return Collections.emptyList();
-        }
+    public static IndexResults<Rhododendron> searchRhodos(String queryString, int pageSize, int offset) throws IOException, ParseException {
+        final var query = Strings.isEmpty(queryString)
+            ? new BooleanQuery.Builder().build() // matches nothing if query is blank
+            : new QueryParser(Rhododendron.NAME_KEY, new StandardAnalyzer()).parse(queryString);
+        return paginatedSearch(
+            RHODO_INDEX_PATH,
+            new TypeReference<Rhododendron>() {
+            },
+            pageSize,
+            offset,
+            indexSearcher -> indexSearcher.search(query, Integer.MAX_VALUE)
+        );
+
     }
 
     public static List<PhotoDetails> searchPhotoDetails(String queryString) {
@@ -138,10 +141,9 @@ public class SearchService {
             pageSize,
             offset,
             (searcher) -> {
-                var MAX_RESULTS = 5000;
                 Query query = new TermQuery(new Term(LETTER_KEY, letter));
                 Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
-                return searcher.search(query, MAX_RESULTS, sort);
+                return searcher.search(query, Integer.MAX_VALUE, sort);
             }
         );
     }
@@ -299,6 +301,7 @@ public class SearchService {
 
 
     public static <T> List<T> paginationOffsets(int pageSize, int listLength, CheckedBiFunction<Integer, Integer, T, IOException> fun) throws IOException {
+        if (listLength == 0) return List.of();
         var numPages = (listLength / pageSize) + 1;
         List<T> results = new ArrayList<>();
         for (int pageNum = 0; pageNum < numPages; pageNum++) {

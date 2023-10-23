@@ -22,8 +22,8 @@
     </table>
     <table>
         <tr>
-            <th:block th:each="indexPage, stat : ${indexPages}">
-                <td th:style="${stat.index == indexPagePos ? 'background-color: #55aaaa;': _} "
+            <th:block th:each="indexPage, stat : ${resultPages}">
+                <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _} "
                     th:styleappend="${'padding:8px'}">
                     <a th:href=" @{/rhodo_index(letter=${currentLetter},size=${pageSize},offset=${indexPage.startPos})}">
                         <b th:text="|${indexPage.startPos+1} - ${indexPage.endPos+1}|"></b>
