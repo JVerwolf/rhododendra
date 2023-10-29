@@ -13,6 +13,7 @@ public class JSONLoaderService {
     final static String SPECIES_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/species.json";
     final static String HYBRIDS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/hybrids.json";
     final static String AZALEAS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/azaleas.json";
+    final static String VIREYAS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/vireyas.json";
     final static String PHOTO_DETAILS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/photo_details.json";
 
     public static List<Botanist> loadBotanists() throws IOException {
@@ -26,12 +27,15 @@ public class JSONLoaderService {
         File speciesFile = new File(SPECIES_PATH);
         File hybridsFile = new File(HYBRIDS_PATH);
         File azaleasFile = new File(AZALEAS_PATH);
+        File vireyasFile = new File(VIREYAS_PATH);
         ObjectMapper objectMapper = new ObjectMapper();
         List<Rhododendron> result = objectMapper.readValue(speciesFile, new TypeReference<List<Rhododendron>>() {
         });
         result.addAll(objectMapper.readValue(hybridsFile, new TypeReference<List<Rhododendron>>() {
         }));
         result.addAll(objectMapper.readValue(azaleasFile, new TypeReference<List<Rhododendron>>() {
+        }));
+        result.addAll(objectMapper.readValue(vireyasFile, new TypeReference<List<Rhododendron>>() {
         }));
         return result;
     }
