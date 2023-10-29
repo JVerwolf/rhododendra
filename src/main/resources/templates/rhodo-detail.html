@@ -7,6 +7,7 @@
 
 <div style="padding-left:16px">
     <h1>
+<!--        todo, make this a fragment for the preview card-->
         <span th:if="${rhodo.isCultivarGroup()}" th:text="|Cultivar Group R. '${rhodo.getName()}'|"></span>
         <span th:if="${rhodo.isSpeciesSelection()}" th:text="|Species Selection R. '${rhodo.getName()}'|"></span>
         <span th:if="${rhodo.isSpecies()}" th:text="|Species R. '${rhodo.getName()}'|"></span>
@@ -57,6 +58,12 @@
                 <td th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
             </tr>
             <tr>
+        </th:block>
+        <th:block th:if="${rhodo.getAzalea_group() != null}">
+            <tr>
+                <td><b>Azalea group</b></td>
+                <td th:text="${rhodo.getAzalea_group()}"></td>
+            </tr>
         </th:block>
         <th:block th:if="${rhodo.getTaxonomy() != null}">
             <tr>
@@ -119,6 +126,11 @@
             <td><b>Leaves:</b></td>
             <td th:if="${rhodo.getLeaf_shape()} != null" th:text="${rhodo.getLeaf_shape()}"></td>
             <td th:if="${rhodo.getLeaf_shape()} == null">?</td>
+        </tr>
+        <tr>
+            <td><b>Winter Foliage:</b></td>
+            <td th:if="${rhodo.getDeciduous()} != null" th:text="${rhodo.getDeciduous()}"></td>
+            <td th:if="${rhodo.getDeciduous()} == null">?</td>
         </tr>
         <tr th:if="${rhodo.getAdditional_parentage_info() != null}">
             <td><b>Additional<br/>Parentage Info:</b></td>

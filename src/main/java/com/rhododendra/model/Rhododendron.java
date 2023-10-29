@@ -47,6 +47,10 @@ public class Rhododendron extends Indexable {
     String observed_mature_height;
     List<Synonym> botanical_synonyms;
 
+    // Azaleas
+    @JsonProperty("azalea_group")
+    String azalea_group = null;
+
     @JsonIgnore
     @Override
     public String primaryIdValue() {
@@ -428,5 +432,13 @@ public class Rhododendron extends Indexable {
 
     public void setBotanical_synonyms(List<Synonym> botanical_synonyms) {
         this.botanical_synonyms = botanical_synonyms;
+    }
+
+    public String getAzalea_group() {
+        return azalea_group;
+    }
+
+    public void setAzalea_group(String azalea_group) {
+        this.azalea_group = azalea_group;
     }
 }

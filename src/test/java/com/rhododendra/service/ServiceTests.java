@@ -2,6 +2,7 @@ package com.rhododendra.service;
 
 import com.rhododendra.model.Botanist;
 import com.rhododendra.model.Rhododendron;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -23,10 +24,10 @@ public class ServiceTests {
     }
 
     @Test
-    void testIndexAndSearchRhodos() throws IOException {
+    void testIndexAndSearchRhodos() throws IOException, ParseException {
         indexRhodos();
-        assertThat(searchRhodos("lemon")).isNotEmpty();
-        assertThat(searchRhodos("anna")).isNotEmpty();
+        assertThat(searchRhodos("lemon", 1, 0).results).isNotEmpty();
+        assertThat(searchRhodos("anna", 1, 0).results).isNotEmpty();
         assertEquals(1, getRhodoById("h1").size());
         assertEquals(1, getRhodoById("s1").size());
         assertThat(getAllRhodosByFirstLetter("s", 10, 5).results).isNotEmpty();

@@ -305,7 +305,7 @@ public class SearchService {
         var numPages = (listLength / pageSize) + 1;
         List<T> results = new ArrayList<>();
         for (int pageNum = 0; pageNum < numPages; pageNum++) {
-            int pageStart = pageNum * pageSize;
+            int pageStart = Math.min(pageNum * pageSize, listLength -1);
             int pageEnd = Math.min(pageStart + pageSize - 1, listLength - 1);
             results.add(fun.apply(pageStart, pageEnd));
         }
