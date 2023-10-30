@@ -45,9 +45,16 @@ public class SearchService {
     }
 
     public static IndexResults<Rhododendron> searchRhodos(String queryString, int pageSize, int offset) throws IOException, ParseException {
-        final var query = Strings.isEmpty(queryString)
-            ? new BooleanQuery.Builder().build() // matches nothing if query is blank
-            : new QueryParser(Rhododendron.NAME_KEY, new StandardAnalyzer()).parse(queryString);
+        Query query;
+        if (Strings.isEmpty(queryString)) {
+            query = new BooleanQuery.Builder().build(); // matches nothing if query is blank
+        } else if (queryString.length() <= 2) {
+            query = new FuzzyQuery(new Term(Rhododendron.NAME_KEY, queryString), 0);
+        } else if (queryString.length() <= 5) {
+            query = new FuzzyQuery(new Term(Rhododendron.NAME_KEY, queryString), 1);
+        } else {
+            query = new FuzzyQuery(new Term(Rhododendron.NAME_KEY, queryString), 2);
+        }
         return paginatedSearch(
             RHODO_INDEX_PATH,
             new TypeReference<Rhododendron>() {
@@ -305,7 +312,7 @@ public class SearchService {
         var numPages = (listLength / pageSize) + 1;
         List<T> results = new ArrayList<>();
         for (int pageNum = 0; pageNum < numPages; pageNum++) {
-            int pageStart = Math.min(pageNum * pageSize, listLength -1);
+            int pageStart = Math.min(pageNum * pageSize, listLength - 1);
             int pageEnd = Math.min(pageStart + pageSize - 1, listLength - 1);
             results.add(fun.apply(pageStart, pageEnd));
         }
