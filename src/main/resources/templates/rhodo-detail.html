@@ -79,7 +79,7 @@
                 <td th:text="${rhodo.getTaxonomy().getSubsection()}"></td>
             </tr>
         </th:block>
-        <th:block th:if="${rhodo.isCultivar() || rhodo.isNaturalHybrid()}">
+        <th:block th:if="${rhodo.getParentage() != null}">
             <td><b>Pollen Parent:</b></td>
             <th:block th:if="${rhodo.getParentage().getPollen_parent() != null}">
                 <td th:if="${rhodo.getParentage().getPollen_parent_id() != null}">
