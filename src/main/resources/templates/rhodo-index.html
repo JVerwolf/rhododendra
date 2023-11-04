@@ -6,7 +6,7 @@
 
 
 <div style="padding-left:16px">
-    <div>
+    <div class="content">
         <h1>Rhododendron Index</h1>
         <!--     Rounded switch -->
         <form th:action="@{/rhodo_index}" th:method="get">
@@ -24,7 +24,7 @@
             </table>
             <input type="hidden" th:name="letter" th:value="${currentLetter}">
             <br/>
-            <button type="submit">Reload Index with Settings Applied</button>
+            <button type="submit">Apply Settings</button>
         </form>
         <br/>
         <h2>Navigation</h2>
@@ -67,9 +67,7 @@
                 Next Page
             </h3>
         </a>
-        <br/>
-        <h2>Results</h2>
-        <table>
+        <table class="results-table bordered-table">
             <th:block th:each="rhodo : ${rhodos}">
                 <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>
             </th:block>
