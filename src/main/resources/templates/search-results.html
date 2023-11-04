@@ -4,24 +4,29 @@
 <body>
 <div th:replace="~{fragments/header}"></div>
 
-<div style="padding-left:16px">
-    <h1 th:text='|Search Results For: "${query}"|'></h1>
-    <span th:if="${rhodos.isEmpty()}">No matching results found</span>
+<div class="content">
+    <div class="description-container">
+        <h1 th:text='|Search Results For: "${query}"|'></h1>
+        <span th:if="${rhodos.isEmpty()}">No matching results found</span>
+        <th:block th:if="${not rhodos.isEmpty()}">
+            <table>
+                <tr>
+                    <td><b>Pages of Results:</b></td>
+                    <th:block th:each="page, stat : ${resultPages}">
+                        <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _}"
+                            th:styleappend="${'padding:8px'}">
+                            <a th:href="@{/search(q=${query},size=${pageSize},offset=${page.startPos})}">
+                                <b th:text="${stat.index + 1}"></b>
+                            </a>
+                        </td>
+                    </th:block>
+                </tr>
+            </table>
+        </th:block>
+        <br/>
+    </div>
     <th:block th:if="${not rhodos.isEmpty()}">
-        <table>
-            <tr>
-                <td><b>Pages of Results:</b></td>
-                <th:block th:each="page, stat : ${resultPages}">
-                    <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _}"
-                        th:styleappend="${'padding:8px'}">
-                        <a th:href="@{/search(q=${query},size=${pageSize},offset=${page.startPos})}">
-                            <b th:text="${stat.index + 1}"></b>
-                        </a>
-                    </td>
-                </th:block>
-            </tr>
-        </table>
-        <table>
+        <table class="results-table bordered-table">
             <th:block th:each="rhodo : ${rhodos}">
                 <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>
             </th:block>
@@ -33,10 +38,6 @@
                 Next Page
             </h2>
         </a>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
     </th:block>
 </div>
 

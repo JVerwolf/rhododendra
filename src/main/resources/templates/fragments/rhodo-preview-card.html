@@ -1,7 +1,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <tr th:fragment="card(rhodo)">
     <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Rhododendron"*/-->
-    <td>
+    <td class="table-description-text">
         <h2 th:text="${rhodo.getName()}"></h2>
         <h4>
             <span th:if="${rhodo.isCultivarGroup()}">Cultivar Group</span>

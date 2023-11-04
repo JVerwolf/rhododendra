@@ -5,12 +5,47 @@
 <div th:replace="~{fragments/header}"></div>
 
 
-<div style="padding-left:16px">
-    <div class="content">
+<div class="content">
+    <div class="description-container">
+
         <h1>Rhododendron Index</h1>
-        <!--     Rounded switch -->
+        <!--    <h2>Navigation</h2>-->
+        <table>
+            <tr>
+                <th:block th:each="letter, stat : ${letters}">
+                    <td th:style="${letter.toLowerCase().equals(currentLetter.toLowerCase()) ? 'background-color: #55aaaa;': _}"
+                        th:styleappend="${'padding:8px'}">
+                        <a th:href="@{/rhodo_index(letter=${letter},justPics=${justPics})}"
+                           style="font-size: 26px">
+                            <b th:text="${letter}"></b>
+                        </a>
+                    </td>
+                </th:block>
+            </tr>
+        </table>
+        <div class="table-scrollbar">
+            <table>
+                <tr>
+                    <!--            <td><b>Pages: <br/> Starting Letters:</b></td>-->
+                    <th:block th:each="indexPage, stat : ${resultPages}">
+
+                        <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _} "
+                            th:styleappend="${'padding:8px'}">
+                            <a th:href=" @{/rhodo_index(letter=${currentLetter},size=${pageSize},offset=${indexPage.startPos},justPics=${justPics})}">
+                                <!--                        <b th:text="|${indexPage.startPos+1} - ${indexPage.endPos+1}|"></b>-->
+                                <b th:text="|Page ${stat.index + 1}:|"></b>
+                                <br/>
+                                <b th:text="|${indexPage.startValue}|"></b>
+                                <i> to </i>
+                                <b th:text="|${indexPage.endValue}|"></b>
+                            </a>
+                        </td>
+                    </th:block>
+                </tr>
+            </table>
+        </div>
         <form th:action="@{/rhodo_index}" th:method="get">
-            <h2>Index Settings</h2>
+            <h3> Settings</h3>
             <table>
                 <tr>
                     <td>
@@ -26,65 +61,33 @@
             <br/>
             <button type="submit">Apply Settings</button>
         </form>
-        <br/>
-        <h2>Navigation</h2>
-        <table>
-            <tr>
-                <th:block th:each="letter, stat : ${letters}">
-                    <td th:style="${letter.toLowerCase().equals(currentLetter.toLowerCase()) ? 'background-color: #55aaaa;': _}"
-                        th:styleappend="${'padding:8px'}">
-                        <a th:href="@{/rhodo_index(letter=${letter},justPics=${justPics})}"
-                           style="font-size: 26px">
-                            <b th:text="${letter}"></b>
-                        </a>
-                    </td>
-                </th:block>
-            </tr>
-        </table>
-        <table>
-            <tr>
-                <!--            <td><b>Pages: <br/> Starting Letters:</b></td>-->
-                <th:block th:each="indexPage, stat : ${resultPages}">
 
-                    <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _} "
-                        th:styleappend="${'padding:8px'}">
-                        <a th:href=" @{/rhodo_index(letter=${currentLetter},size=${pageSize},offset=${indexPage.startPos},justPics=${justPics})}">
-                            <!--                        <b th:text="|${indexPage.startPos+1} - ${indexPage.endPos+1}|"></b>-->
-                            <b th:text="|Page ${stat.index + 1}:|"></b>
-                            <br/>
-                            <b th:text="|${indexPage.startValue}|"></b>
-                            <i> to </i>
-                            <b th:text="|${indexPage.endValue}|">
-                        </a>
-                    </td>
-                </th:block>
-            </tr>
-        </table>
         <a th:if="${nextPage != null}"
-           th:href=" @{/rhodo_index(letter=${nextPage.letter()},size=${pageSize},offset=${nextPage.offset()})}"
+           th:href=" @{/rhodo_index(letter=${nextPage.letter()},size=${pageSize},offset=${nextPage.offset()},justPics=${justPics})}"
            style="display: flex; justify-content: flex-end; padding-right: 5%">
             <h3>
                 Next Page
             </h3>
         </a>
-        <table class="results-table bordered-table">
-            <th:block th:each="rhodo : ${rhodos}">
-                <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>
-            </th:block>
-        </table>
-        <a th:if="${nextPage != null}"
-           th:href=" @{/rhodo_index(letter=${nextPage.letter()},size=${pageSize},offset=${nextPage.offset()})}"
-           style="display: flex; justify-content: flex-end; padding-right: 5%">
-            <h2>
-                Next Page
-            </h2>
-        </a>
-        <br/>
-        <br/>
-        <br/>
-        <br/>
     </div>
+    <table class="results-table bordered-table">
+        <th:block th:each="rhodo : ${rhodos}">
+            <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>
+        </th:block>
+    </table>
+    <a th:if="${nextPage != null}"
+       th:href=" @{/rhodo_index(letter=${nextPage.letter()},size=${pageSize},offset=${nextPage.offset()},justPics=${justPics})}"
+       style="display: flex; justify-content: flex-end; padding-right: 5%">
+        <h2>
+            Next Page
+        </h2>
+    </a>
+    <br/>
+    <br/>
+    <br/>
+    <br/>
 </div>
+
 
 </body>
 </html>

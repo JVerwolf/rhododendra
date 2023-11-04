@@ -2,7 +2,9 @@ package com.rhododendra.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rhododendra.model.*;
+import com.rhododendra.model.Botanist;
+import com.rhododendra.model.PhotoDetails;
+import com.rhododendra.model.Rhododendron;
 import com.rhododendra.util.CheckedBiFunction;
 import com.rhododendra.util.CheckedFunction;
 import org.apache.logging.log4j.util.Strings;
@@ -12,7 +14,6 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.queryparser.xml.builders.BooleanQueryBuilder;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -308,9 +309,9 @@ public class SearchService {
                 var startValue = readPaginationDescriptor(topDocs.scoreDocs[pageStart], searcher);
                 var endValue = readPaginationDescriptor(topDocs.scoreDocs[pageEnd], searcher);
                 return new IndexPage(
-                    startValue.substring(0, Math.min(3, startValue.length())),
+                    startValue.substring(0, Math.min(4, startValue.length())),
                     pageStart,
-                    endValue.substring(0, Math.min(3, endValue.length())),
+                    endValue.substring(0, Math.min(4, endValue.length())),
                     pageEnd
                 );
             }
