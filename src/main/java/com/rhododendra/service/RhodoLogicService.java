@@ -12,14 +12,20 @@ public class RhodoLogicService {
     public final static List<String> ALPHABET = List.of("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z");
 
 
-    public static IndexResults<Rhododendron> scrollRhodosByLetter(String letter, int pageSize, int offset) throws IOException {
+    public static IndexResults<Rhododendron> scrollRhodosByLetter(
+        String letter,
+        int pageSize,
+        int offset,
+        boolean onlyPics
+    ) throws IOException {
         // todo validate input
-        var result = SearchService.getAllRhodosByFirstLetter(letter.toLowerCase(), pageSize, offset);
+        var result = SearchService.getAllRhodosByFirstLetter(letter.toLowerCase(), pageSize, offset, onlyPics);
         result.results.forEach(rhodo ->
             rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
         );
         return result;
     }
+
     public static IndexResults<Rhododendron> searchRhodos(String queryString, int pageSize, int offset) throws IOException, ParseException {
         // todo validate input
         var result = SearchService.searchRhodos(queryString, pageSize, offset);

@@ -12,9 +12,11 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.xml.builders.BooleanQueryBuilder;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.QueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,15 +48,35 @@ public class SearchService {
 
     public static IndexResults<Rhododendron> searchRhodos(String queryString, int pageSize, int offset) throws IOException, ParseException {
         Query query;
+
         if (Strings.isEmpty(queryString)) {
             query = new BooleanQuery.Builder().build(); // matches nothing if query is blank
-        } else if (queryString.length() <= 2) {
-            query = new FuzzyQuery(new Term(Rhododendron.NAME_KEY, queryString), 0);
-        } else if (queryString.length() <= 5) {
-            query = new FuzzyQuery(new Term(Rhododendron.NAME_KEY, queryString), 1);
+
         } else {
-            query = new FuzzyQuery(new Term(Rhododendron.NAME_KEY, queryString), 2);
+            int maxEdits = 0;
+            if (queryString.length() <= 2) {
+                maxEdits = 0;
+            } else if (queryString.length() <= 5) {
+                maxEdits = 2;
+            } else {
+                maxEdits = 2;
+            }
+
+            QueryBuilder queryBuilder = new QueryBuilder(new StandardAnalyzer());
+            query = new BooleanQuery.Builder()
+                .add(
+                    new BooleanClause(
+                        queryBuilder.createMinShouldMatchQuery(Rhododendron.NAME_KEY, queryString, .75f),
+                        BooleanClause.Occur.SHOULD
+                    )
+                )
+                .add(new BooleanClause(
+                    new FuzzyQuery(new Term(Rhododendron.NAME_KEY, queryString), maxEdits),
+                    BooleanClause.Occur.SHOULD)
+                )
+                .build();
         }
+
         return paginatedSearch(
             RHODO_INDEX_PATH,
             new TypeReference<Rhododendron>() {
@@ -139,7 +161,8 @@ public class SearchService {
     public static IndexResults<Rhododendron> getAllRhodosByFirstLetter(
         String letter,
         int pageSize,
-        int offset
+        int offset,
+        boolean onlyPics
     ) throws IOException {
         return paginatedSearch(
             RHODO_INDEX_PATH,
@@ -148,9 +171,13 @@ public class SearchService {
             pageSize,
             offset,
             (searcher) -> {
-                Query query = new TermQuery(new Term(LETTER_KEY, letter));
+                var query = new BooleanQuery.Builder()
+                    .add(new BooleanClause(new TermQuery(new Term(LETTER_KEY, letter)), BooleanClause.Occur.MUST));
+                if (onlyPics) {
+                    query.add(new BooleanClause(new TermQuery(new Term(HAS_PHOTOS, "true")), BooleanClause.Occur.MUST));
+                }
                 Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
-                return searcher.search(query, Integer.MAX_VALUE, sort);
+                return searcher.search(query.build(), Integer.MAX_VALUE, sort);
             }
         );
     }

@@ -28,6 +28,7 @@ public class IndexService {
 
     //Additional Search/Index keys
     public static final String LETTER_KEY = "letter";
+    public static final String HAS_PHOTOS = "has_photos";
 
 
     public final static String SOURCE_KEY = "_source";
@@ -45,6 +46,11 @@ public class IndexService {
                 document.add(new TextField(Rhododendron.NAME_KEY, rhodo.getName(), Field.Store.NO));
                 document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(rhodo.getName()), Field.Store.NO));
                 document.add(new SortedDocValuesField(Rhododendron.NAME_KEY_FOR_SORT, new BytesRef(rhodo.getName().toLowerCase())));
+                document.add(new StringField(
+                    HAS_PHOTOS,
+                    rhodo.getPhotos().isEmpty() ? "false" : "true",
+                    Field.Store.NO
+                ));
             }
         );
     }
@@ -97,6 +103,15 @@ public class IndexService {
     }
 
     private static FieldType sourceFieldType() {
+        var sourceFieldType = new FieldType();
+        sourceFieldType.setStored(true);
+        sourceFieldType.setTokenized(false);
+        sourceFieldType.setOmitNorms(true);
+        sourceFieldType.freeze();
+        return sourceFieldType;
+    }
+
+    private static FieldType hasPhotosFieldType() {
         var sourceFieldType = new FieldType();
         sourceFieldType.setStored(true);
         sourceFieldType.setTokenized(false);

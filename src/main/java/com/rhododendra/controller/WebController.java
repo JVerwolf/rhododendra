@@ -30,14 +30,16 @@ public class WebController {
         Model model,
         @RequestParam("letter") String letter,
         @RequestParam(value = "size", defaultValue = "50") int size,
-        @RequestParam("offset") int offset
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "justPics", defaultValue = "false") boolean justPics
     ) throws IOException {
         var set_size = 50;
-        var results = RhodoLogicService.scrollRhodosByLetter(letter, set_size, offset);
+        var results = RhodoLogicService.scrollRhodosByLetter(letter, set_size, offset,justPics);
         model.addAttribute("rhodos", results.results)
             .addAttribute("resultPages", results.indexPages)
             .addAttribute("resultPagePos", results.indexPagePos)
             .addAttribute("currentLetter", letter)
+            .addAttribute("justPics", justPics)
             .addAttribute("pageSize", set_size)
             .addAttribute("nextPage", RhodoLogicService.calculateNextIndexPage(results, letter))
             .addAttribute("letters", ALPHABET);
