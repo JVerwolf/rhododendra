@@ -145,7 +145,7 @@ input:checked + .slider:before {
 }
 
 div.content {
-    max-width: 980px;
+    max-width: 800px;
     background-color: #e9e9e9;
     /*padding-left: 10px;*/
     /*padding-right: 10px;*/
@@ -200,8 +200,22 @@ h1 {
     padding-left: 8px;
 }
 
+table.letter-wrap {
+    display: block;
+}
+
+.letter-wrap td {
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: top;
+    horiz-align: center;
+    width: 7.6%;
+    min-width: 3em;
+}
+
+/*container for wrappable tables*/
 .table-scrollbar {
-    overflow-x: auto;
+    /*overflow-x: auto;*/
 }
 
 /*https://stackoverflow.com/questions/17159708/wrap-table-row-to-the-next-line*/
@@ -229,7 +243,7 @@ h1 {
     padding-right: 10px;
 }
 
-.fixed img{
+.fixed img {
     width: 100%;
 }
 
@@ -237,4 +251,14 @@ h1 {
     flex-grow: 1;
     padding-left: 10px;
     padding-right: 10px;
+}
+
+.page-button {
+    text-decoration: none;
+    text-align: center;
+
+}
+.page-button * {
+    text-align: center;
+    text-decoration: none;
 }

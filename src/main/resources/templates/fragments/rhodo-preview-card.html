@@ -16,7 +16,7 @@
             More information and pictures
         </a>
     </td>
-    <td>
+    <td class="picture-td">
         <th:block th:if="${not #lists.isEmpty(rhodo.getPhotos())}">
             <a th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
                 <img th:src="${rhodo.getPhotos()[0]}" width="400">

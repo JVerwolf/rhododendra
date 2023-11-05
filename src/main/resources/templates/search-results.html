@@ -26,7 +26,7 @@
         <br/>
     </div>
     <th:block th:if="${not rhodos.isEmpty()}">
-        <table class="results-table bordered-table">
+        <table class="picture-table bordered-table">
             <th:block th:each="rhodo : ${rhodos}">
                 <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>
             </th:block>
