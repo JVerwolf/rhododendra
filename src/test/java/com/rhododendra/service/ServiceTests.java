@@ -64,4 +64,9 @@ public class ServiceTests {
         assertThat(SearchService.getPageIndex(10, 5, 10)).isEqualTo(1);
         assertThat(SearchService.getPageIndex(1, 1, 1)).isEqualTo(0);
     }
+
+    @Test
+    void testGetAllRhodoIds(){
+        assertThat(SearchService.getAllRhodoIds()).isNotNull();
+    }
 }

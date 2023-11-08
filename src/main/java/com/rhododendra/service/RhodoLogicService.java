@@ -1,5 +1,6 @@
 package com.rhododendra.service;
 
+import com.rhododendra.config.Settings;
 import com.rhododendra.model.ResolvedPhotoDetails;
 import com.rhododendra.model.Rhododendron;
 import com.rhododendra.service.SearchService.IndexResults;
@@ -70,6 +71,12 @@ public class RhodoLogicService {
                     ImageResolver.resolveImagePath(photoDetails.getTag()),
                     photoDetails
                 ))
+            .toList();
+    }
+
+    public static List<String> getAllRhodoDetailPages() {
+        return SearchService.getAllRhodoIds().stream()
+            .map(id -> Settings.DOMAIN + "/rhodos/" + id)
             .toList();
     }
 }

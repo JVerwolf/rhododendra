@@ -1,5 +1,6 @@
 package com.rhododendra.controller;
 
+import com.rhododendra.service.RhodoLogicService;
 import com.rhododendra.service.SearchService;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,22 @@ import org.springframework.core.io.Resource;
 @RestController
 public class RestResourceController {
 
+    @GetMapping(value = {"/robots.txt", "/Robots.txt", "/robot.txt", "/Robot.txt"}, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> getRobotsTxt() throws IOException {
+        return ResponseEntity
+            .ok()
+            .contentType(MediaType.TEXT_PLAIN)
+            .body("Sitemap: http://rhododendra.com/sitemap.txt \n" +
+                "Sitemap: http://rhododendra.com/all_rhodos.txt");
+    }
+
+    @GetMapping(value = {"/all_rhodos.txt"}, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> getAllRhodos() throws IOException {
+        return ResponseEntity
+            .ok()
+            .contentType(MediaType.TEXT_PLAIN)
+            .body(String.join("\n",RhodoLogicService.getAllRhodoDetailPages()));
+    }
 
     /**
      * This is just for local hosting and testing.

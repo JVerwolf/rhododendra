@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.rhododendra.model.Rhododendron.PRIMARY_ID_KEY;
 import static com.rhododendra.service.IndexService.*;
 
 public class SearchService {
@@ -103,6 +104,28 @@ public class SearchService {
         }
     }
 
+    public static List<String> getAllRhodoIds() {
+        Query query = new MatchAllDocsQuery();
+        try {
+            Directory indexDirectory = FSDirectory.open(Paths.get(RHODO_INDEX_PATH));
+            IndexReader indexReader = DirectoryReader.open(indexDirectory);
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = searcher.search(query, Integer.MAX_VALUE);
+
+            List<String> searchResults = new ArrayList<>();
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                var document = searcher.doc(scoreDoc.doc);
+                for (var field : document.getFields(Rhododendron.PRIMARY_ID_KEY)) {
+                    searchResults.add(field.stringValue());
+                }
+            }
+            return searchResults;
+        } catch (Exception e) {
+            logger.error("Could not search getAllIds", e);
+            return Collections.emptyList();
+        }
+    }
+
     public static List<Botanist> getBotanistById(String id) {
         try {
             return search(
@@ -121,7 +144,7 @@ public class SearchService {
     public static List<Rhododendron> getRhodoById(String id) {
         try {
             return search(
-                new TermQuery(new Term(Rhododendron.PRIMARY_ID_KEY, id)),
+                new TermQuery(new Term(PRIMARY_ID_KEY, id)),
                 RHODO_INDEX_PATH,
                 new TypeReference<Rhododendron>() {
                 }
