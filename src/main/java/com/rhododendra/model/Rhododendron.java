@@ -64,42 +64,56 @@ public class Rhododendron extends Indexable {
         RHODO_HYBRID,
         CULTIVAR_GROUP,
         AZALEA_HYBRID,
-        VIREYA_HYBRID
+        VIREYA_HYBRID,
+        AZALEODENDRON_HYBRID
     }
 
     @JsonIgnore
     public boolean isSpecies() {
         return this.getRhodoDataType() == RhodoDataType.SPECIES;
     }
+
     @JsonIgnore
     public boolean isSpeciesSelection() {
         return this.getRhodoDataType() == RhodoDataType.SPECIES_SELECTION;
     }
+
     @JsonIgnore
     public boolean isNaturalHybrid() {
         return this.getRhodoDataType() == RhodoDataType.NATURAL_HYBRID;
     }
+
     @JsonIgnore
     public boolean isCultivar() {
         return this.getRhodoDataType() == RhodoDataType.RHODO_HYBRID
             || this.getRhodoDataType() == RhodoDataType.AZALEA_HYBRID
-            || this.getRhodoDataType() == RhodoDataType.VIREYA_HYBRID;
+            || this.getRhodoDataType() == RhodoDataType.VIREYA_HYBRID
+            || this.getRhodoDataType() == RhodoDataType.AZALEODENDRON_HYBRID;
     }
+
     @JsonIgnore
     public boolean isHybridRhodo() {
         return this.getRhodoDataType() == RhodoDataType.RHODO_HYBRID;
     }
+
     @JsonIgnore
     public boolean isCultivarGroup() {
         return this.getRhodoDataType() == RhodoDataType.CULTIVAR_GROUP;
     }
+
     @JsonIgnore
     public boolean isAzaleaHybrid() {
         return this.getRhodoDataType() == RhodoDataType.AZALEA_HYBRID;
     }
+
     @JsonIgnore
     public boolean isVireyaHybrid() {
         return this.getRhodoDataType() == RhodoDataType.VIREYA_HYBRID;
+    }
+
+    @JsonIgnore
+    public boolean isAzaleodendronHybrid() {
+        return this.getRhodoDataType() == RhodoDataType.AZALEODENDRON_HYBRID;
     }
 
 
@@ -107,10 +121,12 @@ public class Rhododendron extends Indexable {
         LEPEDOTE,
         ELEPEDOTE,
     }
+
     @JsonIgnore
     public boolean isLepedote() {
         return this.lepedote == Lepedote.LEPEDOTE;
     }
+
     @JsonIgnore
     public boolean isElepedote() {
         return this.lepedote == Lepedote.ELEPEDOTE;

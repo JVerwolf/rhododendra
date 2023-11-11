@@ -11,6 +11,7 @@
             <span th:if="${rhodo.isHybridRhodo()}">Rhododendron Hybrid</span>
             <span th:if="${rhodo.isVireyaHybrid()}">Vireya Hybrid</span>
             <span th:if="${rhodo.isAzaleaHybrid()}">Azalea Hybrid</span>
+            <span th:if="${rhodo.isAzaleodendronHybrid()}">Azaleodendron Hybrid</span>
         </h4>
         <a th:if="${not #lists.isEmpty(rhodo.getPhotos())}" th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
             More information and pictures

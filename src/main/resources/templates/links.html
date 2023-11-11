@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head}"></head>
+<body>
+<div th:replace="~{fragments/header}"></div>
+
+<div class="content">
+    <div class="description-container">
+        <h1>Good Stuff From Across the Web</h1>
+        <div>
+            <a th:href="@{http://rhodyman.net/rhodyn.php}" target="_blank" class="container"
+               style="text-decoration: none">
+                <img th:src="@{/imgs/hennings.png}">
+                <div class="flex-item">
+                    <b>HENNING'S RHODODENDRON & AZALEA PAGES</b>
+                    <br/>
+                    <i>A trove of information</i>
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

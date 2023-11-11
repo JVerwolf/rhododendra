@@ -74,6 +74,11 @@ public class WebController {
         return "contact";
     }
 
+    @RequestMapping(value = "/links")
+    public String handleLinks() {
+        return "links";
+    }
+
     @RequestMapping(value = "/rhodos/{id}")
     public String handleGetHybrid(Model model, @PathVariable("id") String id) {
         var result = SearchService.getRhodoById(id);

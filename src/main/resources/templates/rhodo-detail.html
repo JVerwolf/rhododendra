@@ -16,6 +16,7 @@
             <span th:if="${rhodo.isHybridRhodo()}" th:text="|Rhododendron Hybrid R. '${rhodo.getName()}'|"></span>
             <span th:if="${rhodo.isVireyaHybrid()}" th:text="|Vireya Hybrid R. '${rhodo.getName()}'|"></span>
             <span th:if="${rhodo.isAzaleaHybrid()}" th:text="|Azalea Hybrid R. '${rhodo.getName()}'|"></span>
+            <span th:if="${rhodo.isAzaleodendronHybrid()}" th:text="|Azaleodendron R. '${rhodo.getName()}'|"></span>
         </h1>
         <h2 th:if="${rhodo.isSpeciesSelection()}" th:inline="text">
             [[|'${rhodo.name}' is a selection of |]]
