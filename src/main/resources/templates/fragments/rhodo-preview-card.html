@@ -2,7 +2,7 @@
 <tr th:fragment="card(rhodo)">
     <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Rhododendron"*/-->
     <td class="table-description-text">
-        <h2 th:text="${rhodo.getName()}"></h2>
+        <h2 th:text="${#strings.capitalize(rhodo.getName())}"></h2>
         <h4>
             <span th:if="${rhodo.isCultivarGroup()}">Cultivar Group</span>
             <span th:if="${rhodo.isSpeciesSelection()}">Species Selection</span>
