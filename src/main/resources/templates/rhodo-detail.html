@@ -7,17 +7,23 @@
 
 <div class="content">
     <div class="description-container">
-        <h1>
+        <h1 th:text="|R. '${#strings.capitalize(rhodo.getName())}'|">></h1>
+        <h2>
             <!--        todo, make this a fragment for the preview card-->
-            <span th:if="${rhodo.isCultivarGroup()}" th:text="|Cultivar Group R. '${#strings.capitalize(rhodo.getName())}'|"></span>
-            <span th:if="${rhodo.isSpeciesSelection()}" th:text="|Species Selection R. '${#strings.capitalize(rhodo.getName())}'|"></span>
-            <span th:if="${rhodo.isSpecies()}" th:text="|Species R. '${#strings.capitalize(rhodo.getName())}'|"></span>
-            <span th:if="${rhodo.isNaturalHybrid()}" th:text="|Natural Hybrid R. '${#strings.capitalize(rhodo.getName())}'|"></span>
-            <span th:if="${rhodo.isHybridRhodo()}" th:text="|Rhododendron Hybrid R. '${#strings.capitalize(rhodo.getName())}'|"></span>
-            <span th:if="${rhodo.isVireyaHybrid()}" th:text="|Vireya Hybrid R. '${#strings.capitalize(rhodo.getName())}'|"></span>
-            <span th:if="${rhodo.isAzaleaHybrid()}" th:text="|Azalea Hybrid R. '${#strings.capitalize(rhodo.getName())}'|"></span>
-            <span th:if="${rhodo.isAzaleodendronHybrid()}" th:text="|Azaleodendron R. '${#strings.capitalize(rhodo.getName())}'|"></span>
-        </h1>
+            <span th:if="${rhodo.isCultivarGroup()}"
+                  th:text="|Cultivar Group|"></span>
+            <span th:if="${rhodo.isSpecies()}" th:text="|Species|"></span>
+            <span th:if="${rhodo.isNaturalHybrid()}"
+                  th:text="|Natural Hybrid|"></span>
+            <span th:if="${rhodo.isHybridRhodo()}"
+                  th:text="|Rhododendron Hybrid|"></span>
+            <span th:if="${rhodo.isVireyaHybrid()}"
+                  th:text="|Vireya Hybrid|"></span>
+            <span th:if="${rhodo.isAzaleaHybrid()}"
+                  th:text="|Azalea Hybrid|"></span>
+            <span th:if="${rhodo.isAzaleodendronHybrid()}"
+                  th:text="|Azaleodendron|"></span>
+        </h2>
         <h2 th:if="${rhodo.isSpeciesSelection()}" th:inline="text">
             [[|'${rhodo.name}' is a selection of |]]
             <a th:href="@{'/rhodos/'+ ${original_species.getId()}}" th:text="|R. ${original_species.getName()}|"></a>
@@ -29,7 +35,7 @@
                     <th:block th:each="synonym, iterStat : ${rhodo.getBotanical_synonyms()}">
 
                     <span th:if="${synonym.botanical_shorts().isEmpty()}"
-                          th:text="'R. ' + ${synonym.synonym()}"></span>
+                          th:text="'R. ' + ${#strings.capitalize(synonym.synonym())}"></span>
                         <span th:if="${not synonym.botanical_shorts().isEmpty()}"
                               th:text="${'R. ' + #strings.capitalize(synonym.synonym())} + ' ('+ ${#strings.listJoin(synonym.botanical_shorts(), ',')} + ')'"></span>
                         <br th:if="${not iterStat.last}"/>
@@ -181,6 +187,10 @@
             <tr th:if="${rhodo.getIrrc_registered() != null}">
                 <td class="key"><b>Status</b></td>
                 <td class="value" th:text="${rhodo.getIrrc_registered()}"></td>
+            </tr>
+            <tr th:if="${rhodo.getExtra_information() != null}">
+                <td class="key"><b>Extra Information</b></td>
+                <td class="value" th:text="${rhodo.getExtra_information()}"></td>
             </tr>
         </table>
     </div>
