@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.rhododendra.model.Rhododendron.PRIMARY_ID_KEY;
+import static com.rhododendra.model.Rhododendron.RHODO_DATA_TYPE;
 import static com.rhododendra.service.IndexService.*;
 
 public class SearchService {
@@ -186,7 +187,8 @@ public class SearchService {
         String letter,
         int pageSize,
         int offset,
-        boolean onlyPics
+        boolean onlyPics, // TODO refactor to Settings Object
+        Rhododendron.RhodoDataType rhodoDataType
     ) throws IOException {
         return paginatedSearch(
             RHODO_INDEX_PATH,
@@ -199,6 +201,9 @@ public class SearchService {
                     .add(new BooleanClause(new TermQuery(new Term(LETTER_KEY, letter)), BooleanClause.Occur.MUST));
                 if (onlyPics) {
                     query.add(new BooleanClause(new TermQuery(new Term(HAS_PHOTOS, "true")), BooleanClause.Occur.MUST));
+                }
+                if (rhodoDataType != null) {
+                    query.add(new BooleanClause(new TermQuery(new Term(RHODO_DATA_TYPE, rhodoDataType.name())), BooleanClause.Occur.MUST));
                 }
                 Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
                 return searcher.search(query.build(), Integer.MAX_VALUE, sort);

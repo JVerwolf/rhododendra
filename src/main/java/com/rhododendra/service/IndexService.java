@@ -20,8 +20,6 @@ import java.util.function.BiConsumer;
 public class IndexService {
     public final static String BASE_INDEX_PATH = "index";
     public final static String BOTANIST_INDEX_PATH = BASE_INDEX_PATH + "/botanists";
-    public final static String SPECIES_INDEX_PATH = BASE_INDEX_PATH + "/species";
-    public final static String HYBRIDS_INDEX_PATH = BASE_INDEX_PATH + "/hybrids";
     public final static String PHOTO_DETAIL_INDEX_PATH = BASE_INDEX_PATH + "/photo_details";
     public final static String RHODO_INDEX_PATH = BASE_INDEX_PATH + "/rhodos";
 
@@ -42,10 +40,14 @@ public class IndexService {
             RHODO_INDEX_PATH,
             Rhododendron.PRIMARY_ID_KEY,
             (document, rhodo) -> {
+                // TODO combine PAGINATION_DESCRIPTOR_KEY with the name key below?
+                //  - have paginator refer to the name key to just store once?
+                //  - likewise for NAME_KEY_FOR_SORT
                 document.add(new StringField(PAGINATION_DESCRIPTOR_KEY, rhodo.getName(), Field.Store.YES));
                 document.add(new TextField(Rhododendron.NAME_KEY, rhodo.getName(), Field.Store.NO));
                 document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(rhodo.getName()), Field.Store.NO));
                 document.add(new SortedDocValuesField(Rhododendron.NAME_KEY_FOR_SORT, new BytesRef(rhodo.getName().toLowerCase())));
+                document.add(new StringField(Rhododendron.RHODO_DATA_TYPE, rhodo.getRhodoDataType().name(), Field.Store.NO));
                 document.add(new StringField(
                     HAS_PHOTOS,
                     rhodo.getPhotos().isEmpty() ? "false" : "true",

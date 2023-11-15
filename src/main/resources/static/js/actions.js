@@ -1,13 +1,56 @@
-function showAlert() {
-    alert("The button was clicked!");
-    fetch()
+const ADVANCED_OPTIONS_STATE = "index_collapse"
+
+// REF: https://www.w3schools.com/howto/howto_js_collapsible.asp
+function toggle_index_dropdown_state() {
+    const dropdown = document.getElementById("advanced_index_dropdown")
+    dropdown.classList.toggle("active");
+    dropdown.classList.add("advanced_search_trans");
+    if (dropdown.style.maxHeight) {
+        dropdown.style.maxHeight = null;
+        setCookie(ADVANCED_OPTIONS_STATE, 'false', 365);
+    } else {
+        dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+        setCookie(ADVANCED_OPTIONS_STATE, 'true', 365);
+    }
 }
 
-function search() {
-    var input = document.getElementById("search").value;
-    console.log(input)
-    console.log("http://127.0.0.1:8090/search?q=" + encodeURIComponent(input))
-    fetch("http://127.0.0.1:8090/search?q=" + encodeURIComponent(input))
-        .then(res => res.json())
-        .then(data => console.log(data))
+function load_index_dropdown_state() {
+    const open = getCookie(ADVANCED_OPTIONS_STATE);
+    const dropdown = document.getElementById("advanced_index_dropdown")
+    dropdown.classList.remove("advanced_search_trans");
+    if (open !== null && open === 'false') {
+        dropdown.style.transition = null;
+        dropdown.style.maxHeight = null;
+        setCookie(ADVANCED_OPTIONS_STATE, 'false', 365);
+    } else if (open !== null && open === 'true') {
+
+        dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+        setCookie(ADVANCED_OPTIONS_STATE, 'true', 365);
+    }
+}
+document.addEventListener("DOMContentLoaded", load_index_dropdown_state());
+
+
+// REF: https://www.w3schools.com/js/js_cookies.asp
+function setCookie(cname, cvalue, exdays) {
+    const d = new Date();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    let expires = "expires=" + d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) === 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return null;
 }

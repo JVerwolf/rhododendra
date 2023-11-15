@@ -12,10 +12,11 @@ public class Rhododendron extends Indexable {
     public static final String PRIMARY_ID_KEY = "id";
     public static final String NAME_KEY = "name";
     public static final String NAME_KEY_FOR_SORT = "name_key_for_sort";
+    public static final String RHODO_DATA_TYPE = "rhodoDataType";
 
     String id;
     String name;
-    RhodoDataType rhodoDataType;
+    RhodoDataType rhodoDataType; // TODO needs to be snake-case
     String ten_year_height;
     String bloom_time;
     String flower_shape;

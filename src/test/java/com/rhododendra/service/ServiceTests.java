@@ -30,7 +30,7 @@ public class ServiceTests {
         assertThat(searchRhodos("anna", 1, 0).results).isNotEmpty();
         assertEquals(1, getRhodoById("h1").size());
         assertEquals(1, getRhodoById("s1").size());
-        assertThat(getAllRhodosByFirstLetter("s", 10, 5, false).results).isNotEmpty();
+        assertThat(getAllRhodosByFirstLetter("s", 10, 5, false, null).results).isNotEmpty();
     }
 
     @Test

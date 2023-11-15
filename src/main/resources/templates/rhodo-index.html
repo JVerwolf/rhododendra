@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="english">
 <head th:replace="~{fragments/head}"></head>
-<body>
+<body >
 <div th:replace="~{fragments/header}"></div>
 
 
@@ -14,33 +14,38 @@
                     <td th:style="${letter.toLowerCase().equals(currentLetter.toLowerCase()) ? 'background-color: #55aaaa;': _}"
                         th:styleappend="${'padding:8px'}">
                         <a th:href="@{/rhodo_index(letter=${letter},justPics=${justPics})}"
-                           style="font-size: 26px">
+                           style="  font-size: 26px">
                             <b th:text="${letter}"></b>
                         </a>
                     </td>
                 </th:block>
             </tr>
         </table>
-        <form th:action="@{/rhodo_index}" th:method="get">
-            <h3> Settings:</h3>
-            <table>
-                <tr>
-                    <td>
-                        <label class="switch">
-                            <input type="checkbox" th:name="justPics" th:value="true" th:checked="${justPics}" onChange="this.form.submit()">
-                            <span class="slider round"></span>
-                        </label>
-                    </td>
-                    <td> Only display entries with pictures</td>
-                </tr>
-            </table>
-            <input type="hidden" th:name="letter" th:value="${currentLetter}">
-        </form>
+
+        <button type="button" class="collapsible" onclick="toggle_index_dropdown_state()">
+            <h3>Settings:</h3>
+        </button>
+        <div id="advanced_index_dropdown" class="advanced_search_collapse advanced_search_trans">
+            <form th:action="@{/rhodo_index}" th:method="get">
+                <table>
+                    <tr>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" th:name="justPics" th:value="true" th:checked="${justPics}"
+                                       onChange="this.form.submit()">
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                        <td> Only display entries with pictures</td>
+                    </tr>
+                </table>
+                <input type="hidden" th:name="letter" th:value="${currentLetter}">
+            </form>
+        </div>
         <h3>Pages:</h3>
         <div class="table-scrollbar">
             <table>
                 <tr>
-                    <!--            <td><b>Pages: <br/> Starting Letters:</b></td>-->
                     <th:block th:each="indexPage, stat : ${resultPages}">
 
                         <td class="page-button"

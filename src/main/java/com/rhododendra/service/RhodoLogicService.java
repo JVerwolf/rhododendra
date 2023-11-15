@@ -17,10 +17,17 @@ public class RhodoLogicService {
         String letter,
         int pageSize,
         int offset,
-        boolean onlyPics
+        boolean onlyPics,
+        Rhododendron.RhodoDataType rhodoDataType
     ) throws IOException {
         // todo validate input
-        var result = SearchService.getAllRhodosByFirstLetter(letter.toLowerCase(), pageSize, offset, onlyPics);
+        var result = SearchService.getAllRhodosByFirstLetter(
+            letter.toLowerCase(),
+            pageSize,
+            offset,
+            onlyPics,
+            rhodoDataType
+        );
         result.results.forEach(rhodo ->
             rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
         );

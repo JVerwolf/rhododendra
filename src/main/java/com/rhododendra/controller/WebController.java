@@ -3,7 +3,10 @@ package com.rhododendra.controller;
 import com.rhododendra.service.ImageResolver;
 import com.rhododendra.service.RhodoLogicService;
 import com.rhododendra.service.SearchService;
+import com.rhododendra.util.Util;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,17 +16,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 import java.util.stream.IntStream;
 
+import static com.rhododendra.model.Rhododendron.RhodoDataType.RHODO_HYBRID;
 import static com.rhododendra.model.Rhododendron.RhodoDataType.SPECIES_SELECTION;
 import static com.rhododendra.service.RhodoLogicService.ALPHABET;
 
 @Controller
 public class WebController {
+    private static final Logger logger = LoggerFactory.getLogger(WebController.class);
 
     @RequestMapping("/")
     public String index() {
         return "home";
     }
-
 
     @RequestMapping("/rhodo_index")
     public String handleRhodoIndex(
@@ -34,7 +38,13 @@ public class WebController {
         @RequestParam(value = "justPics", defaultValue = "false") boolean justPics
     ) throws IOException {
         var set_size = 50;
-        var results = RhodoLogicService.scrollRhodosByLetter(letter, set_size, offset,justPics);
+        var results = RhodoLogicService.scrollRhodosByLetter(
+            letter,
+            set_size,
+            offset,
+            justPics,
+null
+        );
         model.addAttribute("rhodos", results.results)
             .addAttribute("resultPages", results.indexPages)
             .addAttribute("resultPagePos", results.indexPagePos)
@@ -95,6 +105,7 @@ public class WebController {
             }
             return "rhodo-detail";
         } else {
+            logger.warn("Rhodo requested but not found: " + id);
             return "404";
         }
     }

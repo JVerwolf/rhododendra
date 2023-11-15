@@ -7,7 +7,8 @@
 
 <div class="content">
     <div class="description-container">
-        <h1 th:text="|R. '${#strings.capitalize(rhodo.getName())}'|">></h1>
+        <h1 th:if="${rhodo.isSpecies()}">R. <i th:text="|${#strings.capitalize(rhodo.getName())}|"></i></h1>
+        <h1 th:if="${not rhodo.isSpecies()}" th:text="|R. '${#strings.capitalize(rhodo.getName())}'|"></h1>
         <h2>
             <!--        todo, make this a fragment for the preview card-->
             <span th:if="${rhodo.isCultivarGroup()}"
@@ -88,18 +89,6 @@
                 </tr>
             </th:block>
             <th:block th:if="${rhodo.getParentage() != null}">
-                <td class="key"><b>Pollen Parent</b></td>
-                <th:block th:if="${rhodo.getParentage().getPollen_parent() != null}">
-                    <td class="value" th:if="${rhodo.getParentage().getPollen_parent_id() != null}">
-                        <a th:href="@{'/rhodos/'+ ${rhodo.getParentage().getPollen_parent_id}}"
-                           th:text="${rhodo.getParentage().getPollen_parent()}">
-                        </a>
-                    </td>
-                    <td class="value" th:if="${rhodo.getParentage().getPollen_parent_id() == null}"
-                        th:text="${rhodo.getParentage().getPollen_parent()}">
-                    </td>
-                </th:block>
-                <td class="value" th:if="${rhodo.getParentage().getPollen_parent() == null}">?</td>
                 <tr>
                     <td class="key"><b>Seed Parent</b></td>
                     <th:block th:if="${rhodo.getParentage().getSeed_parent() != null}">
@@ -113,6 +102,20 @@
                         </td>
                     </th:block>
                     <td class="value" th:if="${rhodo.getParentage().getSeed_parent() == null}">?</td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Pollen Parent</b></td>
+                    <th:block th:if="${rhodo.getParentage().getPollen_parent() != null}">
+                        <td class="value" th:if="${rhodo.getParentage().getPollen_parent_id() != null}">
+                            <a th:href="@{'/rhodos/'+ ${rhodo.getParentage().getPollen_parent_id}}"
+                               th:text="${rhodo.getParentage().getPollen_parent()}">
+                            </a>
+                        </td>
+                        <td class="value" th:if="${rhodo.getParentage().getPollen_parent_id() == null}"
+                            th:text="${rhodo.getParentage().getPollen_parent()}">
+                        </td>
+                    </th:block>
+                    <td class="value" th:if="${rhodo.getParentage().getPollen_parent() == null}">?</td>
                 </tr>
             </th:block>
             <tr th:if="${rhodo.getCultivation_since() != null}">
