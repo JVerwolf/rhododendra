@@ -3,7 +3,7 @@ const ADVANCED_OPTIONS_STATE = "index_collapse"
 // REF: https://www.w3schools.com/howto/howto_js_collapsible.asp
 function toggle_index_dropdown_state() {
     const dropdown = document.getElementById("advanced_index_dropdown")
-    dropdown.classList.toggle("active");
+    // dropdown.classList.toggle("active");
     dropdown.classList.add("advanced_search_trans");
     if (dropdown.style.maxHeight) {
         dropdown.style.maxHeight = null;
