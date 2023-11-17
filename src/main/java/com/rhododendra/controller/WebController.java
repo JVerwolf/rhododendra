@@ -56,6 +56,33 @@ null
         return "rhodo-index";
     }
 
+    @RequestMapping("/rhodo_index_advanced")
+    public String handleRhodoIndexAdvanced(
+        Model model,
+        @RequestParam("letter") String letter,
+        @RequestParam(value = "size", defaultValue = "50") int size,
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "justPics", defaultValue = "false") boolean justPics
+    ) throws IOException {
+        var set_size = 50;
+        var results = RhodoLogicService.scrollRhodosByLetter(
+            letter,
+            set_size,
+            offset,
+            justPics,
+            null
+        );
+        model.addAttribute("rhodos", results.results)
+            .addAttribute("resultPages", results.indexPages)
+            .addAttribute("resultPagePos", results.indexPagePos)
+            .addAttribute("currentLetter", letter)
+            .addAttribute("justPics", justPics)
+            .addAttribute("pageSize", set_size)
+            .addAttribute("nextPage", RhodoLogicService.calculateNextIndexPage(results, letter))
+            .addAttribute("letters", ALPHABET);
+        return "rhodo-index-advanced";
+    }
+
     @RequestMapping(value = "/search")
     public String handleSearch(
         Model model,

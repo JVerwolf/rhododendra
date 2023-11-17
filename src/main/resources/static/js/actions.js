@@ -6,12 +6,21 @@ function toggle_index_dropdown_state() {
     // dropdown.classList.toggle("active");
     dropdown.classList.add("advanced_search_trans");
     if (dropdown.style.maxHeight) {
-        dropdown.style.maxHeight = null;
-        setCookie(ADVANCED_OPTIONS_STATE, 'false', 365);
+        style.
+        close_index_dropdown(dropdown)
     } else {
-        dropdown.style.maxHeight = dropdown.scrollHeight + "px";
-        setCookie(ADVANCED_OPTIONS_STATE, 'true', 365);
+        open_index_dropdown(dropdown)
     }
+}
+
+function open_index_dropdown(dropdown) {
+    dropdown.style.maxHeight = dropdown.scrollHeight + "px";
+    setCookie(ADVANCED_OPTIONS_STATE, 'true', 365);
+}
+
+function close_index_dropdown(dropdown) {
+    dropdown.style.maxHeight = null;
+    setCookie(ADVANCED_OPTIONS_STATE, 'false', 365);
 }
 
 function load_index_dropdown_state() {
@@ -20,14 +29,13 @@ function load_index_dropdown_state() {
     dropdown.classList.remove("advanced_search_trans");
     if (open !== null && open === 'false') {
         dropdown.style.transition = null;
-        dropdown.style.maxHeight = null;
-        setCookie(ADVANCED_OPTIONS_STATE, 'false', 365);
+        close_index_dropdown(dropdown)
     } else if (open !== null && open === 'true') {
-
-        dropdown.style.maxHeight = dropdown.scrollHeight + "px";
-        setCookie(ADVANCED_OPTIONS_STATE, 'true', 365);
+        dropdown.style.transition = null;
+        open_index_dropdown(dropdown)
     }
 }
+
 document.addEventListener("DOMContentLoaded", load_index_dropdown_state());
 
 

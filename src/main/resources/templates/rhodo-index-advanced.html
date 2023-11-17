@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="english">
 <head th:replace="~{fragments/head}"></head>
-<body >
+<body>
 <div th:replace="~{fragments/header}"></div>
 
 
@@ -21,27 +21,21 @@
                 </th:block>
             </tr>
         </table>
-
-        <button type="button" class="collapsible" onclick="toggle_index_dropdown_state()">
-            <h3 id="index_settings_button">Settings:</h3>
-        </button>
-        <div id="advanced_index_dropdown" class="advanced_search_collapse advanced_search_trans">
-            <form th:action="@{/rhodo_index}" th:method="get">
-                <table>
-                    <tr>
-                        <td>
-                            <label class="switch">
-                                <input type="checkbox" th:name="justPics" th:value="true" th:checked="${justPics}"
-                                       onChange="this.form.submit()">
-                                <span class="slider round"></span>
-                            </label>
-                        </td>
-                        <td> Only display entries with pictures</td>
-                    </tr>
-                </table>
-                <input type="hidden" th:name="letter" th:value="${currentLetter}">
-            </form>
-        </div>
+        <form th:action="@{/rhodo_index}" th:method="get">
+            <table>
+                <tr>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" th:name="justPics" th:value="true" th:checked="${justPics}"
+                                   onChange="this.form.submit()">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td> Only display entries with pictures</td>
+                </tr>
+            </table>
+            <input type="hidden" th:name="letter" th:value="${currentLetter}">
+        </form>
         <h3>Pages:</h3>
         <div class="table-scrollbar">
             <table>
@@ -55,11 +49,11 @@
                                 <!--                        <b th:text="|${indexPage.startPos+1} - ${indexPage.endPos+1}|"></b>-->
                                 <b th:text="|${stat.index + 1}:|"></b>
                                 <br/>
-                                <b th:text="|${#strings.capitalize(indexPage.startValue)}|"></b>
+                                <b th:text="|${indexPage.startValue}|"></b>
                                 <br/>
                                 <i>―</i>
                                 <br/>
-                                <b th:text="|${#strings.capitalize(indexPage.endValue)}|"></b>
+                                <b th:text="|${indexPage.endValue}|"></b>
                             </a>
                         </td>
                     </th:block>
