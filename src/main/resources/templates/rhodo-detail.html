@@ -206,7 +206,7 @@
             <td class="picture-td">
                 <a th:href="${resolvedPhotoDetail.getResolvedHiResURL() != null ? resolvedPhotoDetail.getResolvedHiResURL() : resolvedPhotoDetail.getResolvedNormalURL()}">
                     <img th:src="${resolvedPhotoDetail.getResolvedNormalURL()}"
-                         th:title="|Rhododendron ${rhodo.getName()} ${resolvedPhotoDetail.getPhotoDetails().getDescription()}|"
+                         th:title="|Rhododendron ${rhodo.getName()} ${resolvedPhotoDetail.getPhotoDetails().getDescription()}. ${resolvedPhotoDetail.getPhotoDetails().getLocation() != null ? 'Location: ' + resolvedPhotoDetail.getPhotoDetails().getLocation()+'.'  : '' } ${resolvedPhotoDetail.getPhotoDetails().getPhotoBy() != null ? 'Photo taken by ' + resolvedPhotoDetail.getPhotoDetails().getPhotoBy()+'.' : ''}|"
                          width="400">
                 </a>
             </td>
