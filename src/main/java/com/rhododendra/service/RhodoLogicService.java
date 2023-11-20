@@ -28,17 +28,30 @@ public class RhodoLogicService {
             onlyPics,
             rhodoDataType
         );
-        result.results.forEach(rhodo ->
-            rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
+        result.results.forEach(rhodo -> {
+                rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()));
+                addSelectedSpecies(rhodo);
+            }
         );
         return result;
+    }
+
+    public static void addSelectedSpecies(Rhododendron rhodo) {
+        if (rhodo.getSpecies_id() != null) {
+            var original_species = SearchService.getRhodoById(rhodo.getSpecies_id());
+            if (!original_species.isEmpty()) {
+                rhodo.setSelectedSpecies(original_species.get(0));
+            }
+        }
     }
 
     public static IndexResults<Rhododendron> searchRhodos(String queryString, int pageSize, int offset) throws IOException, ParseException {
         // todo validate input
         var result = SearchService.searchRhodos(queryString, pageSize, offset);
-        result.results.forEach(rhodo ->
-            rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()))
+        result.results.forEach(rhodo -> {
+                rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()));
+                addSelectedSpecies(rhodo);
+            }
         );
         return result;
     }

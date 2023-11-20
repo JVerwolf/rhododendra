@@ -11,8 +11,16 @@
 
 <div class="content">
     <div class="description-container">
-        <h1 th:if="${rhodo.isSpecies()}">R. <i th:text="|${#strings.capitalize(rhodo.getName())}|"></i></h1>
-        <h1 th:if="${not rhodo.isSpecies()}" th:text="|R. '${#strings.capitalize(rhodo.getName())}'|"></h1>
+        <h1 th:if="${rhodo.isSpecies()}"><i th:text="|R. ${rhodo.getName()}|"></i></h1>
+        <h1 th:if="${not rhodo.isSpecies() && not rhodo.isSpeciesSelection()}" th:inline="text">
+            <i>R. </i>
+            [[|'${#strings.capitalize(rhodo.getName())}'|]]
+        </h1>
+        <h1 th:if="${rhodo.isSpeciesSelection()}" th:inline="text">
+            <i th:text="|R. ${original_species.getName()}|"></i>
+            [[|'${#strings.capitalize(rhodo.getName())}'|]]
+        </h1>
+
         <h2>
             <!--        todo, make this a fragment for the preview card-->
             <span th:if="${rhodo.isCultivarGroup()}"
@@ -30,8 +38,10 @@
                   th:text="|Azaleodendron|"></span>
         </h2>
         <h2 th:if="${rhodo.isSpeciesSelection()}" th:inline="text">
-            [[|'${rhodo.name}' is a selection of |]]
-            <a th:href="@{'/rhodos/'+ ${original_species.getId()}}" th:text="|R. ${original_species.getName()}|"></a>
+            [[|Species selection of |]]
+            <a th:href="@{'/rhodos/'+ ${original_species.getId()}}">
+                <i th:text="|R. ${original_species.getName()}|"></i>
+            </a>
         </h2>
         <table class="bordered-table attributes-detail-table">
             <tr th:if="${not rhodo.getBotanical_synonyms().isEmpty()}">

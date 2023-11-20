@@ -33,6 +33,7 @@ public class Rhododendron extends Indexable {
     String irrc_registered;
     String additional_parentage_info;
     String species_id; // for selection
+    Rhododendron selectedSpecies; // Don't store as this info can change, not the source of truth. Only for fetching and putting in model for display.
     String cultivation_since;
     Lepedote lepedote;
 
@@ -369,6 +370,16 @@ public class Rhododendron extends Indexable {
 
     public void setSpecies_id(String species_id) {
         this.species_id = species_id;
+    }
+
+    @JsonIgnore
+    public Rhododendron getSelectedSpecies() {
+        return selectedSpecies;
+    }
+
+    @JsonIgnore
+    public void setSelectedSpecies(Rhododendron selectedSpecies) {
+        this.selectedSpecies = selectedSpecies;
     }
 
     public String getCultivation_since() {
