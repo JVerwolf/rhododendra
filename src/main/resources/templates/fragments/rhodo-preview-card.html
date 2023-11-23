@@ -2,10 +2,16 @@
 <tr th:fragment="card(rhodo)">
     <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Rhododendron"*/-->
     <td class="table-description-text">
-        <h2 th:if="${rhodo.isSpecies()}"><i th:text="|R. ${rhodo.getName()}|"></i></h2>
-        <h2 th:if="${not rhodo.isSpecies() && not rhodo.isSpeciesSelection()}" th:inline="text">
+        <h2 th:if="${rhodo.isSpecies()}">
+            <i th:text="|R. ${rhodo.getName()}|"></i>
+        </h2>
+        <h2 th:if="${not rhodo.isSpecies() && not rhodo.isSpeciesSelection() && not rhodo.isNaturalHybrid()}"
+            th:inline="text">
             <i>R. </i>
             [[|'${#strings.capitalize(rhodo.getName())}'|]]
+        </h2>
+        <h2 th:if="${rhodo.isNaturalHybrid()}" th:inline="text">
+            <i>R.</i> x <i th:text="${rhodo.getName()}"></i>
         </h2>
         <h2 th:if="${rhodo.isSpeciesSelection()}" th:inline="text">
             <i th:text="|R. ${rhodo.getSelectedSpecies().getName()}|"></i>
