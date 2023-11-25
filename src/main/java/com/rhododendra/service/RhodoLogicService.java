@@ -3,6 +3,7 @@ package com.rhododendra.service;
 import com.rhododendra.config.Settings;
 import com.rhododendra.model.ResolvedPhotoDetails;
 import com.rhododendra.model.Rhododendron;
+import com.rhododendra.model.Rhododendron.SearchFilters;
 import com.rhododendra.service.SearchService.IndexResults;
 import org.apache.lucene.queryparser.classic.ParseException;
 
@@ -18,7 +19,7 @@ public class RhodoLogicService {
         int pageSize,
         int offset,
         boolean onlyPics,
-        Rhododendron.RhodoDataType rhodoDataType
+        List<SearchFilters> searchFilters
     ) throws IOException {
         // todo validate input
         var result = SearchService.getAllRhodosByFirstLetter(
@@ -26,7 +27,7 @@ public class RhodoLogicService {
             pageSize,
             offset,
             onlyPics,
-            rhodoDataType
+            searchFilters
         );
         result.results.forEach(rhodo -> {
                 rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()));

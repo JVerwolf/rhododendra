@@ -47,7 +47,7 @@ public class IndexService {
                 document.add(new TextField(Rhododendron.NAME_KEY, rhodo.getName(), Field.Store.NO));
                 document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(rhodo.getName()), Field.Store.NO));
                 document.add(new SortedDocValuesField(Rhododendron.NAME_KEY_FOR_SORT, new BytesRef(rhodo.getName().toLowerCase())));
-                document.add(new StringField(Rhododendron.RHODO_DATA_TYPE, rhodo.getRhodoDataType().name(), Field.Store.NO));
+                document.add(new StringField(Rhododendron.SEARCH_FILTERS, rhodo.getSearchFilter().name(), Field.Store.NO));
                 document.add(new StringField(
                     HAS_PHOTOS,
                     rhodo.getPhotos().isEmpty() ? "false" : "true",

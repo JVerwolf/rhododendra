@@ -2,30 +2,23 @@
 <tr th:fragment="card(rhodo)">
     <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Rhododendron"*/-->
     <td class="table-description-text">
-        <h2 th:if="${rhodo.isSpecies()}">
+        <h2 th:if="${rhodo.isSpecies() && not rhodo.getIs_species_selection() && not rhodo.getIs_natural_hybrid()}">
             <i th:text="|R. ${rhodo.getName()}|"></i>
         </h2>
-        <h2 th:if="${not rhodo.isSpecies() && not rhodo.isSpeciesSelection() && not rhodo.isNaturalHybrid()}"
+        <h2 th:if="${not rhodo.isSpecies() && not rhodo.getIs_species_selection() && not rhodo.getIs_natural_hybrid()}"
             th:inline="text">
             <i>R. </i>
             [[|'${#strings.capitalize(rhodo.getName())}'|]]
         </h2>
-        <h2 th:if="${rhodo.isNaturalHybrid()}" th:inline="text">
+        <h2 th:if="${rhodo.getIs_natural_hybrid()}" th:inline="text">
             <i>R.</i> x <i th:text="${rhodo.getName()}"></i>
         </h2>
-        <h2 th:if="${rhodo.isSpeciesSelection()}" th:inline="text">
+        <h2 th:if="${rhodo.getIs_species_selection()}" th:inline="text">
             <i th:text="|R. ${rhodo.getSelectedSpecies().getName()}|"></i>
             [[|'${rhodo.getName()}'|]]
         </h2>
         <h4>
-            <span th:if="${rhodo.isCultivarGroup()}">Cultivar Group</span>
-            <span th:if="${rhodo.isSpeciesSelection()}">Species Selection</span>
-            <span th:if="${rhodo.isSpecies()}">Species</span>
-            <span th:if="${rhodo.isNaturalHybrid()}">Naturally Occurring Hybrid</span>
-            <span th:if="${rhodo.isHybridRhodo()}">Rhododendron Hybrid</span>
-            <span th:if="${rhodo.isVireyaHybrid()}">Vireya Hybrid</span>
-            <span th:if="${rhodo.isAzaleaHybrid()}">Azalea Hybrid</span>
-            <span th:if="${rhodo.isAzaleodendronHybrid()}">Azaleodendron Hybrid</span>
+            <span th:text="${rhodo.descriptionText()}"></span>
         </h4>
         <a th:if="${not #lists.isEmpty(rhodo.getPhotos())}" th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
             More information and pictures

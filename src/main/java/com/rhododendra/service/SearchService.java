@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rhododendra.model.Botanist;
 import com.rhododendra.model.PhotoDetails;
 import com.rhododendra.model.Rhododendron;
+import com.rhododendra.model.Rhododendron.SearchFilters;
 import com.rhododendra.util.CheckedBiFunction;
 import com.rhododendra.util.CheckedFunction;
 import org.apache.logging.log4j.util.Strings;
@@ -28,7 +29,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.rhododendra.model.Rhododendron.PRIMARY_ID_KEY;
-import static com.rhododendra.model.Rhododendron.RHODO_DATA_TYPE;
+import static com.rhododendra.model.Rhododendron.SEARCH_FILTERS;
 import static com.rhododendra.service.IndexService.*;
 
 public class SearchService {
@@ -188,7 +189,7 @@ public class SearchService {
         int pageSize,
         int offset,
         boolean onlyPics, // TODO refactor to Settings Object
-        Rhododendron.RhodoDataType rhodoDataType
+        List<SearchFilters> searchFilters // TODO refactor to Settings Object
     ) throws IOException {
         return paginatedSearch(
             RHODO_INDEX_PATH,
@@ -202,8 +203,12 @@ public class SearchService {
                 if (onlyPics) {
                     query.add(new BooleanClause(new TermQuery(new Term(HAS_PHOTOS, "true")), BooleanClause.Occur.MUST));
                 }
-                if (rhodoDataType != null) {
-                    query.add(new BooleanClause(new TermQuery(new Term(RHODO_DATA_TYPE, rhodoDataType.name())), BooleanClause.Occur.MUST));
+                if (searchFilters != null && !searchFilters.isEmpty()) {
+                    var subQuery = new BooleanQuery.Builder();
+                    for (var searchFilter : searchFilters) {
+                        subQuery.add(new BooleanClause(new TermQuery(new Term(SEARCH_FILTERS, searchFilter.name())), BooleanClause.Occur.SHOULD));
+                    }
+                    query.add(subQuery.build(), BooleanClause.Occur.MUST);
                 }
                 Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
                 return searcher.search(query.build(), Integer.MAX_VALUE, sort);

@@ -77,9 +77,10 @@ body {
     }
 }
 
-body {
-    background-color: #cceedd;
+html body {
+    background: #cceedd;
 }
+
 
 /* Start CSS for the slider check box*/
 /* The switch - the box around the slider */
@@ -167,6 +168,8 @@ input:checked + .slider:before {
     /*background-color: white;*/
     max-height: 0;
     overflow: hidden;
+    margin-top: .25em;
+    margin-bottom: 1em;
 }
 
 .advanced_search_trans {
@@ -310,3 +313,8 @@ table.letter-wrap {
 h3{
     font-size: 18.72px;
 }
+
+/*for buttons*/
+/*label.btn {*/
+/*    flex: 0 !important;*/
+/*}*/

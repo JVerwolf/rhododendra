@@ -12,11 +12,10 @@ public class Rhododendron extends Indexable {
     public static final String PRIMARY_ID_KEY = "id";
     public static final String NAME_KEY = "name";
     public static final String NAME_KEY_FOR_SORT = "name_key_for_sort";
-    public static final String RHODO_DATA_TYPE = "rhodoDataType";
+    public static final String SEARCH_FILTERS = "search_filters";
 
     String id;
     String name;
-    RhodoDataType rhodoDataType; // TODO needs to be snake-case
     String ten_year_height;
     String bloom_time;
     String flower_shape;
@@ -53,69 +52,127 @@ public class Rhododendron extends Indexable {
     @JsonProperty("azalea_group")
     String azalea_group = null;
 
+    SpeciesOrCultivar speciesOrCultivar;
+    boolean is_species_selection;
+    boolean is_natural_hybrid;
+    boolean is_cultivar_group;
+    RhodoCategory rhodoCategory;
+
     @JsonIgnore
     @Override
     public String primaryIdValue() {
         return id;
     }
 
-    public static enum RhodoDataType {
-        SPECIES,
-        SPECIES_SELECTION,
-        NATURAL_HYBRID,
-        RHODO_HYBRID,
-        CULTIVAR_GROUP,
-        AZALEA_HYBRID,
-        VIREYA_HYBRID,
-        AZALEODENDRON_HYBRID
+    public static enum SpeciesOrCultivar {
+        CULTIVAR,
+        SPECIES
+    }
+
+    public enum RhodoCategory {
+        AZALEODENDRON,
+        AZALEA,
+        RHODO,
+        VIREYA,
+        UNKNOWN
+    }
+
+    public enum SearchFilters {
+        BOTANICAL,
+        CULTIVAR
+    }
+
+    @JsonIgnore
+    public SearchFilters getSearchFilter() {
+        boolean isBotanical = isSpecies()
+            || getIs_species_selection()
+            || getIs_natural_hybrid();
+        if (isBotanical) {
+            return SearchFilters.BOTANICAL;
+        } else {
+            return SearchFilters.CULTIVAR;
+        }
+    }
+
+    @JsonIgnore
+    public String descriptionText() {
+        var category = "";
+        if (this.getRhodoCategory() == RhodoCategory.RHODO) {
+            category = "Rhododendron";
+        } else if (this.getRhodoCategory() == RhodoCategory.AZALEA) {
+            category = "Azalea";
+        } else if (this.getRhodoCategory() == RhodoCategory.VIREYA) {
+            category = "Vireya";
+        } else if (this.getRhodoCategory() == RhodoCategory.AZALEODENDRON) {
+            category = "Azaleodendron";
+        }
+        if (is_cultivar_group) {
+            if (this.getRhodoCategory() == RhodoCategory.UNKNOWN) {
+                return "Cultivar group";
+                // TODO logger.warn, shouldn't have an unknown cultivar group.
+            }
+            return category + " Cultivar group";
+        } else if (is_species_selection) {
+            if (this.getRhodoCategory() == RhodoCategory.UNKNOWN) {
+                return "Species Selection";
+                // TODO logger.warn, shouldn't have an unknown species selection.
+            }
+            return category + " Species Selection";
+        } else if (is_natural_hybrid) { // TODO future there can be selections of natural hybrids.
+            if (this.getRhodoCategory() == RhodoCategory.UNKNOWN) {
+                return "Natural Hybrid";
+            }
+            return "Natural " + category + " Hybrid";
+        } else if (isSpecies()) {
+            if (this.getRhodoCategory() == RhodoCategory.UNKNOWN) {
+                return "Species";
+            }
+            return category + " Species";
+        } else {
+            if (!isSpecies()) {
+                if (this.getRhodoCategory() == RhodoCategory.UNKNOWN) {
+                    return "Hybrid";
+                    // TODO logger.warn, shouldn't have an unknown species selection.
+                }
+                return category + " Hybrid";
+            }
+            return ""; // TODO logger error.
+        }
     }
 
     @JsonIgnore
     public boolean isSpecies() {
-        return this.getRhodoDataType() == RhodoDataType.SPECIES;
-    }
-
-    @JsonIgnore
-    public boolean isSpeciesSelection() {
-        return this.getRhodoDataType() == RhodoDataType.SPECIES_SELECTION;
-    }
-
-    @JsonIgnore
-    public boolean isNaturalHybrid() {
-        return this.getRhodoDataType() == RhodoDataType.NATURAL_HYBRID;
-    }
-
-    @JsonIgnore
-    public boolean isCultivar() {
-        return this.getRhodoDataType() == RhodoDataType.RHODO_HYBRID
-            || this.getRhodoDataType() == RhodoDataType.AZALEA_HYBRID
-            || this.getRhodoDataType() == RhodoDataType.VIREYA_HYBRID
-            || this.getRhodoDataType() == RhodoDataType.AZALEODENDRON_HYBRID;
+        return this.getSpeciesOrCultivar() == SpeciesOrCultivar.SPECIES;
     }
 
     @JsonIgnore
     public boolean isHybridRhodo() {
-        return this.getRhodoDataType() == RhodoDataType.RHODO_HYBRID;
+        return this.getRhodoCategory() == RhodoCategory.RHODO
+            && !this.isSpecies();
     }
 
     @JsonIgnore
     public boolean isCultivarGroup() {
-        return this.getRhodoDataType() == RhodoDataType.CULTIVAR_GROUP;
+        return this.getRhodoCategory() == RhodoCategory.RHODO // TODO will need to check for other categories at usage sites if this is removed.
+            && this.getIs_cultivar_group();
     }
 
     @JsonIgnore
     public boolean isAzaleaHybrid() {
-        return this.getRhodoDataType() == RhodoDataType.AZALEA_HYBRID;
+        return this.getRhodoCategory() == RhodoCategory.AZALEA
+            && !this.isSpecies();
     }
 
     @JsonIgnore
     public boolean isVireyaHybrid() {
-        return this.getRhodoDataType() == RhodoDataType.VIREYA_HYBRID;
+        return this.getRhodoCategory() == RhodoCategory.VIREYA
+            && !this.isSpecies();
     }
 
     @JsonIgnore
     public boolean isAzaleodendronHybrid() {
-        return this.getRhodoDataType() == RhodoDataType.AZALEODENDRON_HYBRID;
+        return this.getRhodoCategory() == RhodoCategory.AZALEODENDRON
+            && !this.isSpecies();
     }
 
 
@@ -236,6 +293,46 @@ public class Rhododendron extends Indexable {
         }
     }
 
+    public SpeciesOrCultivar getSpeciesOrCultivar() {
+        return speciesOrCultivar;
+    }
+
+    public void setSpeciesOrCultivar(SpeciesOrCultivar speciesOrCultivar) {
+        this.speciesOrCultivar = speciesOrCultivar;
+    }
+
+    public boolean getIs_species_selection() {
+        return is_species_selection;
+    }
+
+    public void setIs_species_selection(boolean is_species_selection) {
+        this.is_species_selection = is_species_selection;
+    }
+
+    public RhodoCategory getRhodoCategory() {
+        return rhodoCategory;
+    }
+
+    public void setRhodoCategory(RhodoCategory rhodoCategory) {
+        this.rhodoCategory = rhodoCategory;
+    }
+
+    public boolean getIs_natural_hybrid() {
+        return is_natural_hybrid;
+    }
+
+    public void setIs_natural_hybrid(boolean is_natural_hybrid) {
+        this.is_natural_hybrid = is_natural_hybrid;
+    }
+
+    public boolean getIs_cultivar_group() {
+        return is_cultivar_group;
+    }
+
+    public void setIs_cultivar_group(boolean is_cultivar_group) {
+        this.is_cultivar_group = is_cultivar_group;
+    }
+
     public String getId() {
         return id;
     }
@@ -250,14 +347,6 @@ public class Rhododendron extends Indexable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public RhodoDataType getRhodoDataType() {
-        return rhodoDataType;
-    }
-
-    public void setRhodoDataType(RhodoDataType rhodoDataType) {
-        this.rhodoDataType = rhodoDataType;
     }
 
     public String getTen_year_height() {

@@ -11,38 +11,25 @@
 
 <div class="content">
     <div class="description-container">
-        <h1 th:if="${rhodo.isSpecies()}">
+        <h1 th:if="${rhodo.isSpecies() && not rhodo.getIs_species_selection() && not rhodo.getIs_natural_hybrid()}">
             <i th:text="|R. ${rhodo.getName()}|"></i>
         </h1>
-        <h1 th:if="${not rhodo.isSpecies() && not rhodo.isSpeciesSelection() && not rhodo.isNaturalHybrid()}" th:inline="text">
+        <h1 th:if="${not rhodo.isSpecies() && not rhodo.getIs_species_selection() && not rhodo.getIs_natural_hybrid()}"
+            th:inline="text">
             <i>R. </i>
             [[|'${#strings.capitalize(rhodo.getName())}'|]]
         </h1>
-        <h1 th:if="${rhodo.isNaturalHybrid()}" th:inline="text">
+        <h1 th:if="${rhodo.getIs_natural_hybrid()}" th:inline="text">
             <i>R.</i> x <i th:text="${rhodo.getName()}"></i>
         </h1>
-        <h1 th:if="${rhodo.isSpeciesSelection()}" th:inline="text">
+        <h1 th:if="${rhodo.getIs_species_selection()}" th:inline="text">
             <i th:text="|R. ${original_species.getName()}|"></i>
             [[|'${#strings.capitalize(rhodo.getName())}'|]]
         </h1>
-
         <h2>
-            <!--        todo, make this a fragment for the preview card-->
-            <span th:if="${rhodo.isCultivarGroup()}"
-                  th:text="|Cultivar Group|"></span>
-            <span th:if="${rhodo.isSpecies()}" th:text="|Species|"></span>
-            <span th:if="${rhodo.isNaturalHybrid()}"
-                  th:text="|Natural Hybrid|"></span>
-            <span th:if="${rhodo.isHybridRhodo()}"
-                  th:text="|Rhododendron Hybrid|"></span>
-            <span th:if="${rhodo.isVireyaHybrid()}"
-                  th:text="|Vireya Hybrid|"></span>
-            <span th:if="${rhodo.isAzaleaHybrid()}"
-                  th:text="|Azalea Hybrid|"></span>
-            <span th:if="${rhodo.isAzaleodendronHybrid()}"
-                  th:text="|Azaleodendron|"></span>
+            <span th:if="${not rhodo.getIs_species_selection()}" th:text="${rhodo.descriptionText()}"></span>
         </h2>
-        <h2 th:if="${rhodo.isSpeciesSelection()}" th:inline="text">
+        <h2 th:if="${rhodo.getIs_species_selection()}" th:inline="text">
             [[|Species selection of |]]
             <a th:href="@{'/rhodos/'+ ${original_species.getId()}}">
                 <i th:text="|R. ${original_species.getName()}|"></i>
@@ -70,7 +57,7 @@
                     </th:block>
                 </td>
             </tr>
-            <th:block th:if="${rhodo.isSpeciesSelection()}">
+            <th:block th:if="${rhodo.getIs_species_selection()}">
                 <tr>
                     <td class="key"><b>Selected By</b></td>
                     <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  != null}"
@@ -78,7 +65,7 @@
                     <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
                 </tr>
             </th:block>
-            <th:block th:if="${rhodo.isCultivar()}">
+            <th:block th:if="${not rhodo.isSpecies()}">
                 <tr>
                     <td class="key"><b>Hybridized By</b></td>
                     <td class="value" th:if="${rhodo.getHybridizer().getHybridizer() != null}"

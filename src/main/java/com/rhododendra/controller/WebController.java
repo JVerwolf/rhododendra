@@ -1,9 +1,8 @@
 package com.rhododendra.controller;
 
-import com.rhododendra.service.ImageResolver;
+import com.rhododendra.model.Rhododendron.SearchFilters;
 import com.rhododendra.service.RhodoLogicService;
 import com.rhododendra.service.SearchService;
-import com.rhododendra.util.Util;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.rhododendra.model.Rhododendron.RhodoDataType.RHODO_HYBRID;
-import static com.rhododendra.model.Rhododendron.RhodoDataType.SPECIES_SELECTION;
 import static com.rhododendra.service.RhodoLogicService.ALPHABET;
 
 @Controller
@@ -35,7 +35,8 @@ public class WebController {
         @RequestParam("letter") String letter,
         @RequestParam(value = "size", defaultValue = "50") int size,
         @RequestParam(value = "offset", defaultValue = "0") int offset,
-        @RequestParam(value = "justPics", defaultValue = "false") boolean justPics
+        @RequestParam(value = "justPics", defaultValue = "false") boolean justPics,
+        @RequestParam(value = "searchFilters", required = false) List<SearchFilters> searchFilters
     ) throws IOException {
         var set_size = 50;
         var results = RhodoLogicService.scrollRhodosByLetter(
@@ -43,13 +44,19 @@ public class WebController {
             set_size,
             offset,
             justPics,
-null
+            searchFilters
         );
-        model.addAttribute("rhodos", results.results)
+        Set<String> searchFilterStrings = (searchFilters == null)
+            ? Set.of()
+            : searchFilters.stream().map(Enum::name).collect(Collectors.toSet());
+
+        model
+            .addAttribute("rhodos", results.results)
             .addAttribute("resultPages", results.indexPages)
             .addAttribute("resultPagePos", results.indexPagePos)
             .addAttribute("currentLetter", letter)
             .addAttribute("justPics", justPics)
+            .addAttribute("searchFilters", searchFilterStrings)
             .addAttribute("pageSize", set_size)
             .addAttribute("nextPage", RhodoLogicService.calculateNextIndexPage(results, letter))
             .addAttribute("letters", ALPHABET);
@@ -123,11 +130,10 @@ null
             var rhodo = result.get(0);
             model.addAttribute("rhodo", rhodo);
             model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(rhodo.getPhotos()));
-            if (rhodo.getRhodoDataType() == SPECIES_SELECTION) {
+            if (rhodo.getIs_species_selection()) {
                 var speciesResult = SearchService.getRhodoById(rhodo.getSpecies_id());
                 if (!speciesResult.isEmpty()) {
                     model.addAttribute("original_species", speciesResult.get(0));
-
                 }
             }
             return "rhodo-detail";
