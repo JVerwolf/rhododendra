@@ -13,12 +13,20 @@
             This website lists rhododendron species and cultivars with photos and information.
         </p>
         <p>
-            This website is still very early in it's development - there's much more on the way!
+            <i>
+                This website is still <b>very early in it's development</b> - there's much more on the way!
+            </i>
             Stay tuned as functionality and data are regularly added.
         </p>
 
+        <ul>
+            <li><a href="#todo-list">The Ever Growing To-Do List</a></li>
+            <li><a href="#update-log">Update Log</a></li>
+            <li><a href="#acknowledgements">Acknowledgements</a></li>
+            <li><a href="#tech">Technical Details</a></li>
+        </ul>
 
-        <h3>The Ever Growing To-Do List:</h3>
+        <h3 id="todo-list">The Ever Growing To-Do List:</h3>
         <p>(Roughly ordered top to bottom)</p>
         <ul>
             <li>(In progress) Add "Advanced Search" filters to the index, e.g. species, hybrid, color, hardiness</li>
@@ -29,6 +37,9 @@
             <li>Add links to other great rhodo resources</li>
             <li>Fix capitalization issues in search</li>
             <li>Improve scientific stylistic nomenclature across the site</li>
+            <li>Get an SSL cert for HTTPS so that I can safely transfer user input when it comes time to build a
+                contribution mechanism.
+            </li>
             <li>(In progress) Add styling so the page fits mobile devices and looks decent in general</li>
             <li>Add page that shows full genetic trees</li>
             <li>Add data for botanists</li>
@@ -46,12 +57,14 @@
             </li>
             <li>Add (public-domain, opensource) licence for code and info, and display copyright info for pics</li>
         </ul>
-        <h3>Update Log:</h3>
+        <h3 id="update-log">Update Log:</h3>
         <p>
             (Newest First)
         </p>
         <ul>
-            <li>Nov 25, 2023: Added index filters for Species and Cultivars, improved categorization, and styling updates.</li>
+            <li>Nov 25, 2023: Added index filters for Species and Cultivars, improved categorization, and styling
+                updates.
+            </li>
             <li>Nov 22, 2023: Fixed issue with duplicate entries. Added "x" to natural hybrids</li>
             <li>Nov 20, 2023: Added all hi-res photos (Thanks to Tom Nosella for providing a clean backup)</li>
             <li>Nov 19, 2023: Update titles to improve stylistic nomenclature (not fully completed).</li>
@@ -65,21 +78,44 @@
             <li>Add the ability to scroll through category index with pagination</li>
             <li>Add data for hybrid rhdodendra</li>
         </ul>
-        <h3>Acknowledgements:</h3>
+        <h3 id="acknowledgements">Acknowledgements:</h3>
         <p>
             Through continued development, the purpose of this website is to become a successor to the late, great,
-            www.hirsutum.info. We owe a debt of gratitude to Herman Van Ree, Marjo Schlenter, and to the Hirsutum
-            contributors for over a decade of work, including data collection and assembly.
+            www.hirsutum.info. We owe a debt of gratitude to <b><i>Herman Van Ree</i></b>, <b><i>Marjo Schlenter</i></b>,
+            and to the <b><i>Hirsutum contributors</i></b> for over a decade of work, including data collection and
+            assembly.
         </p>
         <p>
-            Special thanks to Sean Rafferty for his generosity, time, and wealth of advice. Sean first described to me
-            www.hirsutum.info, its utility to the community, and it's unfortunate demise. That conversation became the
-            origin of this project.
+            Special thanks to <b><i>Sean Rafferty</i></b> for his generosity, time, and wealth of advice. Sean first
+            described
+            to me www.hirsutum.info, its utility to the community, and it's unfortunate demise. That conversation became
+            the origin of this project.
         </p>
         <p>
-            Thanks to Ken Webb, Tony & Caroline Marquardt, and the good folks of the Victoria Rhododendron Society for
-            their generosity and assistance in the rhododendronization of my garden.
+            Thanks to <b><i>Ken Webb</i></b>, <b><i>Tony & Caroline Marquardt</i></b>, and the <b><i>good folks of the
+            Victoria Rhododendron Society</i></b> for their generosity and assistance in the rhododendronization of my
+            garden.
         </p>
+        <h3 id="tech">Technical Details:</h3>
+        <p>
+        <ul>
+            <li>15,925 unique entries</li>
+            <li>14407 photos</li>
+            <li>
+                Data scraping and munging was done using 2769 lines of Python (programming language).
+            </li>
+            <li>Search was developed using Apache Lucene, which is a library for building custom search engines</li>
+            <li>I wrote the backend in Java (programming language) as I wanted to keep it simple and use something
+                widely known, yet fast enough to run on economical hardware
+            </li>
+            <li>I'm using Springboot as the server framework</li>
+            <li>I wrote the frontend in plain old HTML, CSS, and JavaScript.</li>
+            <li>I'm using thymeleaf as a templating engine. It's old tech so every question you
+                could conceive of has already been answered, and it mostly "stays out of the way" for now
+            </li>
+            <li>I chose to use AWS for hosting/infrastructure: EC2, S3 buckets, Cloudfront CDN</li>
+            <li>Code is on GitHub, the project is built with Gradle, the VM runs Linux. Standard stuff.</li>
+        </ul>
         <br/>
         <br/>
     </div>
