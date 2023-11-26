@@ -41,10 +41,12 @@
                 <td class="value">
                     <th:block th:each="synonym, iterStat : ${rhodo.getBotanical_synonyms()}">
 
-                    <span th:if="${synonym.botanical_shorts().isEmpty()}"
-                          th:text="'R. ' + ${#strings.capitalize(synonym.synonym())}"></span>
-                        <span th:if="${not synonym.botanical_shorts().isEmpty()}"
-                              th:text="${'R. ' + #strings.capitalize(synonym.synonym())} + ' ('+ ${#strings.listJoin(synonym.botanical_shorts(), ',')} + ')'"></span>
+                        <i th:if="${synonym.botanical_shorts().isEmpty()}"
+                           th:text="'R. ' + ${synonym.synonym().toLowerCase()}"></i>
+                        <span th:if="${not synonym.botanical_shorts().isEmpty()}" th:inline="text">
+                            <i th:text="${'R. ' + synonym.synonym().toLowerCase()}"></i>
+                            [[|(${#strings.listJoin(synonym.botanical_shorts(), ', ')})|]]
+                        </span>
                         <br th:if="${not iterStat.last}"/>
                     </th:block>
                 </td>
@@ -52,8 +54,12 @@
             <tr th:if="${not rhodo.getSynonyms().isEmpty()}">
                 <td><b class="key">Synonyms</b></td>
                 <td class="value">
-                    <th:block th:each="synonym : ${rhodo.getSynonyms()}">
-                        <span th:text="${#strings.capitalize(synonym)}"></span>
+                    <th:block th:each="synonym, iterStat : ${rhodo.getSynonyms()}">
+                        <span th:inline="text">
+                            <i>R. </i>
+                            [[|'${synonym}'|]]
+                        </span>
+                        <br th:if="${not iterStat.last}"/>
                     </th:block>
                 </td>
             </tr>

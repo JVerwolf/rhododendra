@@ -14,7 +14,10 @@ import org.apache.lucene.util.BytesRef;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 public class IndexService {
@@ -34,7 +37,23 @@ public class IndexService {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
+    public static String generateRhodoNameForIndexing(Rhododendron rhodo, Map<String, Rhododendron> idToRhodoMap) {
+        if (rhodo.getIs_species_selection()) {
+            try {
+                return idToRhodoMap.get(rhodo.getSpecies_id()).getName().toLowerCase() + " " + rhodo.getName().toLowerCase();
+            }catch (Exception e){
+                System.out.println(e);
+                return rhodo.getName().toLowerCase();
+            }
+        } else {
+            return rhodo.getName().toLowerCase();
+        }
+    }
+
     public static void indexRhodos() throws IOException {
+        final var idToRhodoMap = JSONLoaderService.loadRhodos().stream()
+            .collect(Collectors.toMap(Rhododendron::getId, Function.identity()));
+
         index(
             JSONLoaderService.loadRhodos(),
             RHODO_INDEX_PATH,
@@ -43,10 +62,11 @@ public class IndexService {
                 // TODO combine PAGINATION_DESCRIPTOR_KEY with the name key below?
                 //  - have paginator refer to the name key to just store once?
                 //  - likewise for NAME_KEY_FOR_SORT
-                document.add(new StringField(PAGINATION_DESCRIPTOR_KEY, rhodo.getName(), Field.Store.YES));
-                document.add(new TextField(Rhododendron.NAME_KEY, rhodo.getName(), Field.Store.NO));
-                document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(rhodo.getName()), Field.Store.NO));
-                document.add(new SortedDocValuesField(Rhododendron.NAME_KEY_FOR_SORT, new BytesRef(rhodo.getName().toLowerCase())));
+                var nameforIndexing = generateRhodoNameForIndexing(rhodo, idToRhodoMap);
+                document.add(new StringField(PAGINATION_DESCRIPTOR_KEY, nameforIndexing, Field.Store.YES));
+                document.add(new TextField(Rhododendron.NAME_KEY, nameforIndexing, Field.Store.NO));
+                document.add(new StringField(LETTER_KEY, Util.getfirstLetterForIndexing(nameforIndexing), Field.Store.NO));
+                document.add(new SortedDocValuesField(Rhododendron.NAME_KEY_FOR_SORT, new BytesRef(nameforIndexing)));
                 document.add(new StringField(Rhododendron.SEARCH_FILTERS, rhodo.getSearchFilter().name(), Field.Store.NO));
                 document.add(new StringField(
                     HAS_PHOTOS,

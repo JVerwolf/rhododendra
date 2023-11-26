@@ -166,7 +166,7 @@ input:checked + .slider:before {
 /* Style the collapsible content. Note: hidden by default */
 .advanced_search_collapse {
     /*background-color: white;*/
-    max-height: 0;
+    /*max-height: 0;*/  /*TODO uncomment for dynamic drop down*/
     overflow: hidden;
     margin-top: .25em;
     margin-bottom: 1em;
