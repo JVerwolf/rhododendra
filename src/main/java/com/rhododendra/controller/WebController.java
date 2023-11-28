@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.rhododendra.service.RhodoLogicService.ALPHABET;
+import static com.rhododendra.service.RhodoLogicService.UPPER_CASE_ALPHABET;
 
 @Controller
 public class WebController {
@@ -59,35 +59,38 @@ public class WebController {
             .addAttribute("searchFilters", searchFilterStrings)
             .addAttribute("pageSize", set_size)
             .addAttribute("nextPage", RhodoLogicService.calculateNextIndexPage(results, letter))
-            .addAttribute("letters", ALPHABET);
+            .addAttribute("letters", UPPER_CASE_ALPHABET);
         return "rhodo-index";
     }
 
-    @RequestMapping("/rhodo_index_advanced")
-    public String handleRhodoIndexAdvanced(
+    @RequestMapping("/parentage_search")
+    public String handleParentageSearch(
         Model model,
-        @RequestParam("letter") String letter,
+        @RequestParam(value = "seedParentId", required = false) String seedParentId,
+        @RequestParam(value = "pollenParentId", required = false) String pollenParentId,
+        @RequestParam(value = "mustMatchParentage", defaultValue = "false") boolean mustMatchParentage,
         @RequestParam(value = "size", defaultValue = "50") int size,
-        @RequestParam(value = "offset", defaultValue = "0") int offset,
-        @RequestParam(value = "justPics", defaultValue = "false") boolean justPics
+        @RequestParam(value = "offset", defaultValue = "0") int offset
     ) throws IOException {
+        // TODO add logging.
         var set_size = 50;
-        var results = RhodoLogicService.scrollRhodosByLetter(
-            letter,
-            set_size,
-            offset,
-            justPics,
-            null
-        );
+
+        var seedParentList = SearchService.getRhodoById(seedParentId);
+        var seedParent = !seedParentList.isEmpty() ? seedParentList.get(0) : null;
+
+        var pollenParentList = SearchService.getRhodoById(pollenParentId);
+        var pollenParent = !pollenParentList.isEmpty() ? pollenParentList.get(0) : null;
+
+        var results = RhodoLogicService.rhodoParentageSearch(seedParentId, pollenParentId, mustMatchParentage, set_size, offset);
         model.addAttribute("rhodos", results.results)
             .addAttribute("resultPages", results.indexPages)
             .addAttribute("resultPagePos", results.indexPagePos)
-            .addAttribute("currentLetter", letter)
-            .addAttribute("justPics", justPics)
             .addAttribute("pageSize", set_size)
-            .addAttribute("nextPage", RhodoLogicService.calculateNextIndexPage(results, letter))
-            .addAttribute("letters", ALPHABET);
-        return "rhodo-index-advanced";
+            .addAttribute("seedParent", seedParent)
+            .addAttribute("pollenParent", pollenParent)
+            .addAttribute("mustMatchParentage", mustMatchParentage)
+            .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
+        return "parentage_search";
     }
 
     @RequestMapping(value = "/search")

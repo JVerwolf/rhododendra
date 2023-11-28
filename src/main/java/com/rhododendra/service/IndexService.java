@@ -30,6 +30,8 @@ public class IndexService {
     //Additional Search/Index keys
     public static final String LETTER_KEY = "letter";
     public static final String HAS_PHOTOS = "has_photos";
+    public static final String SEED_PARENT_KEY = "seed_parent";
+    public static final String POLLEN_PARENT_KEY = "pollen_parent";
 
 
     public final static String SOURCE_KEY = "_source";
@@ -41,7 +43,7 @@ public class IndexService {
         if (rhodo.getIs_species_selection()) {
             try {
                 return idToRhodoMap.get(rhodo.getSpecies_id()).getName().toLowerCase() + " " + rhodo.getName().toLowerCase();
-            }catch (Exception e){
+            } catch (Exception e) {
                 System.out.println(e);
                 return rhodo.getName().toLowerCase();
             }
@@ -49,6 +51,7 @@ public class IndexService {
             return rhodo.getName().toLowerCase();
         }
     }
+
 
     public static void indexRhodos() throws IOException {
         final var idToRhodoMap = JSONLoaderService.loadRhodos().stream()
@@ -73,6 +76,23 @@ public class IndexService {
                     rhodo.getPhotos().isEmpty() ? "false" : "true",
                     Field.Store.NO
                 ));
+                var parentage = rhodo.getParentage();
+                if (parentage != null) {
+                    var seed_parent = parentage.getSeed_parent_id();
+                    if (seed_parent != null) {
+                        document.add(new StringField(SEED_PARENT_KEY, seed_parent, Field.Store.NO));
+                    }
+                    var pollen_parent = parentage.getPollen_parent_id();
+                    if (pollen_parent != null) {
+                        document.add(new StringField(POLLEN_PARENT_KEY, pollen_parent, Field.Store.NO));
+                    }
+                } else if (rhodo.isSpecies()) {
+                    document.add(new StringField(SEED_PARENT_KEY, rhodo.getId(), Field.Store.NO));
+                    document.add(new StringField(POLLEN_PARENT_KEY, rhodo.getId(), Field.Store.NO));
+                } else if (rhodo.getIs_species_selection()) {
+                    document.add(new StringField(SEED_PARENT_KEY, rhodo.getSpecies_id(), Field.Store.NO));
+                    document.add(new StringField(POLLEN_PARENT_KEY, rhodo.getSpecies_id(), Field.Store.NO));
+                }
             }
         );
     }

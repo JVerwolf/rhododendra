@@ -208,6 +208,10 @@
                 <td class="value" th:text="${rhodo.getExtra_information()}"></td>
             </tr>
         </table>
+        <a th:href="@{/parentage_search(seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()})}">Siblings</a>
+<!--        <a th:href="@{/parentage_search()}">Offspring</a>-->
+<!--        <a th:href="@{/parentage_search()}">Pollen offspring</a>-->
+<!--        <a th:href="@{/parentage_search()}">Seed offspring</a>-->
     </div>
     <table class="bordered-table picture-table">
         <tr th:each="resolvedPhotoDetail : ${resolvedPhotoDetails}">

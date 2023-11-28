@@ -32,7 +32,7 @@ public class RestResourceController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.TEXT_PLAIN)
-            .body(String.join("\n",RhodoLogicService.getAllRhodoDetailPages()));
+            .body(String.join("\n", RhodoLogicService.getAllRhodoDetailPages()));
     }
 
     /**
@@ -49,6 +49,18 @@ public class RestResourceController {
         } else if (id.startsWith("h")) {
             inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(
                 "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/hybrid_photos/" + id
+            )));
+        } else if (id.startsWith("a")) {
+            inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(
+                "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/azalea_photos/" + id
+            )));
+        } else if (id.startsWith("v")) {
+            inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(
+                "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/vireya_photos/" + id
+            )));
+        } else if (id.startsWith("ad")) {
+            inputStream = new ByteArrayResource(Files.readAllBytes(Paths.get(
+                "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/azaleodendron_photos/" + id
             )));
         } else {
             throw new IOException("invalid image id: " + id);

@@ -50,6 +50,26 @@ public class SearchService {
         }
     }
 
+    public static IndexResults<Rhododendron> searchByParentage(String seedParent, String pollenParent, boolean mustMatch, int pageSize, int offset) throws IOException {
+        var matchType = mustMatch ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD;
+        var boolBuilder = new BooleanQuery.Builder();
+        if (seedParent != null) {
+            boolBuilder.add(new TermQuery(new Term(SEED_PARENT_KEY, seedParent)), matchType);
+        }
+        if (pollenParent != null) {
+            boolBuilder.add(new TermQuery(new Term(POLLEN_PARENT_KEY, pollenParent)), matchType);
+        }
+
+        return paginatedSearch(
+            RHODO_INDEX_PATH,
+            new TypeReference<Rhododendron>() {
+            },
+            pageSize,
+            offset,
+            indexSearcher -> indexSearcher.search(boolBuilder.build(), Integer.MAX_VALUE)
+        );
+    }
+
     public static IndexResults<Rhododendron> searchRhodos(String queryString, int pageSize, int offset) throws IOException, ParseException {
         Query query;
 
@@ -144,6 +164,7 @@ public class SearchService {
 
 
     public static List<Rhododendron> getRhodoById(String id) {
+        if (id == null) return List.of();
         try {
             return search(
                 new TermQuery(new Term(PRIMARY_ID_KEY, id)),

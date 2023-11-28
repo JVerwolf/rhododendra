@@ -11,8 +11,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class RhodoLogicService {
-    public final static List<String> ALPHABET = List.of("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z");
-
+    public final static List<String> UPPER_CASE_ALPHABET = List.of("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z");
 
     public static IndexResults<Rhododendron> scrollRhodosByLetter(
         String letter,
@@ -57,6 +56,77 @@ public class RhodoLogicService {
         return result;
     }
 
+    public static IndexResults<Rhododendron> rhodoParentageSearch(
+        String seedParent,
+        String pollenParent,
+        boolean mustMatchParentage,
+        int pageSize,
+        int offset
+    ) throws IOException {
+        // todo validate input
+        var result = SearchService.searchByParentage(seedParent, pollenParent, mustMatchParentage, pageSize, offset);
+        result.results.forEach(rhodo -> {
+                rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()));
+                addSelectedSpecies(rhodo);
+            }
+        );
+        return result;
+    }
+
+    public static String getFormattedRhodoName(String id) {
+        var result = SearchService.getRhodoById(id);
+        if (!result.isEmpty()) {
+            return getFormattedRhodoName(result.get(0));
+        } else {
+            return "";
+        }
+    }
+
+    // TODO write function to format parentage name strings as a fallback.
+    //  - write String format  function, then have the function below pass in the raw name if it there's no parent ids as a fallback.
+
+    public static String getFormattedRhodoName(Rhododendron rhodo) {
+        if (rhodo == null) return "";
+        var sb = new StringBuilder("<i>R. </i>");
+        
+        if (rhodo.isSpecies() && !rhodo.getIs_species_selection()) {
+            formatSpeciesNames(sb, rhodo.getName());
+        } else if (rhodo.getIs_species_selection()) {
+            var speciesResult = SearchService.getRhodoById(rhodo.getSpecies_id());
+            if (!speciesResult.isEmpty()) {
+                formatSpeciesNames(sb, speciesResult.get(0).getName());
+            }
+        }
+        if (rhodo.isCultivar() || rhodo.getIs_species_selection()) {
+            sb.append("'");
+            sb.append(rhodo.getName());
+            sb.append("'");
+        }
+        return sb.toString();
+    }
+
+    private static void formatSpeciesNames(StringBuilder sb, String name) {
+        var dontFormat = List.of("var", "var.", "subs", "subs.", "ssp", "ssp.");
+        for (String token : name.split(" ")) {
+            if (isFirstLetterUpperCased(token) || dontFormat.contains(token)) {
+                sb.append(token);
+                sb.append(" ");
+            } else {
+                sb.append("<i>");
+                sb.append(token);
+                sb.append(" </i>");
+            }
+        }
+    }
+
+    public static boolean isFirstLetterUpperCased(String string) {
+        if (!string.isEmpty()) {
+            return UPPER_CASE_ALPHABET.contains(string.substring(0, 1));
+        }
+        return false;
+    }
+
+
     public record NextIndexPage(
         String letter,
         int offset
@@ -65,12 +135,12 @@ public class RhodoLogicService {
 
     public static <T> NextIndexPage calculateNextIndexPage(IndexResults<T> currentPage, String letter) {
         if (currentPage.indexPagePos >= currentPage.indexPages.size() - 1) { // last page for letter.
-            if (letter.equalsIgnoreCase(ALPHABET.get(ALPHABET.size() - 1))) { // last letter in alphabet.
+            if (letter.equalsIgnoreCase(UPPER_CASE_ALPHABET.get(UPPER_CASE_ALPHABET.size() - 1))) { // last letter in alphabet.
                 return null;
             } else {
-                var nextLetterPosition = ALPHABET.indexOf(letter.toUpperCase()) + 1;
+                var nextLetterPosition = UPPER_CASE_ALPHABET.indexOf(letter.toUpperCase()) + 1;
                 return new NextIndexPage(
-                    ALPHABET.get(nextLetterPosition),
+                    UPPER_CASE_ALPHABET.get(nextLetterPosition),
                     0
                 );
             }

@@ -13,6 +13,7 @@
         <h2 th:if="${rhodo.getIs_natural_hybrid()}" th:inline="text">
             <i>R.</i> x <i th:text="${rhodo.getName()}"></i>
         </h2>
+        <!--    TODO, have to check as this is busted    file:///Users/john.verwolf/code/hirsutum_save/websites/www.hirsutum.info_tom/rhododendron/species/detail.php-id=5955&start=&show=partial.html-->
         <h2 th:if="${rhodo.getIs_species_selection()}" th:inline="text">
             <i th:text="|R. ${rhodo.getSelectedSpecies().getName()}|"></i>
             [[|'${rhodo.getName()}'|]]
@@ -20,6 +21,14 @@
         <h4>
             <span th:text="${rhodo.descriptionText()}"></span>
         </h4>
+
+                <p th:if="${rhodo.getParentage() != null}">
+<!--                    <span th:text="${rhodo.getSeedParentName() != null ? rhodo.getSeedParentName() : '?' }"></span>-->
+                    <span th:utext="${rhodo.getSeedParentId() != null ? rhodo.getFormattedName(rhodo.getSeedParentId()) : '?' }"></span>
+                    <span> X </span>
+<!--                    <span th:text="${rhodo.getPollenParentName() != null ? rhodo.getPollenParentName() : '?' }"></span>-->
+                    <span th:utext="${rhodo.getPollenParentId() != null ? rhodo.getFormattedName(rhodo.getPollenParentId()) : '?' }"></span>
+                </p>
         <a th:if="${not #lists.isEmpty(rhodo.getPhotos())}" th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
             More information and pictures
         </a>

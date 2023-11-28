@@ -3,6 +3,7 @@ package com.rhododendra.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.rhododendra.service.RhodoLogicService;
 
 import java.util.List;
 
@@ -141,8 +142,49 @@ public class Rhododendron extends Indexable {
     }
 
     @JsonIgnore
+    public String getSeedParentId() {
+            if (parentage != null && parentage.seed_parent != null) {
+            return parentage.seed_parent_id;
+        } else if (is_species_selection) {
+            return getSpecies_id();
+        } else if (isSpecies()) {
+            return this.id;
+        }
+        return null;
+    }
+
+    @JsonIgnore
+    public String getPollenParentId() {
+        if (parentage != null && parentage.pollen_parent != null) {
+            return parentage.pollen_parent_id;
+        } else if (is_species_selection) {
+            return getSpecies_id();
+        } else if (isSpecies()) {
+            return this.id;
+        }
+        return null;
+    }
+
+    @JsonIgnore
     public boolean isSpecies() {
         return this.getSpeciesOrCultivar() == SpeciesOrCultivar.SPECIES;
+    }
+
+    @JsonIgnore
+    public boolean isCultivar() {
+        return this.getSpeciesOrCultivar() == SpeciesOrCultivar.CULTIVAR;
+    }
+
+    // TODO Bad, this is a temporary hack. This class should not depend on anything else, as it's in the model.
+    @JsonIgnore
+    public String getFormattedName(String id) {
+        return RhodoLogicService.getFormattedRhodoName(id);
+    }
+
+    // TODO Bad, this is a temporary hack. This class should not depend on anything else, as it's in the model.
+    @JsonIgnore
+    public String getFormattedName() {
+        return RhodoLogicService.getFormattedRhodoName(this);
     }
 
     @JsonIgnore
