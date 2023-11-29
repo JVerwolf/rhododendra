@@ -193,7 +193,7 @@
                 <td class="value" th:text="${rhodo.getExtra_information()}"></td>
             </tr>
         </table>
-        <a th:href="@{/genetic_search(seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalId=${rhodo.getId()})}">Siblings</a>
+        <a th:href="@{/genetic_search(seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}">Siblings</a>
 <!--        <a th:href="@{/genetic_search()}">Offspring</a>-->
 <!--        <a th:href="@{/genetic_search()}">Pollen offspring</a>-->
 <!--        <a th:href="@{/genetic_search()}">Seed offspring</a>-->

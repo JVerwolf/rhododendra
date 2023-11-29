@@ -53,28 +53,39 @@ public class SearchService {
     public static IndexResults<Rhododendron> searchByParentage(
         String seedParent,
         String pollenParent,
-        boolean exactMatch,
+        boolean requireSeed,
+        boolean requirePollen,
         boolean allowReverse,
-        String original,
+        String originalRhodoId,
         int pageSize,
         int offset
     ) throws IOException {
-        var matchType = exactMatch ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD;
-        var boolBuilder = new BooleanQuery.Builder();
+
+        var geneticQuery = new BooleanQuery.Builder();
         if (seedParent != null) {
-            boolBuilder.add(new TermQuery(new Term(SEED_PARENT_KEY, seedParent)), matchType);
-            if (allowReverse && !exactMatch){
-                boolBuilder.add(new TermQuery(new Term(POLLEN_PARENT_KEY, seedParent)), matchType);
+            var seedQuery = new BooleanQuery.Builder();
+            seedQuery.add(new TermQuery(new Term(SEED_PARENT_KEY, seedParent)), BooleanClause.Occur.SHOULD);
+            if (allowReverse) {
+                seedQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, seedParent)), BooleanClause.Occur.SHOULD);
             }
+            geneticQuery.add(
+                seedQuery.build(),
+                requireSeed ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD
+            );
         }
         if (pollenParent != null) {
-            boolBuilder.add(new TermQuery(new Term(POLLEN_PARENT_KEY, pollenParent)), matchType);
-            if (allowReverse && !exactMatch){
-                boolBuilder.add(new TermQuery(new Term(SEED_PARENT_KEY, seedParent)), matchType);
+            var pollenQuery = new BooleanQuery.Builder();
+            pollenQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, pollenParent)), BooleanClause.Occur.SHOULD);
+            if (allowReverse) {
+                pollenQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, pollenParent)), BooleanClause.Occur.SHOULD);
             }
+            geneticQuery.add(
+                pollenQuery.build(),
+                requirePollen ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD
+            );
         }
-        if (original != null) {
-            boolBuilder.add(new TermQuery(new Term(PRIMARY_ID_KEY, original)), BooleanClause.Occur.MUST_NOT);
+        if (originalRhodoId != null) {
+            geneticQuery.add(new TermQuery(new Term(PRIMARY_ID_KEY, originalRhodoId)), BooleanClause.Occur.MUST_NOT);
         }
 
         return paginatedSearch(
@@ -83,7 +94,7 @@ public class SearchService {
             },
             pageSize,
             offset,
-            indexSearcher -> indexSearcher.search(boolBuilder.build(), Integer.MAX_VALUE)
+            indexSearcher -> indexSearcher.search(geneticQuery.build(), Integer.MAX_VALUE)
         );
     }
 

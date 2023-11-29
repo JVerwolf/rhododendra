@@ -9,22 +9,52 @@
         <div style="display:flex;flex-direction:row;justify-content: center; align-items: center">
             <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">
             <p style="text-align: center;">
-                Public works announcement: This section of the site is under active development.
+                Public works announcement:
                 <br/>
-                Things may be broken - watch your step!
+                This section is under active development, watch your step!
             </p>
             <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">
         </div>
-        <h1 th:utext='|Genetic Siblings of ${originalRhodo.getFormattedName()}|'></h1>
-        <h2 th:utext='|(${seedParent.getFormattedName()}) X (${pollenParent.getFormattedName()})|'></h2>
-        <h3>
-            <span>(</span>
-            <span th:if="${exactMatch}">exact match required </span>
-            <span th:if="${exactMatch}">either can match </span>
-            <span th:if="${allowReverse}">with reverse cross allowed</span>
-            <span>)</span>
-
-        </h3>
+        <h1 th:utext='|Genetic Siblings of ${originalRhodoFormattedName}|'></h1>
+        <h2 th:utext='|(${seedParentFormattedName}) X (${pollenParentFormattedName})|'></h2>
+        <form th:action="@{/genetic_search}" th:method="get">
+            <table>
+                <tr>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" th:name="ordered" th:value="true" th:checked="${ordered}"
+                                   onChange="this.form.submit()">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td>Keep Seed/Pollen in the Same Positions</td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" th:name="requireSeed" th:value="true" th:checked="${requireSeed}"
+                                   onChange="this.form.submit()">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td th:utext="'Require ' + ${seedParentFormattedName}"></td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" th:name="requirePollen" th:value="true" th:checked="${requirePollen}"
+                                   onChange="this.form.submit()">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td th:utext="'Require ' + ${pollenParentFormattedName}"></td>
+                </tr>
+            </table>
+            <input type="hidden" th:name="seedParentId" th:value="${seedParentId}">
+            <input type="hidden" th:name="pollenParentId" th:value="${pollenParentId}">
+            <input type="hidden" th:name="originalRhodoId" th:value="${originalRhodoId}">
+            <!--            <input type="hidden" th:name="" th:value="${}">-->
+        </form>
         <span th:if="${rhodos.isEmpty()}">No matching results found</span>
         <th:block th:if="${not rhodos.isEmpty()}">
             <table>
@@ -34,7 +64,7 @@
                         <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _}"
                             th:styleappend="${'padding:8px'}">
                             <a
-                                    th:href="@{/genetic_search(seedParentId=${seedParent.getId()},pollenParentId=${pollenParent.getId()},originalId=${originalRhodo.getId()},allowReverse=${allowReverse},offset=${page.startPos})}"
+                                    th:href="@{/genetic_search(seedParentId=${seedParentId},pollenParentId=${pollenParentId},originalRhodoId=${originalRhodoId},ordered=${ordered},requireSeed=${requireSeed},requirePollen=${requirePollen},offset=${page.startPos})}"
                             >
                                 <b th:text="${stat.index + 1}"></b>
                             </a>
@@ -47,19 +77,19 @@
     </div>
     <th:block th:if="${not rhodos.isEmpty()}">
         <a th:if="${resultPagePos< resultPages.size()-1}"
-           th:href="@{/genetic_search(seedParentId=${seedParent.getId()},pollenParentId=${pollenParent.getId()},originalId=${originalRhodo.getId()},allowReverse=${allowReverse},offset=${resultPages[resultPagePos].endPos+1})}"
+           th:href="@{/genetic_search(seedParentId=${seedParentId},pollenParentId=${pollenParentId},originalRhodoId=${originalRhodoId},ordered=${ordered},requireSeed=${requireSeed},requirePollen=${requirePollen},offset=${resultPages[resultPagePos].endPos+1})}"
            style="display: flex; justify-content: flex-end; padding-right: 5%">
             <h2>
                 Next Page
             </h2>
-        </a>    
+        </a>
         <table class="picture-table bordered-table">
             <th:block th:each="rhodo : ${rhodos}">
                 <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>
             </th:block>
         </table>
         <a th:if="${resultPagePos< resultPages.size()-1}"
-           th:href="@{/genetic_search(seedParentId=${seedParent.getId()},pollenParentId=${pollenParent.getId()},originalId=${originalRhodo.getId()},allowReverse=${allowReverse},offset=${resultPages[resultPagePos].endPos+1})}"
+           th:href="@{/genetic_search(seedParentId=${seedParentId},pollenParentId=${pollenParentId},originalRhodoId=${originalRhodoId},ordered=${ordered},requireSeed=${requireSeed},requirePollen=${requirePollen},offset=${resultPages[resultPagePos].endPos+1})}"
            style="display: flex; justify-content: flex-end; padding-right: 5%">
             <h2>
                 Next Page

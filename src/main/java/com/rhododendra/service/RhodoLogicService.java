@@ -60,14 +60,15 @@ public class RhodoLogicService {
     public static IndexResults<Rhododendron> rhodoParentageSearch(
         String seedParent,
         String pollenParent,
-        boolean exactMatch,
+        boolean requireSeed,
+        boolean requirePollen,
         boolean allowReverse,
-        String original,
+        String originalRhodoId,
         int pageSize,
         int offset
     ) throws IOException {
         // todo validate input
-        var result = SearchService.searchByParentage(seedParent, pollenParent, exactMatch, allowReverse, original, pageSize, offset);
+        var result = SearchService.searchByParentage(seedParent, pollenParent, requireSeed,requirePollen, allowReverse, originalRhodoId, pageSize, offset);
         result.results.forEach(rhodo -> {
                 rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()));
                 addSelectedSpecies(rhodo);

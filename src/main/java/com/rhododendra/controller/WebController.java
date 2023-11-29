@@ -68,9 +68,10 @@ public class WebController {
         Model model,
         @RequestParam(value = "seedParentId", required = false) String seedParentId,
         @RequestParam(value = "pollenParentId", required = false) String pollenParentId,
-        @RequestParam(value = "exactMatch", defaultValue = "false") boolean exactMatch,
-        @RequestParam(value = "allowReverse,", defaultValue = "true") boolean allowReverse,
-        @RequestParam(value = "originalId", required = false) String originalId,
+        @RequestParam(value = "requireSeed", defaultValue = "false") boolean requireSeed,
+        @RequestParam(value = "requirePollen", defaultValue = "false") boolean requirePollen,
+        @RequestParam(value = "ordered", defaultValue = "false") boolean ordered,
+        @RequestParam(value = "originalRhodoId", required = false) String originalRhodoId,
         @RequestParam(value = "size", defaultValue = "50") int size,
         @RequestParam(value = "offset", defaultValue = "0") int offset
     ) throws IOException {
@@ -83,19 +84,20 @@ public class WebController {
         var pollenParentList = SearchService.getRhodoById(pollenParentId);
         var pollenParent = !pollenParentList.isEmpty() ? pollenParentList.get(0) : null;
 
-        var originalRhodoList = SearchService.getRhodoById(originalId);
-        var originalRhodo = !originalRhodoList.isEmpty() ? originalRhodoList.get(0) : null;
-
-        var results = RhodoLogicService.rhodoParentageSearch(seedParentId, pollenParentId, exactMatch, allowReverse, originalId, set_size, offset);
+        var results = RhodoLogicService.rhodoParentageSearch(seedParentId, pollenParentId, requireSeed, requirePollen,!ordered, originalRhodoId, set_size, offset);
         model.addAttribute("rhodos", results.results)
             .addAttribute("resultPages", results.indexPages)
             .addAttribute("resultPagePos", results.indexPagePos)
             .addAttribute("pageSize", set_size)
-            .addAttribute("seedParent", seedParent)
-            .addAttribute("pollenParent", pollenParent)
-            .addAttribute("exactMatch", exactMatch)
-            .addAttribute("allowReverse", allowReverse)
-            .addAttribute("originalRhodo", originalRhodo)
+            .addAttribute("seedParentFormattedName", RhodoLogicService.getFormattedRhodoName(seedParentId))
+            .addAttribute("seedParentId", seedParentId)
+            .addAttribute("pollenParentFormattedName", RhodoLogicService.getFormattedRhodoName(pollenParentId))
+            .addAttribute("pollenParentId", pollenParentId)
+            .addAttribute("originalRhodoId", originalRhodoId)
+            .addAttribute("originalRhodoFormattedName", RhodoLogicService.getFormattedRhodoName(originalRhodoId))
+            .addAttribute("requireSeed", requireSeed)
+            .addAttribute("requirePollen", requirePollen)
+            .addAttribute("ordered", ordered)
             .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
         return "genetic-search";
     }
