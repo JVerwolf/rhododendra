@@ -50,14 +50,31 @@ public class SearchService {
         }
     }
 
-    public static IndexResults<Rhododendron> searchByParentage(String seedParent, String pollenParent, boolean mustMatch, int pageSize, int offset) throws IOException {
-        var matchType = mustMatch ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD;
+    public static IndexResults<Rhododendron> searchByParentage(
+        String seedParent,
+        String pollenParent,
+        boolean exactMatch,
+        boolean allowReverse,
+        String original,
+        int pageSize,
+        int offset
+    ) throws IOException {
+        var matchType = exactMatch ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD;
         var boolBuilder = new BooleanQuery.Builder();
         if (seedParent != null) {
             boolBuilder.add(new TermQuery(new Term(SEED_PARENT_KEY, seedParent)), matchType);
+            if (allowReverse && !exactMatch){
+                boolBuilder.add(new TermQuery(new Term(POLLEN_PARENT_KEY, seedParent)), matchType);
+            }
         }
         if (pollenParent != null) {
             boolBuilder.add(new TermQuery(new Term(POLLEN_PARENT_KEY, pollenParent)), matchType);
+            if (allowReverse && !exactMatch){
+                boolBuilder.add(new TermQuery(new Term(SEED_PARENT_KEY, seedParent)), matchType);
+            }
+        }
+        if (original != null) {
+            boolBuilder.add(new TermQuery(new Term(PRIMARY_ID_KEY, original)), BooleanClause.Occur.MUST_NOT);
         }
 
         return paginatedSearch(

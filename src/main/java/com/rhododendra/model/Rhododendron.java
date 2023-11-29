@@ -143,11 +143,11 @@ public class Rhododendron extends Indexable {
 
     @JsonIgnore
     public String getSeedParentId() {
-            if (parentage != null && parentage.seed_parent != null) {
+        if (parentage != null && parentage.seed_parent_id != null) {
             return parentage.seed_parent_id;
         } else if (is_species_selection) {
             return getSpecies_id();
-        } else if (isSpecies()) {
+        } else if (isSpecies() && !is_natural_hybrid) {
             return this.id;
         }
         return null;
@@ -155,11 +155,11 @@ public class Rhododendron extends Indexable {
 
     @JsonIgnore
     public String getPollenParentId() {
-        if (parentage != null && parentage.pollen_parent != null) {
+        if (parentage != null && parentage.pollen_parent_id != null) {
             return parentage.pollen_parent_id;
         } else if (is_species_selection) {
             return getSpecies_id();
-        } else if (isSpecies()) {
+        } else if (isSpecies() && !is_natural_hybrid) {
             return this.id;
         }
         return null;
@@ -177,14 +177,25 @@ public class Rhododendron extends Indexable {
 
     // TODO Bad, this is a temporary hack. This class should not depend on anything else, as it's in the model.
     @JsonIgnore
-    public String getFormattedName(String id) {
-        return RhodoLogicService.getFormattedRhodoName(id);
+    public String formatSynonymName(String speciesName) {
+        return RhodoLogicService.formatSynonymName(speciesName);
+    }
+
+    @JsonIgnore
+    public String getFormattedName() {
+        return RhodoLogicService.getFormattedRhodoName(this);
     }
 
     // TODO Bad, this is a temporary hack. This class should not depend on anything else, as it's in the model.
     @JsonIgnore
-    public String getFormattedName() {
-        return RhodoLogicService.getFormattedRhodoName(this);
+    public String getFormattedSeedParentName() {
+        return RhodoLogicService.getFormattedSeedParentName(this);
+    }
+
+    // TODO Bad, this is a temporary hack. This class should not depend on anything else, as it's in the model.
+    @JsonIgnore
+    public String getFormattedPollenParentName() {
+        return RhodoLogicService.getFormattedPollenParentName(this);
     }
 
     @JsonIgnore

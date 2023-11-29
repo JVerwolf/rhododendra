@@ -15,7 +15,16 @@
             </p>
             <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">
         </div>
-        <!--        <h1 th:text='|Search Results For: (${}) x (${})|'></h1>-->
+        <h1 th:utext='|Genetic Siblings of ${originalRhodo.getFormattedName()}|'></h1>
+        <h2 th:utext='|(${seedParent.getFormattedName()}) X (${pollenParent.getFormattedName()})|'></h2>
+        <h3>
+            <span>(</span>
+            <span th:if="${exactMatch}">exact match required </span>
+            <span th:if="${exactMatch}">either can match </span>
+            <span th:if="${allowReverse}">with reverse cross allowed</span>
+            <span>)</span>
+
+        </h3>
         <span th:if="${rhodos.isEmpty()}">No matching results found</span>
         <th:block th:if="${not rhodos.isEmpty()}">
             <table>
@@ -24,7 +33,9 @@
                     <th:block th:each="page, stat : ${resultPages}">
                         <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _}"
                             th:styleappend="${'padding:8px'}">
-                            <a th:href="@{/search(q=${query},size=${pageSize},offset=${page.startPos})}">
+                            <a
+                                    th:href="@{/genetic_search(seedParentId=${seedParent.getId()},pollenParentId=${pollenParent.getId()},originalId=${originalRhodo.getId()},allowReverse=${allowReverse},offset=${page.startPos})}"
+                            >
                                 <b th:text="${stat.index + 1}"></b>
                             </a>
                         </td>
@@ -35,13 +46,20 @@
         <br/>
     </div>
     <th:block th:if="${not rhodos.isEmpty()}">
+        <a th:if="${resultPagePos< resultPages.size()-1}"
+           th:href="@{/genetic_search(seedParentId=${seedParent.getId()},pollenParentId=${pollenParent.getId()},originalId=${originalRhodo.getId()},allowReverse=${allowReverse},offset=${resultPages[resultPagePos].endPos+1})}"
+           style="display: flex; justify-content: flex-end; padding-right: 5%">
+            <h2>
+                Next Page
+            </h2>
+        </a>    
         <table class="picture-table bordered-table">
             <th:block th:each="rhodo : ${rhodos}">
                 <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>
             </th:block>
         </table>
         <a th:if="${resultPagePos< resultPages.size()-1}"
-           th:href=" @{/search(q=${query},size=${pageSize},offset=${resultPages[resultPagePos].endPos+1})}"
+           th:href="@{/genetic_search(seedParentId=${seedParent.getId()},pollenParentId=${pollenParent.getId()},originalId=${originalRhodo.getId()},allowReverse=${allowReverse},offset=${resultPages[resultPagePos].endPos+1})}"
            style="display: flex; justify-content: flex-end; padding-right: 5%">
             <h2>
                 Next Page

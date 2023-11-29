@@ -11,21 +11,7 @@
 
 <div class="content">
     <div class="description-container">
-        <h1 th:if="${rhodo.isSpecies() && not rhodo.getIs_species_selection() && not rhodo.getIs_natural_hybrid()}">
-            <i th:text="|R. ${rhodo.getName()}|"></i>
-        </h1>
-        <h1 th:if="${not rhodo.isSpecies() && not rhodo.getIs_species_selection() && not rhodo.getIs_natural_hybrid()}"
-            th:inline="text">
-            <i>R. </i>
-            [[|'${#strings.capitalize(rhodo.getName())}'|]]
-        </h1>
-        <h1 th:if="${rhodo.getIs_natural_hybrid()}" th:inline="text">
-            <i>R.</i> x <i th:text="${rhodo.getName()}"></i>
-        </h1>
-        <h1 th:if="${rhodo.getIs_species_selection()}" th:inline="text">
-            <i th:text="|R. ${original_species.getName()}|"></i>
-            [[|'${#strings.capitalize(rhodo.getName())}'|]]
-        </h1>
+        <h1 th:utext="${rhodo.getFormattedName()}"></h1>
         <h2>
             <span th:if="${not rhodo.getIs_species_selection()}" th:text="${rhodo.descriptionText()}"></span>
         </h2>
@@ -40,11 +26,10 @@
                 <td class="key"><b>Botanical<br/>Synonyms</b></td>
                 <td class="value">
                     <th:block th:each="synonym, iterStat : ${rhodo.getBotanical_synonyms()}">
-
-                        <i th:if="${synonym.botanical_shorts().isEmpty()}"
-                           th:text="'R. ' + ${synonym.synonym().toLowerCase()}"></i>
+                        <span th:if="${synonym.botanical_shorts().isEmpty()}"
+                           th:utext="${rhodo.formatSynonymName(synonym.synonym())}"></span>
                         <span th:if="${not synonym.botanical_shorts().isEmpty()}" th:inline="text">
-                            <i th:text="${'R. ' + synonym.synonym().toLowerCase()}"></i>
+                            <span th:utext="${rhodo.formatSynonymName(synonym.synonym())}"></span>
                             [[|(${#strings.listJoin(synonym.botanical_shorts(), ', ')})|]]
                         </span>
                         <br th:if="${not iterStat.last}"/>
@@ -208,10 +193,10 @@
                 <td class="value" th:text="${rhodo.getExtra_information()}"></td>
             </tr>
         </table>
-        <a th:href="@{/parentage_search(seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()})}">Siblings</a>
-<!--        <a th:href="@{/parentage_search()}">Offspring</a>-->
-<!--        <a th:href="@{/parentage_search()}">Pollen offspring</a>-->
-<!--        <a th:href="@{/parentage_search()}">Seed offspring</a>-->
+        <a th:href="@{/genetic_search(seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalId=${rhodo.getId()})}">Siblings</a>
+<!--        <a th:href="@{/genetic_search()}">Offspring</a>-->
+<!--        <a th:href="@{/genetic_search()}">Pollen offspring</a>-->
+<!--        <a th:href="@{/genetic_search()}">Seed offspring</a>-->
     </div>
     <table class="bordered-table picture-table">
         <tr th:each="resolvedPhotoDetail : ${resolvedPhotoDetails}">

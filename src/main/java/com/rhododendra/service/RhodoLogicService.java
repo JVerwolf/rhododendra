@@ -1,5 +1,6 @@
 package com.rhododendra.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.rhododendra.config.Settings;
 import com.rhododendra.model.ResolvedPhotoDetails;
 import com.rhododendra.model.Rhododendron;
@@ -59,12 +60,14 @@ public class RhodoLogicService {
     public static IndexResults<Rhododendron> rhodoParentageSearch(
         String seedParent,
         String pollenParent,
-        boolean mustMatchParentage,
+        boolean exactMatch,
+        boolean allowReverse,
+        String original,
         int pageSize,
         int offset
     ) throws IOException {
         // todo validate input
-        var result = SearchService.searchByParentage(seedParent, pollenParent, mustMatchParentage, pageSize, offset);
+        var result = SearchService.searchByParentage(seedParent, pollenParent, exactMatch, allowReverse, original, pageSize, offset);
         result.results.forEach(rhodo -> {
                 rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()));
                 addSelectedSpecies(rhodo);
@@ -72,6 +75,26 @@ public class RhodoLogicService {
         );
         return result;
     }
+
+
+    public static String getFormattedSeedParentName(Rhododendron rhodo) {
+        if (rhodo.getSeedParentId() != null) {
+            return getFormattedRhodoName(rhodo.getSeedParentId());
+        } else if (rhodo.getParentage() != null && rhodo.getParentage().getSeed_parent() != null) {
+            return formatNameString(rhodo.getParentage().getSeed_parent()); // TODO: this may not be right, could be a hybrid
+        }
+        return "?";
+    }
+    
+    public static String getFormattedPollenParentName(Rhododendron rhodo) {
+        if (rhodo.getPollenParentId() != null) {
+            return getFormattedRhodoName(rhodo.getPollenParentId());
+        } else if (rhodo.getParentage() != null && rhodo.getParentage().getPollen_parent() != null) {
+            return formatNameString(rhodo.getParentage().getPollen_parent()); // TODO: this may not be right, could be a hybrid
+        }
+        return "?";
+    }
+
 
     public static String getFormattedRhodoName(String id) {
         var result = SearchService.getRhodoById(id);
@@ -85,10 +108,11 @@ public class RhodoLogicService {
     // TODO write function to format parentage name strings as a fallback.
     //  - write String format  function, then have the function below pass in the raw name if it there's no parent ids as a fallback.
 
+
     public static String getFormattedRhodoName(Rhododendron rhodo) {
         if (rhodo == null) return "";
         var sb = new StringBuilder("<i>R. </i>");
-        
+
         if (rhodo.isSpecies() && !rhodo.getIs_species_selection()) {
             formatSpeciesNames(sb, rhodo.getName());
         } else if (rhodo.getIs_species_selection()) {
@@ -105,10 +129,36 @@ public class RhodoLogicService {
         return sb.toString();
     }
 
+    /**
+     * Does not add R., as names can start with Azalea or R.
+     */
+    public static String formatSynonymName(String name) {
+        if (name == null) return "";
+        var sb = new StringBuilder();
+        formatSpeciesNames(sb, name);
+        return sb.toString();
+    }
+
+    /**
+     * Adds an R.
+     */
+    public static String formatNameString(String name) {
+        if (name == null) return "";
+        var sb = new StringBuilder("<i>R. </i>");
+        formatSpeciesNames(sb, name);
+        return sb.toString();
+    }
+
     private static void formatSpeciesNames(StringBuilder sb, String name) {
-        var dontFormat = List.of("var", "var.", "subs", "subs.", "ssp", "ssp.");
+        var dontFormat = List.of("var", "var.", "subs", "subs.", "ssp", "ssp.",
+            "f", "f.", "forma", "?", "x", "X");
+        var italicize = List.of("R.", "Rhododendron", "A.", "Azalea");
         for (String token : name.split(" ")) {
-            if (isFirstLetterUpperCased(token) || dontFormat.contains(token)) {
+            if (italicize.contains(token)) {
+                sb.append("<i>");
+                sb.append(token);
+                sb.append(" </i>");
+            } else if (isFirstLetterUpperCased(token) || dontFormat.contains(token)) {
                 sb.append(token);
                 sb.append(" ");
             } else {

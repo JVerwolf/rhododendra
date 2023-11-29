@@ -63,12 +63,14 @@ public class WebController {
         return "rhodo-index";
     }
 
-    @RequestMapping("/parentage_search")
-    public String handleParentageSearch(
+    @RequestMapping("/genetic_search")
+    public String handleGeneticSearch(
         Model model,
         @RequestParam(value = "seedParentId", required = false) String seedParentId,
         @RequestParam(value = "pollenParentId", required = false) String pollenParentId,
-        @RequestParam(value = "mustMatchParentage", defaultValue = "false") boolean mustMatchParentage,
+        @RequestParam(value = "exactMatch", defaultValue = "false") boolean exactMatch,
+        @RequestParam(value = "allowReverse,", defaultValue = "true") boolean allowReverse,
+        @RequestParam(value = "originalId", required = false) String originalId,
         @RequestParam(value = "size", defaultValue = "50") int size,
         @RequestParam(value = "offset", defaultValue = "0") int offset
     ) throws IOException {
@@ -81,16 +83,21 @@ public class WebController {
         var pollenParentList = SearchService.getRhodoById(pollenParentId);
         var pollenParent = !pollenParentList.isEmpty() ? pollenParentList.get(0) : null;
 
-        var results = RhodoLogicService.rhodoParentageSearch(seedParentId, pollenParentId, mustMatchParentage, set_size, offset);
+        var originalRhodoList = SearchService.getRhodoById(originalId);
+        var originalRhodo = !originalRhodoList.isEmpty() ? originalRhodoList.get(0) : null;
+
+        var results = RhodoLogicService.rhodoParentageSearch(seedParentId, pollenParentId, exactMatch, allowReverse, originalId, set_size, offset);
         model.addAttribute("rhodos", results.results)
             .addAttribute("resultPages", results.indexPages)
             .addAttribute("resultPagePos", results.indexPagePos)
             .addAttribute("pageSize", set_size)
             .addAttribute("seedParent", seedParent)
             .addAttribute("pollenParent", pollenParent)
-            .addAttribute("mustMatchParentage", mustMatchParentage)
+            .addAttribute("exactMatch", exactMatch)
+            .addAttribute("allowReverse", allowReverse)
+            .addAttribute("originalRhodo", originalRhodo)
             .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
-        return "parentage_search";
+        return "genetic-search";
     }
 
     @RequestMapping(value = "/search")
