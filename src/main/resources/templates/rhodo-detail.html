@@ -193,8 +193,9 @@
                 <td class="value" th:text="${rhodo.getExtra_information()}"></td>
             </tr>
         </table>
-        <a th:href="@{/genetic_search(useCase='SIBLINGS',seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}">Find Siblings</a>
-        <a th:href="@{/genetic_search(useCase='CHILDREN',seedParentId=${rhodo.getId()},pollenParentId=${rhodo.getId()},originalRhodoId=${rhodo.getId()})}">Find Children</a>
+        |
+        <span th:if="${rhodo.isCultivar()}"><a th:href="@{/genetic_search(useCase='SIBLINGS',seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}">Find Siblings </a>|</span>
+        <span><a th:href="@{/genetic_search(useCase='CHILDREN',seedParentId=${rhodo.getId()},pollenParentId=${rhodo.getId()},originalRhodoId=${rhodo.getId()})}">Find Offspring </a>|</span>
 <!--        <a th:href="@{/genetic_search()}">Offspring</a>-->
 <!--        <a th:href="@{/genetic_search()}">Pollen offspring</a>-->
 <!--        <a th:href="@{/genetic_search()}">Seed offspring</a>-->

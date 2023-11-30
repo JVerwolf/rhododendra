@@ -7,22 +7,29 @@
 <div class="content">
     <div class="description-container">
         <div style="display:flex;flex-direction:row;justify-content: center; align-items: center">
-            <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">
-            <p style="text-align: center;">
-                Public works announcement:
-                <br/>
-                This section is under active development, watch your step!
-            </p>
-            <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">
+<!--            <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">-->
+<!--            <p style="text-align: center;">-->
+<!--                Public works announcement:-->
+<!--                <br/>-->
+<!--                This section is under active development, watch your step!-->
+<!--            </p>-->
+<!--            <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">-->
         </div>
-        <h1 style="text-align: center;" th:utext='|Genetic Siblings of ${originalRhodoFormattedName}|'></h1>
-        <h2 style="text-align: center;" th:utext='|(${seedParentFormattedName}) X (${pollenParentFormattedName})|'></h2>
+        <h1 th:if="${useCase=='SIBLINGS'}" style="text-align: center;"
+            th:utext='|Genetic Sibling Search|'></h1>
+        <h1 th:if="${useCase=='CHILDREN'}" style="text-align: center;"
+            th:utext='|Genetic Offspring Search|'></h1>
+        <h2 style="text-align: center;" th:utext="${originalRhodoFormattedName}"></h2>
+        <h4 th:if="${useCase=='SIBLINGS'}" style="text-align: center;"
+            th:utext='|(${seedParentFormattedName}) X (${pollenParentFormattedName})|'></h4>
         <form th:action="@{/genetic_search}" th:method="get">
             <table>
-                <tr>
+                <tr th:hidden="${useCase=='CHILDREN'}">
+                    <!--                <tr>-->
                     <td>
                         <label class="switch">
-                            <input type="checkbox" th:name="ordered" th:value="true" th:checked="${ordered}"
+                            <input type="checkbox" th:name="ordered" th:value="true"
+                                   th:checked="${ordered || useCase=='CHILDREN'}"
                                    onChange="this.form.submit()">
                             <span class="slider round"></span>
                         </label>
@@ -37,7 +44,8 @@
                             <span class="slider round"></span>
                         </label>
                     </td>
-                    <td th:utext="'Require ' + ${seedParentFormattedName}"></td>
+                    <td th:if="${useCase=='SIBLINGS'}" th:utext="'Require ' + ${seedParentFormattedName}"></td>
+                    <td th:if="${useCase=='CHILDREN'}" th:text="'Require as seed parent '"></td>
                 </tr>
                 <tr th:if="${pollenParentId != null}">
                     <td>
@@ -47,7 +55,8 @@
                             <span class="slider round"></span>
                         </label>
                     </td>
-                    <td th:utext="'Require ' + ${pollenParentFormattedName}"></td>
+                    <td th:if="${useCase=='SIBLINGS'}" th:utext="'Require ' + ${pollenParentFormattedName}"></td>
+                    <td th:if="${useCase=='CHILDREN'}" th:text="'Require as pollen parent '"></td>
                 </tr>
             </table>
             <input type="hidden" th:name="seedParentId" th:value="${seedParentId}">

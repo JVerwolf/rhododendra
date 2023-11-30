@@ -83,11 +83,15 @@ public class WebController {
         // TODO add logging.
         var set_size = 50;
 
-        var seedParentList = SearchService.getRhodoById(seedParentId);
-        var seedParent = !seedParentList.isEmpty() ? seedParentList.get(0) : null;
+//        var seedParentList = SearchService.getRhodoById(seedParentId);
+//        var seedParent = !seedParentList.isEmpty() ? seedParentList.get(0) : null;
+//
+//        var pollenParentList = SearchService.getRhodoById(pollenParentId);
+//        var pollenParent = !pollenParentList.isEmpty() ? pollenParentList.get(0) : null;
 
-        var pollenParentList = SearchService.getRhodoById(pollenParentId);
-        var pollenParent = !pollenParentList.isEmpty() ? pollenParentList.get(0) : null;
+        var originalRhodoList = SearchService.getRhodoById(originalRhodoId);
+        var originalRhodo = !originalRhodoList.isEmpty() ? originalRhodoList.get(0) : null;
+
 
         var results = RhodoLogicService.rhodoParentageSearch(seedParentId, pollenParentId, requireSeed, requirePollen,!ordered, originalRhodoId, set_size, offset);
         model.addAttribute("rhodos", results.results)
@@ -99,7 +103,7 @@ public class WebController {
             .addAttribute("pollenParentFormattedName", RhodoLogicService.getFormattedRhodoName(pollenParentId))
             .addAttribute("pollenParentId", pollenParentId)
             .addAttribute("originalRhodoId", originalRhodoId)
-            .addAttribute("originalRhodoFormattedName", RhodoLogicService.getFormattedRhodoName(originalRhodoId))
+            .addAttribute("originalRhodoFormattedName", RhodoLogicService.getFormattedRhodoName(originalRhodo))
             .addAttribute("requireSeed", requireSeed)
             .addAttribute("requirePollen", requirePollen)
             .addAttribute("ordered", ordered)
