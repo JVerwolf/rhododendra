@@ -2,14 +2,23 @@
 <tr th:fragment="card(rhodo)">
     <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Rhododendron"*/-->
     <td class="table-description-text">
-        <h2 th:utext="${rhodo.getFormattedName()}"></h2>
-        <h4>
+        <h3 ><b th:utext="${rhodo.getFormattedName()}"></b></h3>
+        <h5>
             <span th:text="${rhodo.descriptionText()}"></span>
-        </h4>
-        <p th:if="${not (rhodo.isSpecies() || rhodo.getIs_species_selection()) || rhodo.getIs_natural_hybrid()}">
+        </h5>
+        <h6 th:if="${not (rhodo.isSpecies() || rhodo.getIs_species_selection()) || rhodo.getIs_natural_hybrid()}">
             <span th:utext="${rhodo.getFormattedSeedParentName()}"></span>
             <span> X </span>
             <span th:utext="${rhodo.getFormattedPollenParentName()}"></span>
+        </h6>
+        <br/>
+        <p th:if="${rhodo.getHybridizer() != null && rhodo.getIs_species_selection()}">
+            <b>Selected By: </b>
+            <span th:text="${rhodo.getHybridizer().getHybridizer() != null ?rhodo.getHybridizer().getHybridizer() : 'Unknown'}"></span>
+        </p>
+        <p th:if="${rhodo.getHybridizer() != null && not rhodo.getIs_species_selection()}">
+            <b>Hybridized By: </b>
+            <span th:text="${rhodo.getHybridizer().getHybridizer() != null ?rhodo.getHybridizer().getHybridizer() : 'Unknown'}"></span>
         </p>
         <a th:if="${not #lists.isEmpty(rhodo.getPhotos())}" th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
             More information and pictures
