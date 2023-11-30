@@ -68,7 +68,7 @@ public class RhodoLogicService {
         int offset
     ) throws IOException {
         // todo validate input
-        var result = SearchService.searchByParentage(seedParent, pollenParent, requireSeed,requirePollen, allowReverse, originalRhodoId, pageSize, offset);
+        var result = SearchService.searchByParentage(seedParent, pollenParent, requireSeed, requirePollen, allowReverse, originalRhodoId, pageSize, offset);
         result.results.forEach(rhodo -> {
                 rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()));
                 addSelectedSpecies(rhodo);
@@ -86,7 +86,7 @@ public class RhodoLogicService {
         }
         return "?";
     }
-    
+
     public static String getFormattedPollenParentName(Rhododendron rhodo) {
         if (rhodo.getPollenParentId() != null) {
             return getFormattedRhodoName(rhodo.getPollenParentId());

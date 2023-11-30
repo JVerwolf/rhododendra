@@ -91,11 +91,11 @@
                     <th:block th:if="${rhodo.getParentage().getSeed_parent() != null}">
                         <td class="value" th:if="${rhodo.getParentage().getSeed_parent_id() != null}">
                             <a th:href="@{'/rhodos/'+ ${rhodo.getParentage().getSeed_parent_id}}"
-                               th:text="${rhodo.getParentage().getSeed_parent()}">
+                               th:utext="${rhodo.getFormattedSeedParentName()}">
                             </a>
                         </td>
                         <td class="value" th:if="${rhodo.getParentage().getSeed_parent_id() == null}"
-                            th:text="${rhodo.getParentage().getSeed_parent()}">
+                            th:utext="${rhodo.getFormattedSeedParentName()}">
                         </td>
                     </th:block>
                     <td class="value" th:if="${rhodo.getParentage().getSeed_parent() == null}">?</td>
@@ -105,11 +105,11 @@
                     <th:block th:if="${rhodo.getParentage().getPollen_parent() != null}">
                         <td class="value" th:if="${rhodo.getParentage().getPollen_parent_id() != null}">
                             <a th:href="@{'/rhodos/'+ ${rhodo.getParentage().getPollen_parent_id}}"
-                               th:text="${rhodo.getParentage().getPollen_parent()}">
+                               th:utext="${rhodo.getFormattedPollenParentName()}">
                             </a>
                         </td>
                         <td class="value" th:if="${rhodo.getParentage().getPollen_parent_id() == null}"
-                            th:text="${rhodo.getParentage().getPollen_parent()}">
+                            th:utext="${rhodo.getFormattedPollenParentName()}">
                         </td>
                     </th:block>
                     <td class="value" th:if="${rhodo.getParentage().getPollen_parent() == null}">?</td>
@@ -193,7 +193,8 @@
                 <td class="value" th:text="${rhodo.getExtra_information()}"></td>
             </tr>
         </table>
-        <a th:href="@{/genetic_search(seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}">Siblings</a>
+        <a th:href="@{/genetic_search(useCase='SIBLINGS',seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}">Find Siblings</a>
+        <a th:href="@{/genetic_search(useCase='CHILDREN',seedParentId=${rhodo.getId()},pollenParentId=${rhodo.getId()},originalRhodoId=${rhodo.getId()})}">Find Children</a>
 <!--        <a th:href="@{/genetic_search()}">Offspring</a>-->
 <!--        <a th:href="@{/genetic_search()}">Pollen offspring</a>-->
 <!--        <a th:href="@{/genetic_search()}">Seed offspring</a>-->

@@ -15,8 +15,8 @@
             </p>
             <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">
         </div>
-        <h1 th:utext='|Genetic Siblings of ${originalRhodoFormattedName}|'></h1>
-        <h2 th:utext='|(${seedParentFormattedName}) X (${pollenParentFormattedName})|'></h2>
+        <h1 style="text-align: center;" th:utext='|Genetic Siblings of ${originalRhodoFormattedName}|'></h1>
+        <h2 style="text-align: center;" th:utext='|(${seedParentFormattedName}) X (${pollenParentFormattedName})|'></h2>
         <form th:action="@{/genetic_search}" th:method="get">
             <table>
                 <tr>
@@ -27,9 +27,9 @@
                             <span class="slider round"></span>
                         </label>
                     </td>
-                    <td>Keep Seed/Pollen in the Same Positions</td>
+                    <td>Require Seed/Pollen in the Same Positions</td>
                 </tr>
-                <tr>
+                <tr th:if="${seedParentId != null}">
                     <td>
                         <label class="switch">
                             <input type="checkbox" th:name="requireSeed" th:value="true" th:checked="${requireSeed}"
@@ -39,7 +39,7 @@
                     </td>
                     <td th:utext="'Require ' + ${seedParentFormattedName}"></td>
                 </tr>
-                <tr>
+                <tr th:if="${pollenParentId != null}">
                     <td>
                         <label class="switch">
                             <input type="checkbox" th:name="requirePollen" th:value="true" th:checked="${requirePollen}"
@@ -53,6 +53,7 @@
             <input type="hidden" th:name="seedParentId" th:value="${seedParentId}">
             <input type="hidden" th:name="pollenParentId" th:value="${pollenParentId}">
             <input type="hidden" th:name="originalRhodoId" th:value="${originalRhodoId}">
+            <input type="hidden" th:name="useCase" th:value="${useCase}">
             <!--            <input type="hidden" th:name="" th:value="${}">-->
         </form>
         <span th:if="${rhodos.isEmpty()}">No matching results found</span>
@@ -64,7 +65,7 @@
                         <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _}"
                             th:styleappend="${'padding:8px'}">
                             <a
-                                    th:href="@{/genetic_search(seedParentId=${seedParentId},pollenParentId=${pollenParentId},originalRhodoId=${originalRhodoId},ordered=${ordered},requireSeed=${requireSeed},requirePollen=${requirePollen},offset=${page.startPos})}"
+                                    th:href="@{/genetic_search(useCase=${useCase},seedParentId=${seedParentId},pollenParentId=${pollenParentId},originalRhodoId=${originalRhodoId},ordered=${ordered},requireSeed=${requireSeed},requirePollen=${requirePollen},offset=${page.startPos})}"
                             >
                                 <b th:text="${stat.index + 1}"></b>
                             </a>
@@ -77,7 +78,7 @@
     </div>
     <th:block th:if="${not rhodos.isEmpty()}">
         <a th:if="${resultPagePos< resultPages.size()-1}"
-           th:href="@{/genetic_search(seedParentId=${seedParentId},pollenParentId=${pollenParentId},originalRhodoId=${originalRhodoId},ordered=${ordered},requireSeed=${requireSeed},requirePollen=${requirePollen},offset=${resultPages[resultPagePos].endPos+1})}"
+           th:href="@{/genetic_search(useCase=${useCase},seedParentId=${seedParentId},pollenParentId=${pollenParentId},originalRhodoId=${originalRhodoId},ordered=${ordered},requireSeed=${requireSeed},requirePollen=${requirePollen},offset=${resultPages[resultPagePos].endPos+1})}"
            style="display: flex; justify-content: flex-end; padding-right: 5%">
             <h2>
                 Next Page
@@ -89,7 +90,7 @@
             </th:block>
         </table>
         <a th:if="${resultPagePos< resultPages.size()-1}"
-           th:href="@{/genetic_search(seedParentId=${seedParentId},pollenParentId=${pollenParentId},originalRhodoId=${originalRhodoId},ordered=${ordered},requireSeed=${requireSeed},requirePollen=${requirePollen},offset=${resultPages[resultPagePos].endPos+1})}"
+           th:href="@{/genetic_search(useCase=${useCase},seedParentId=${seedParentId},pollenParentId=${pollenParentId},originalRhodoId=${originalRhodoId},ordered=${ordered},requireSeed=${requireSeed},requirePollen=${requirePollen},offset=${resultPages[resultPagePos].endPos+1})}"
            style="display: flex; justify-content: flex-end; padding-right: 5%">
             <h2>
                 Next Page

@@ -62,6 +62,10 @@ public class WebController {
             .addAttribute("letters", UPPER_CASE_ALPHABET);
         return "rhodo-index";
     }
+    public enum UseCase{
+        SIBLINGS,
+        CHILDREN
+    }
 
     @RequestMapping("/genetic_search")
     public String handleGeneticSearch(
@@ -72,6 +76,7 @@ public class WebController {
         @RequestParam(value = "requirePollen", defaultValue = "false") boolean requirePollen,
         @RequestParam(value = "ordered", defaultValue = "false") boolean ordered,
         @RequestParam(value = "originalRhodoId", required = false) String originalRhodoId,
+        @RequestParam(value = "useCase", required = true) UseCase usecase,
         @RequestParam(value = "size", defaultValue = "50") int size,
         @RequestParam(value = "offset", defaultValue = "0") int offset
     ) throws IOException {
@@ -98,6 +103,7 @@ public class WebController {
             .addAttribute("requireSeed", requireSeed)
             .addAttribute("requirePollen", requirePollen)
             .addAttribute("ordered", ordered)
+            .addAttribute("useCase", usecase.name())
             .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
         return "genetic-search";
     }

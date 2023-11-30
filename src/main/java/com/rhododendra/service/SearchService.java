@@ -51,8 +51,8 @@ public class SearchService {
     }
 
     public static IndexResults<Rhododendron> searchByParentage(
-        String seedParent,
-        String pollenParent,
+        String seedParentId,
+        String pollenParentId,
         boolean requireSeed,
         boolean requirePollen,
         boolean allowReverse,
@@ -62,31 +62,34 @@ public class SearchService {
     ) throws IOException {
 
         var geneticQuery = new BooleanQuery.Builder();
-        if (seedParent != null) {
+        if (seedParentId != null) {
             var seedQuery = new BooleanQuery.Builder();
-            seedQuery.add(new TermQuery(new Term(SEED_PARENT_KEY, seedParent)), BooleanClause.Occur.SHOULD);
+            seedQuery.add(new TermQuery(new Term(SEED_PARENT_KEY, seedParentId)), BooleanClause.Occur.SHOULD);
             if (allowReverse) {
-                seedQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, seedParent)), BooleanClause.Occur.SHOULD);
+                seedQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, seedParentId)), BooleanClause.Occur.SHOULD);
             }
             geneticQuery.add(
                 seedQuery.build(),
                 requireSeed ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD
             );
+            geneticQuery.add(new TermQuery(new Term(PRIMARY_ID_KEY, seedParentId)), BooleanClause.Occur.MUST_NOT);
         }
-        if (pollenParent != null) {
+        if (pollenParentId != null) {
             var pollenQuery = new BooleanQuery.Builder();
-            pollenQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, pollenParent)), BooleanClause.Occur.SHOULD);
+            pollenQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, pollenParentId)), BooleanClause.Occur.SHOULD);
             if (allowReverse) {
-                pollenQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, pollenParent)), BooleanClause.Occur.SHOULD);
+                pollenQuery.add(new TermQuery(new Term(SEED_PARENT_KEY, pollenParentId)), BooleanClause.Occur.SHOULD);
             }
             geneticQuery.add(
                 pollenQuery.build(),
                 requirePollen ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD
             );
+            geneticQuery.add(new TermQuery(new Term(PRIMARY_ID_KEY, pollenParentId)), BooleanClause.Occur.MUST_NOT);
         }
         if (originalRhodoId != null) {
             geneticQuery.add(new TermQuery(new Term(PRIMARY_ID_KEY, originalRhodoId)), BooleanClause.Occur.MUST_NOT);
         }
+
 
         return paginatedSearch(
             RHODO_INDEX_PATH,
