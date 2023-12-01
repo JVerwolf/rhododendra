@@ -16,7 +16,7 @@
             <b>Selected By: </b>
             <span th:text="${rhodo.getHybridizer().getHybridizer() != null ?rhodo.getHybridizer().getHybridizer() : 'Unknown'}"></span>
         </p>
-        <p th:if="${rhodo.getHybridizer() != null && not rhodo.getIs_species_selection()}">
+        <p th:if="${rhodo.getHybridizer() != null && not rhodo.getIs_species_selection() && not rhodo.isSpecies}">
             <b>Hybridized By: </b>
             <span th:text="${rhodo.getHybridizer().getHybridizer() != null ?rhodo.getHybridizer().getHybridizer() : 'Unknown'}"></span>
         </p>

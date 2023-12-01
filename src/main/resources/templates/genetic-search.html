@@ -7,18 +7,22 @@
 <div class="content">
     <div class="description-container">
         <div style="display:flex;flex-direction:row;justify-content: center; align-items: center">
-<!--            <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">-->
-<!--            <p style="text-align: center;">-->
-<!--                Public works announcement:-->
-<!--                <br/>-->
-<!--                This section is under active development, watch your step!-->
-<!--            </p>-->
-<!--            <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">-->
+            <!--            <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">-->
+            <!--            <p style="text-align: center;">-->
+            <!--                Public works announcement:-->
+            <!--                <br/>-->
+            <!--                This section is under active development, watch your step!-->
+            <!--            </p>-->
+            <!--            <img th:src="@{/imgs/underconstruction.gif}" style="height: 1.5em">-->
         </div>
-        <h1 th:if="${useCase=='SIBLINGS'}" style="text-align: center;"
-            th:utext='|Genetic Sibling Search|'></h1>
-        <h1 th:if="${useCase=='CHILDREN'}" style="text-align: center;"
-            th:utext='|Genetic Offspring Search|'></h1>
+        <h1 class="font-weight-bold"
+            th:if="${useCase=='SIBLINGS'}" style="text-align: center;">
+            Sibling Search
+        </h1>
+        <h1 class="font-weight-bold"
+            th:if="${useCase=='CHILDREN'}" style="text-align: center;">
+            Offspring Search
+        </h1>
         <h2 style="text-align: center;" th:utext="${originalRhodoFormattedName}"></h2>
         <h4 th:if="${useCase=='SIBLINGS'}" style="text-align: center;"
             th:utext='|(${seedParentFormattedName}) X (${pollenParentFormattedName})|'></h4>

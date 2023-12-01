@@ -11,7 +11,7 @@
 
 <div class="content">
     <div class="description-container">
-        <h1 th:utext="${rhodo.getFormattedName()}"></h1>
+        <h1 class="font-weight-bold" th:utext="${rhodo.getFormattedName()}"></h1>
         <h2>
             <span th:if="${not rhodo.getIs_species_selection()}" th:text="${rhodo.descriptionText()}"></span>
         </h2>
@@ -27,7 +27,7 @@
                 <td class="value">
                     <th:block th:each="synonym, iterStat : ${rhodo.getBotanical_synonyms()}">
                         <span th:if="${synonym.botanical_shorts().isEmpty()}"
-                           th:utext="${rhodo.formatSynonymName(synonym.synonym())}"></span>
+                              th:utext="${rhodo.formatSynonymName(synonym.synonym())}"></span>
                         <span th:if="${not synonym.botanical_shorts().isEmpty()}" th:inline="text">
                             <span th:utext="${rhodo.formatSynonymName(synonym.synonym())}"></span>
                             [[|(${#strings.listJoin(synonym.botanical_shorts(), ', ')})|]]
@@ -194,11 +194,13 @@
             </tr>
         </table>
         |
-        <span th:if="${rhodo.isCultivar()}"><a th:href="@{/genetic_search(useCase='SIBLINGS',seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}">Find Siblings </a>|</span>
-        <span><a th:href="@{/genetic_search(useCase='CHILDREN',seedParentId=${rhodo.getId()},pollenParentId=${rhodo.getId()},originalRhodoId=${rhodo.getId()})}">Find Offspring </a>|</span>
-<!--        <a th:href="@{/genetic_search()}">Offspring</a>-->
-<!--        <a th:href="@{/genetic_search()}">Pollen offspring</a>-->
-<!--        <a th:href="@{/genetic_search()}">Seed offspring</a>-->
+        <span th:if="${rhodo.isCultivar()}"><a
+                th:href="@{/genetic_search(useCase='SIBLINGS',seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}">Find Siblings </a>|</span>
+        <span><a
+                th:href="@{/genetic_search(useCase='CHILDREN',seedParentId=${rhodo.getId()},pollenParentId=${rhodo.getId()},originalRhodoId=${rhodo.getId()})}">Find Offspring </a>|</span>
+        <!--        <a th:href="@{/genetic_search()}">Offspring</a>-->
+        <!--        <a th:href="@{/genetic_search()}">Pollen offspring</a>-->
+        <!--        <a th:href="@{/genetic_search()}">Seed offspring</a>-->
     </div>
     <table class="bordered-table picture-table">
         <tr th:each="resolvedPhotoDetail : ${resolvedPhotoDetails}">
