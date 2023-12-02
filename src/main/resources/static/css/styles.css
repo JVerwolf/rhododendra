@@ -150,7 +150,7 @@ input:checked + .slider:before {
 /*REF: https://www.w3schools.com/howto/howto_js_collapsible.asp*/
 /* Style the button that is used to open and close the collapsible content */
 .collapsible {
-    background-color:#e9e9e9;
+    background-color: #e9e9e9;
     cursor: pointer;
     width: 100%;
     border: none;
@@ -166,7 +166,7 @@ input:checked + .slider:before {
 /* Style the collapsible content. Note: hidden by default */
 .advanced_search_collapse {
     /*background-color: white;*/
-    /*max-height: 0;*/  /*TODO uncomment for dynamic drop down*/
+    /*max-height: 0;*/ /*TODO uncomment for dynamic drop down*/
     overflow: hidden;
     margin-top: .25em;
     margin-bottom: 1em;
@@ -212,7 +212,7 @@ div.content {
 
 
 .bordered-table, .bordered-table td {
-    border: 1px solid black;
+    border: 2px solid black;
     border-collapse: collapse;
 }
 
@@ -311,7 +311,7 @@ table.letter-wrap {
     text-decoration: none;
 }
 
-h3{
+h3 {
     font-size: 18.72px;
 }
 

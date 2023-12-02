@@ -10,198 +10,196 @@
 <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Rhododendron"*/-->
 
 <div class="content">
-    <div class="description-container">
-        <h1 class="font-weight-bold" th:utext="${rhodo.getFormattedName()}"></h1>
-        <h2>
-            <span th:if="${not rhodo.getIs_species_selection()}" th:text="${rhodo.descriptionText()}"></span>
-        </h2>
-        <h2 th:if="${rhodo.getIs_species_selection()}" th:inline="text">
-            [[|Species selection of |]]
-            <a th:href="@{'/rhodos/'+ ${original_species.getId()}}">
-                <i th:text="|R. ${original_species.getName()}|"></i>
-            </a>
-        </h2>
-        <table class="bordered-table attributes-detail-table">
-            <tr th:if="${not rhodo.getBotanical_synonyms().isEmpty()}">
-                <td class="key"><b>Botanical<br/>Synonyms</b></td>
-                <td class="value">
-                    <th:block th:each="synonym, iterStat : ${rhodo.getBotanical_synonyms()}">
+    <h1 class="font-weight-bold" th:utext="${rhodo.getFormattedName()}"></h1>
+    <h2 style="text-align: center;">
+        <span th:if="${not rhodo.getIs_species_selection()}" th:text="${rhodo.descriptionText()}"></span>
+    </h2>
+    <h2 style="text-align: center;"
+        th:if=" ${rhodo.getIs_species_selection()}" th:inline="text">
+        [[|Species selection of |]]
+        <a th:href="@{'/rhodos/'+ ${original_species.getId()}}">
+            <i th:text="|R. ${original_species.getName()}|"></i>
+        </a>
+    </h2>
+    <div style="margin-bottom: .25em; margin-top: .25em">
+        <a th:if="${rhodo.isCultivar()}"
+           th:href="@{/genetic_search(useCase='SIBLINGS',seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}"
+           class="btn btn-secondary btn-sm" role="button" aria-pressed="true">Search Siblings </a>
+        <a th:href="@{/genetic_search(useCase='CHILDREN',seedParentId=${rhodo.getId()},pollenParentId=${rhodo.getId()},originalRhodoId=${rhodo.getId()})}"
+           class="btn btn-secondary btn-sm" role="button" aria-pressed="true">Search Offspring </a>
+    </div>
+    <table class="bordered-table attributes-detail-table">
+        <tr th:if="${not rhodo.getBotanical_synonyms().isEmpty()}">
+            <td class="key"><b>Botanical<br/>Synonyms</b></td>
+            <td class="value">
+                <th:block th:each="synonym, iterStat : ${rhodo.getBotanical_synonyms()}">
                         <span th:if="${synonym.botanical_shorts().isEmpty()}"
                               th:utext="${rhodo.formatSynonymName(synonym.synonym())}"></span>
-                        <span th:if="${not synonym.botanical_shorts().isEmpty()}" th:inline="text">
+                    <span th:if="${not synonym.botanical_shorts().isEmpty()}" th:inline="text">
                             <span th:utext="${rhodo.formatSynonymName(synonym.synonym())}"></span>
                             [[|(${#strings.listJoin(synonym.botanical_shorts(), ', ')})|]]
                         </span>
-                        <br th:if="${not iterStat.last}"/>
-                    </th:block>
-                </td>
-            </tr>
-            <tr th:if="${not rhodo.getSynonyms().isEmpty()}">
-                <td><b class="key">Synonyms</b></td>
-                <td class="value">
-                    <th:block th:each="synonym, iterStat : ${rhodo.getSynonyms()}">
+                    <br th:if="${not iterStat.last}"/>
+                </th:block>
+            </td>
+        </tr>
+        <tr th:if="${not rhodo.getSynonyms().isEmpty()}">
+            <td><b class="key">Synonyms</b></td>
+            <td class="value">
+                <th:block th:each="synonym, iterStat : ${rhodo.getSynonyms()}">
                         <span th:inline="text">
                             <i>R. </i>
                             [[|'${synonym}'|]]
                         </span>
-                        <br th:if="${not iterStat.last}"/>
-                    </th:block>
-                </td>
+                    <br th:if="${not iterStat.last}"/>
+                </th:block>
+            </td>
+        </tr>
+        <th:block th:if="${rhodo.getIs_species_selection()}">
+            <tr>
+                <td class="key"><b>Selected By</b></td>
+                <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  != null}"
+                    th:text="${rhodo.getHybridizer().getHybridizer() }"></td>
+                <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
             </tr>
-            <th:block th:if="${rhodo.getIs_species_selection()}">
-                <tr>
-                    <td class="key"><b>Selected By</b></td>
-                    <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  != null}"
-                        th:text="${rhodo.getHybridizer().getHybridizer() }"></td>
-                    <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
-                </tr>
-            </th:block>
-            <th:block th:if="${not rhodo.isSpecies()}">
-                <tr>
-                    <td class="key"><b>Hybridized By</b></td>
-                    <td class="value" th:if="${rhodo.getHybridizer().getHybridizer() != null}"
-                        th:text="${rhodo.getHybridizer().getHybridizer() }"></td>
-                    <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
-                </tr>
-                <tr>
-            </th:block>
-            <th:block th:if="${rhodo.getAzalea_group() != null}">
-                <tr>
-                    <td class="key"><b>Azalea group</b></td>
-                    <td class="value" th:text="${rhodo.getAzalea_group()}"></td>
-                </tr>
-            </th:block>
-            <th:block th:if="${rhodo.getTaxonomy() != null}">
-                <tr>
-                    <td class="key"><b>Subgenus</b></td>
-                    <td class="value" th:text="${rhodo.getTaxonomy().getSubgenus()}"></td>
-                </tr>
-                <tr>
-                    <td class="key"><b>Section</b></td>
-                    <td class="value" th:text="${rhodo.getTaxonomy().getSection()}"></td>
-                </tr>
-                <tr>
-                    <td class="key"><b>Subsection</b></td>
-                    <td class="value" th:text="${rhodo.getTaxonomy().getSubsection()}"></td>
-                </tr>
-            </th:block>
-            <th:block th:if="${rhodo.getParentage() != null}">
-                <tr>
-                    <td class="key"><b>Seed Parent</b></td>
-                    <th:block th:if="${rhodo.getParentage().getSeed_parent() != null}">
-                        <td class="value" th:if="${rhodo.getParentage().getSeed_parent_id() != null}">
-                            <a th:href="@{'/rhodos/'+ ${rhodo.getParentage().getSeed_parent_id}}"
-                               th:utext="${rhodo.getFormattedSeedParentName()}">
-                            </a>
-                        </td>
-                        <td class="value" th:if="${rhodo.getParentage().getSeed_parent_id() == null}"
-                            th:utext="${rhodo.getFormattedSeedParentName()}">
-                        </td>
-                    </th:block>
-                    <td class="value" th:if="${rhodo.getParentage().getSeed_parent() == null}">?</td>
-                </tr>
-                <tr>
-                    <td class="key"><b>Pollen Parent</b></td>
-                    <th:block th:if="${rhodo.getParentage().getPollen_parent() != null}">
-                        <td class="value" th:if="${rhodo.getParentage().getPollen_parent_id() != null}">
-                            <a th:href="@{'/rhodos/'+ ${rhodo.getParentage().getPollen_parent_id}}"
-                               th:utext="${rhodo.getFormattedPollenParentName()}">
-                            </a>
-                        </td>
-                        <td class="value" th:if="${rhodo.getParentage().getPollen_parent_id() == null}"
-                            th:utext="${rhodo.getFormattedPollenParentName()}">
-                        </td>
-                    </th:block>
-                    <td class="value" th:if="${rhodo.getParentage().getPollen_parent() == null}">?</td>
-                </tr>
-            </th:block>
-            <tr th:if="${rhodo.getCultivation_since() != null}">
-                <td class="key"><b>In cultivation since</b></td>
-                <td class="value" th:text="${rhodo.getCultivation_since()}"></td>
-            </tr>
-            <tr th:if="${rhodo.getFirst_described() != null}">
-                <td class="key"><b>First Described</b></td>
-                <td class="value" th:if="${rhodo.getFirst_described() != null}">
-                    <span th:text="${rhodo.getFirst_described()}"></span>
-                    <span th:if="${not rhodo.getFirst_described_botanists().isEmpty()}"
-                          th:text="' ('+ ${#strings.listJoin(rhodo.getFirst_described_botanists(), ',')} + ')'"></span>
-                </td>
-            </tr>
-            <tr th:if="${rhodo.getOrigin_location() != null}">
-                <td class="key"><b>Origin</b></td>
-                <td class="value" th:text="${rhodo.getOrigin_location()}"></td>
-            </tr>
-            <tr th:if="${rhodo.getHabit() != null}">
-                <td class="key"><b>Habitat</b></td>
-                <td class="value" th:text="${rhodo.getHabit()}"></td>
+        </th:block>
+        <th:block th:if="${not rhodo.isSpecies()}">
+            <tr>
+                <td class="key"><b>Hybridized By</b></td>
+                <td class="value" th:if="${rhodo.getHybridizer().getHybridizer() != null}"
+                    th:text="${rhodo.getHybridizer().getHybridizer() }"></td>
+                <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
             </tr>
             <tr>
-                <td class="key"><b>10 Year Height</b></td>
-                <td class="value" th:if="${rhodo.getTen_year_height() != null}"
-                    th:text="${rhodo.getTen_year_height()}"></td>
-                <td class="value" th:if="${rhodo.getTen_year_height() == null}">?</td>
+        </th:block>
+        <th:block th:if="${rhodo.getAzalea_group() != null}">
+            <tr>
+                <td class="key"><b>Azalea group</b></td>
+                <td class="value" th:text="${rhodo.getAzalea_group()}"></td>
             </tr>
-            <tr th:if="${rhodo.getObserved_mature_height() != null}">
-                <td class="key"><b>Mature Wild Height</b></td>
-                <td class="value" th:text="${rhodo.getObserved_mature_height()}"></td>
+        </th:block>
+        <th:block th:if="${rhodo.getTaxonomy() != null}">
+            <tr>
+                <td class="key"><b>Subgenus</b></td>
+                <td class="value" th:text="${rhodo.getTaxonomy().getSubgenus()}"></td>
             </tr>
             <tr>
-                <td class="key"><b>Bloom Time</b></td>
-                <td class="value" th:if="${rhodo.getBloom_time() != null}" th:text="${rhodo.getBloom_time()}"></td>
-                <td class="value" th:if="${rhodo.getBloom_time() == null}">?</td>
+                <td class="key"><b>Section</b></td>
+                <td class="value" th:text="${rhodo.getTaxonomy().getSection()}"></td>
             </tr>
             <tr>
-                <td class="key"><b>Flower</b></td>
-                <td class="value" th:if="${rhodo.getFlower_shape() != null}" th:text="${rhodo.getFlower_shape()}"></td>
-                <td class="value" th:if="${rhodo.getFlower_shape() == null}">?</td>
+                <td class="key"><b>Subsection</b></td>
+                <td class="value" th:text="${rhodo.getTaxonomy().getSubsection()}"></td>
+            </tr>
+        </th:block>
+        <th:block th:if="${rhodo.getParentage() != null}">
+            <tr>
+                <td class="key"><b>Seed Parent</b></td>
+                <th:block th:if="${rhodo.getParentage().getSeed_parent() != null}">
+                    <td class="value" th:if="${rhodo.getParentage().getSeed_parent_id() != null}">
+                        <a th:href="@{'/rhodos/'+ ${rhodo.getParentage().getSeed_parent_id}}"
+                           th:utext="${rhodo.getFormattedSeedParentName()}">
+                        </a>
+                    </td>
+                    <td class="value" th:if="${rhodo.getParentage().getSeed_parent_id() == null}"
+                        th:utext="${rhodo.getFormattedSeedParentName()}">
+                    </td>
+                </th:block>
+                <td class="value" th:if="${rhodo.getParentage().getSeed_parent() == null}">?</td>
             </tr>
             <tr>
-                <td class="key"><b>Predominant Colour</b></td>
-                <td class="value" th:if="${rhodo.getColour() != null}" th:text="${rhodo.getColour()}"></td>
-                <td class="value" th:if="${rhodo.getColour() == null}">?</td>
+                <td class="key"><b>Pollen Parent</b></td>
+                <th:block th:if="${rhodo.getParentage().getPollen_parent() != null}">
+                    <td class="value" th:if="${rhodo.getParentage().getPollen_parent_id() != null}">
+                        <a th:href="@{'/rhodos/'+ ${rhodo.getParentage().getPollen_parent_id}}"
+                           th:utext="${rhodo.getFormattedPollenParentName()}">
+                        </a>
+                    </td>
+                    <td class="value" th:if="${rhodo.getParentage().getPollen_parent_id() == null}"
+                        th:utext="${rhodo.getFormattedPollenParentName()}">
+                    </td>
+                </th:block>
+                <td class="value" th:if="${rhodo.getParentage().getPollen_parent() == null}">?</td>
             </tr>
-            <tr>
-                <td class="key"><b>Leaves</b></td>
-                <td class="value" th:if="${rhodo.getLeaf_shape()} != null" th:text="${rhodo.getLeaf_shape()}"></td>
-                <td class="value" th:if="${rhodo.getLeaf_shape()} == null">?</td>
-            </tr>
-            <tr>
-                <td class="key"><b>Winter Foliage</b></td>
-                <td class="value" th:if="${rhodo.getDeciduous()} != null" th:text="${rhodo.getDeciduous()}"></td>
-                <td class="value" th:if="${rhodo.getDeciduous()} == null">?</td>
-            </tr>
-            <tr th:if="${rhodo.getAdditional_parentage_info() != null}">
-                <td class="key"><b>Additional<br/>Parentage Info</b></td>
-                <td class="value" th:text="${rhodo.getAdditional_parentage_info()}"></td>
-            </tr>
-            <tr th:if="${rhodo.isElepedote() || rhodo.isLepedote()}">
-                <td class="key"><b>Type</b></td>
-                <td class="value" th:if="${rhodo.isElepedote()}">Elepedote</td>
-                <td class="value" th:if="${rhodo.isLepedote()}">Lepedote</td>
-            </tr>
-            <tr>
-                <td class="key"><b>Hardiness</b></td>
-                <td class="value" th:if="${rhodo.getHardiness() != null}" th:text="${rhodo.getHardiness()}"></td>
-                <td class="value" th:if="${rhodo.getHardiness() == null}">?</td>
-            </tr>
-            <tr th:if="${rhodo.getIrrc_registered() != null}">
-                <td class="key"><b>Status</b></td>
-                <td class="value" th:text="${rhodo.getIrrc_registered()}"></td>
-            </tr>
-            <tr th:if="${rhodo.getExtra_information() != null}">
-                <td class="key"><b>Extra Information</b></td>
-                <td class="value" th:text="${rhodo.getExtra_information()}"></td>
-            </tr>
-        </table>
-        |
-        <span th:if="${rhodo.isCultivar()}"><a
-                th:href="@{/genetic_search(useCase='SIBLINGS',seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}">Find Siblings </a>|</span>
-        <span><a
-                th:href="@{/genetic_search(useCase='CHILDREN',seedParentId=${rhodo.getId()},pollenParentId=${rhodo.getId()},originalRhodoId=${rhodo.getId()})}">Find Offspring </a>|</span>
-        <!--        <a th:href="@{/genetic_search()}">Offspring</a>-->
-        <!--        <a th:href="@{/genetic_search()}">Pollen offspring</a>-->
-        <!--        <a th:href="@{/genetic_search()}">Seed offspring</a>-->
-    </div>
+        </th:block>
+        <tr th:if="${rhodo.getCultivation_since() != null}">
+            <td class="key"><b>In cultivation since</b></td>
+            <td class="value" th:text="${rhodo.getCultivation_since()}"></td>
+        </tr>
+        <tr th:if="${rhodo.getFirst_described() != null}">
+            <td class="key"><b>First Described</b></td>
+            <td class="value" th:if="${rhodo.getFirst_described() != null}">
+                <span th:text="${rhodo.getFirst_described()}"></span>
+                <span th:if="${not rhodo.getFirst_described_botanists().isEmpty()}"
+                      th:text="' ('+ ${#strings.listJoin(rhodo.getFirst_described_botanists(), ',')} + ')'"></span>
+            </td>
+        </tr>
+        <tr th:if="${rhodo.getOrigin_location() != null}">
+            <td class="key"><b>Origin</b></td>
+            <td class="value" th:text="${rhodo.getOrigin_location()}"></td>
+        </tr>
+        <tr th:if="${rhodo.getHabit() != null}">
+            <td class="key"><b>Habitat</b></td>
+            <td class="value" th:text="${rhodo.getHabit()}"></td>
+        </tr>
+        <tr>
+            <td class="key"><b>10 Year Height</b></td>
+            <td class="value" th:if="${rhodo.getTen_year_height() != null}"
+                th:text="${rhodo.getTen_year_height()}"></td>
+            <td class="value" th:if="${rhodo.getTen_year_height() == null}">?</td>
+        </tr>
+        <tr th:if="${rhodo.getObserved_mature_height() != null}">
+            <td class="key"><b>Mature Wild Height</b></td>
+            <td class="value" th:text="${rhodo.getObserved_mature_height()}"></td>
+        </tr>
+        <tr>
+            <td class="key"><b>Bloom Time</b></td>
+            <td class="value" th:if="${rhodo.getBloom_time() != null}" th:text="${rhodo.getBloom_time()}"></td>
+            <td class="value" th:if="${rhodo.getBloom_time() == null}">?</td>
+        </tr>
+        <tr>
+            <td class="key"><b>Flower</b></td>
+            <td class="value" th:if="${rhodo.getFlower_shape() != null}" th:text="${rhodo.getFlower_shape()}"></td>
+            <td class="value" th:if="${rhodo.getFlower_shape() == null}">?</td>
+        </tr>
+        <tr>
+            <td class="key"><b>Predominant Colour</b></td>
+            <td class="value" th:if="${rhodo.getColour() != null}" th:text="${rhodo.getColour()}"></td>
+            <td class="value" th:if="${rhodo.getColour() == null}">?</td>
+        </tr>
+        <tr>
+            <td class="key"><b>Leaves</b></td>
+            <td class="value" th:if="${rhodo.getLeaf_shape()} != null" th:text="${rhodo.getLeaf_shape()}"></td>
+            <td class="value" th:if="${rhodo.getLeaf_shape()} == null">?</td>
+        </tr>
+        <tr>
+            <td class="key"><b>Winter Foliage</b></td>
+            <td class="value" th:if="${rhodo.getDeciduous()} != null" th:text="${rhodo.getDeciduous()}"></td>
+            <td class="value" th:if="${rhodo.getDeciduous()} == null">?</td>
+        </tr>
+        <tr th:if="${rhodo.getAdditional_parentage_info() != null}">
+            <td class="key"><b>Additional<br/>Parentage Info</b></td>
+            <td class="value" th:text="${rhodo.getAdditional_parentage_info()}"></td>
+        </tr>
+        <tr th:if="${rhodo.isElepedote() || rhodo.isLepedote()}">
+            <td class="key"><b>Type</b></td>
+            <td class="value" th:if="${rhodo.isElepedote()}">Elepedote</td>
+            <td class="value" th:if="${rhodo.isLepedote()}">Lepedote</td>
+        </tr>
+        <tr>
+            <td class="key"><b>Hardiness</b></td>
+            <td class="value" th:if="${rhodo.getHardiness() != null}" th:text="${rhodo.getHardiness()}"></td>
+            <td class="value" th:if="${rhodo.getHardiness() == null}">?</td>
+        </tr>
+        <tr th:if="${rhodo.getIrrc_registered() != null}">
+            <td class="key"><b>Status</b></td>
+            <td class="value" th:text="${rhodo.getIrrc_registered()}"></td>
+        </tr>
+        <tr th:if="${rhodo.getExtra_information() != null}">
+            <td class="key"><b>Extra Information</b></td>
+            <td class="value" th:text="${rhodo.getExtra_information()}"></td>
+        </tr>
+    </table>
     <table class="bordered-table picture-table">
         <tr th:each="resolvedPhotoDetail : ${resolvedPhotoDetails}">
             <td class="picture-td">

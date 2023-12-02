@@ -7,7 +7,7 @@
 <div class="content">
     <div class="description-container">
         <h1 class="font-weight-bold" th:text='|Search Results For: "${query}"|'></h1>
-        <span th:if="${rhodos.isEmpty()}">No matching results found</span>
+        <div th:if="${rhodos.isEmpty()}" style="text-align: center;"><i><b>No matching results found</b></i></div>
         <th:block th:if="${not rhodos.isEmpty()}">
             <table>
                 <tr>
