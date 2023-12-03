@@ -9,7 +9,7 @@ body {
 
 .topnav {
     overflow: hidden;
-    background-color: #e9e9e9;
+    background-color: #FFFFFF;
 }
 
 .topnav a {
@@ -41,6 +41,7 @@ body {
     margin-top: 8px;
     font-size: 17px;
     border: none;
+    background: #f6f6f6;
 }
 
 .topnav .search-container button {
@@ -78,7 +79,7 @@ body {
 }
 
 html body {
-    background: #cceedd;
+    background: #d5edd5;
 }
 
 
@@ -181,7 +182,7 @@ input:checked + .slider:before {
 
 div.content {
     max-width: 800px;
-    background-color: #e9e9e9;
+    background-color: #ffffff;
     /*padding-left: 10px;*/
     /*padding-right: 10px;*/
     margin: 50px auto auto;
