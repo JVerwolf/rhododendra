@@ -62,7 +62,8 @@ public class WebController {
             .addAttribute("letters", UPPER_CASE_ALPHABET);
         return "rhodo-index";
     }
-    public enum UseCase{
+
+    public enum UseCase {
         SIBLINGS,
         CHILDREN
     }
@@ -83,17 +84,10 @@ public class WebController {
         // TODO add logging.
         var set_size = 50;
 
-//        var seedParentList = SearchService.getRhodoById(seedParentId);
-//        var seedParent = !seedParentList.isEmpty() ? seedParentList.get(0) : null;
-//
-//        var pollenParentList = SearchService.getRhodoById(pollenParentId);
-//        var pollenParent = !pollenParentList.isEmpty() ? pollenParentList.get(0) : null;
-
         var originalRhodoList = SearchService.getRhodoById(originalRhodoId);
         var originalRhodo = !originalRhodoList.isEmpty() ? originalRhodoList.get(0) : null;
 
-
-        var results = RhodoLogicService.rhodoParentageSearch(seedParentId, pollenParentId, requireSeed, requirePollen,!ordered, originalRhodoId, set_size, offset);
+        var results = RhodoLogicService.rhodoParentageSearch(seedParentId, pollenParentId, requireSeed, requirePollen, !ordered, originalRhodoId, set_size, offset);
         model.addAttribute("rhodos", results.results)
             .addAttribute("resultPages", results.indexPages)
             .addAttribute("resultPagePos", results.indexPagePos)
@@ -110,6 +104,28 @@ public class WebController {
             .addAttribute("useCase", usecase.name())
             .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
         return "genetic-search";
+    }
+
+    @RequestMapping("/taxonomic_search")
+    public String handleTaxonomicSearch(
+        Model model,
+        @RequestParam(value = "subgenus", required = false) String subgenus,
+        @RequestParam(value = "section", required = false) String section,
+        @RequestParam(value = "subsection", required = false) String subsection,
+        @RequestParam(value = "size", defaultValue = "50") int size,
+        @RequestParam(value = "offset", defaultValue = "0") int offset
+    ) throws IOException, ParseException {
+        var set_size = 50;
+        var results = RhodoLogicService.rhodoTaxonomicSearch(subgenus, section, subsection, size, offset);
+        model.addAttribute("rhodos", results.results)
+            .addAttribute("resultPages", results.indexPages)
+            .addAttribute("resultPagePos", results.indexPagePos)
+            .addAttribute("pageSize", set_size)
+            .addAttribute("subgenus", subgenus)
+            .addAttribute("section", section)
+            .addAttribute("subsection", subsection)
+            .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
+        return "taxonomic-search";
     }
 
     @RequestMapping(value = "/search")

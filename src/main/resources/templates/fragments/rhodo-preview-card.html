@@ -2,7 +2,7 @@
 <tr th:fragment="card(rhodo)">
     <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Rhododendron"*/-->
     <td class="table-description-text">
-        <h3 ><b th:utext="${rhodo.getFormattedName()}"></b></h3>
+        <h3><b th:utext="${rhodo.getFormattedName()}"></b></h3>
         <h5>
             <span th:text="${rhodo.descriptionText()}"></span>
         </h5>
@@ -19,6 +19,29 @@
         <p th:if="${rhodo.getHybridizer() != null && not rhodo.getIs_species_selection() && not rhodo.isSpecies}">
             <b>Hybridized By: </b>
             <span th:text="${rhodo.getHybridizer().getHybridizer() != null ?rhodo.getHybridizer().getHybridizer() : 'Unknown'}"></span>
+        </p>
+        <p th:if="${rhodo.getTaxonomy() != null}">
+            <span th:if="${rhodo.getTaxonomy().getSubgenus() != null}">
+                <b>Subgenus: </b>
+                <a th:href="@{/taxonomic_search(subsection=${rhodo.getTaxonomy().getSubgenus()})}">
+                        <i th:text="${rhodo.getTaxonomy().getSubgenus()}"></i>
+                    </a>
+                <br/>
+            </span>
+            <span th:if="${rhodo.getTaxonomy().getSection() != null}">
+                <b>Section: </b>
+               <a th:href="@{/taxonomic_search(subsection=${rhodo.getTaxonomy().getSection()})}">
+                        <i th:text="${rhodo.getTaxonomy().getSection()}"></i>
+                    </a>
+                <br/>
+            </span>
+            <span th:if="${rhodo.getTaxonomy().getSubsection() != null}">
+                <b>Subsection: </b>
+                <a th:href="@{/taxonomic_search(subsection=${rhodo.getTaxonomy().getSubsection()})}">
+                        <i th:text="${rhodo.getTaxonomy().getSubsection()}"></i>
+                    </a>
+                <br/>
+            </span>
         </p>
         <a th:if="${not #lists.isEmpty(rhodo.getPhotos())}" th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
             More information and pictures

@@ -32,6 +32,9 @@ public class IndexService {
     public static final String HAS_PHOTOS = "has_photos";
     public static final String SEED_PARENT_KEY = "seed_parent";
     public static final String POLLEN_PARENT_KEY = "pollen_parent";
+    public static final String SUBGENUS_KEY = "subgenus";
+    public static final String SECTION_KEY = "section";
+    public static final String SUBSECTION_KEY = "subsection";
 
 
     public final static String SOURCE_KEY = "_source";
@@ -93,6 +96,24 @@ public class IndexService {
                     document.add(new StringField(SEED_PARENT_KEY, rhodo.getSpecies_id(), Field.Store.NO));
                     document.add(new StringField(POLLEN_PARENT_KEY, rhodo.getSpecies_id(), Field.Store.NO));
                 }
+
+                // Set the taxonomy of a species selection to the original species
+                if (rhodo.getIs_species_selection()) {
+                    var originalSpecies = idToRhodoMap.get(rhodo.getSpecies_id());
+                    rhodo.setTaxonomy(originalSpecies.getTaxonomy());
+                }
+
+                if (rhodo.getTaxonomy() != null) {
+                    if (rhodo.getTaxonomy().getSubgenus() != null) {
+                        document.add(new StringField(SUBGENUS_KEY, rhodo.getTaxonomy().getSubgenus().toLowerCase(), Field.Store.NO));
+                    }
+                    if (rhodo.getTaxonomy().getSection() != null) {
+                        document.add(new StringField(SECTION_KEY, rhodo.getTaxonomy().getSection().toLowerCase(), Field.Store.NO));
+                    }
+                    if (rhodo.getTaxonomy().getSubsection() != null) {
+                        document.add(new StringField(SUBSECTION_KEY, rhodo.getTaxonomy().getSubsection().toLowerCase(), Field.Store.NO));
+                    }
+                }
             }
         );
     }
@@ -136,9 +157,9 @@ public class IndexService {
 
         for (T doc : searchDocs) {
             Document document = new Document();
+            searchableFields.accept(document, doc);
             document.add(new Field(SOURCE_KEY, objectMapper.writeValueAsString(doc), sourceFieldType()));
             document.add(new StringField(primaryIdKey, doc.primaryIdValue(), Field.Store.YES));
-            searchableFields.accept(document, doc);
             indexWriter.updateDocument(new Term(primaryIdKey, doc.primaryIdValue()), document);
         }
         indexWriter.close();

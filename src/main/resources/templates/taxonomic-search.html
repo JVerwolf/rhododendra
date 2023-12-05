@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="english">
+<head th:replace="~{fragments/head}"></head>
+<body>
+<div th:replace="~{fragments/header}"></div>
+
+<div class="content">
+    <div class="description-container">
+        <h1 class="font-weight-bold" style="text-align: center;">Taxonomy Search</h1>
+        <h2 style="text-align: center;" th:utext="${originalRhodoFormattedName}"></h2>
+        <h4 th:if="${not #strings.isEmpty(subgenus)}" style="text-align: center;" th:utext='|Subgenus: ${subgenus}|'></h4>
+        <h4 th:if="${not #strings.isEmpty(section)}" style="text-align: center;" th:utext='|Section: ${section}|'></h4>
+        <h4 th:if="${not #strings.isEmpty(subsection)}" style="text-align: center;" th:utext='|Subsection: ${subsection}|'></h4>
+        <div th:if="${rhodos.isEmpty()}" style="text-align: center;"><i><b>No matching results found</b></i></div>
+        <th:block th:if="${not rhodos.isEmpty()}">
+            <table>
+                <tr>
+                    <td><b>Pages of Results:</b></td>
+                    <th:block th:each="page, stat : ${resultPages}">
+                        <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _}"
+                            th:styleappend="${'padding:8px'}">
+                            <a th:href="@{/taxonomic_search(subgenus=${subgenus},section=${section},subsection=${subsection},offset=${page.startPos})}">
+                                <b th:text="${stat.index + 1}"></b>
+                            </a>
+                        </td>
+                    </th:block>
+                </tr>
+            </table>
+        </th:block>
+        <br/>
+    </div>
+    <th:block th:if="${not rhodos.isEmpty()}">
+        <a th:if="${resultPagePos< resultPages.size()-1}"
+           th:href="@{/taxonomic_search(subgenus=${subgenus},section=${section},subsection=${subsection},offset=${resultPages[resultPagePos].endPos+1})}"
+           style="display: flex; justify-content: flex-end; padding-right: 5%">
+            <h2>
+                Next Page
+            </h2>
+        </a>
+        <table class="picture-table bordered-table">
+            <th:block th:each="rhodo : ${rhodos}">
+                <th:block th:insert="~{fragments/rhodo-preview-card :: card (${rhodo}) }"></th:block>
+            </th:block>
+        </table>
+        <a th:if="${resultPagePos< resultPages.size()-1}"
+           th:href="@{/taxonomic_search(subgenus=${subgenus},section=${section},subsection=${subsection},offset=${resultPages[resultPagePos].endPos+1})}"
+           style="display: flex; justify-content: flex-end; padding-right: 5%">
+            <h2>
+                Next Page
+            </h2>
+        </a>
+    </th:block>
+</div>
+
+</body>
+</html>

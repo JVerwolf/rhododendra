@@ -79,17 +79,33 @@
             </tr>
         </th:block>
         <th:block th:if="${rhodo.getTaxonomy() != null}">
+
             <tr>
                 <td class="key"><b>Subgenus</b></td>
-                <td class="value" th:text="${rhodo.getTaxonomy().getSubgenus()}"></td>
+                <td class="value">
+                    <a th:if="${rhodo.getTaxonomy().getSubgenus() != null}"
+                       th:href="@{/taxonomic_search(subgenus=${rhodo.getTaxonomy().getSubgenus()})}">
+                        <i th:text="${rhodo.getTaxonomy().getSubgenus()}"></i>
+                    </a>
+                </td>
             </tr>
             <tr>
                 <td class="key"><b>Section</b></td>
-                <td class="value" th:text="${rhodo.getTaxonomy().getSection()}"></td>
+                <td class="value">
+                    <a th:if="${rhodo.getTaxonomy().getSection() != null}"
+                       th:href="@{/taxonomic_search(section=${rhodo.getTaxonomy().getSection()})}">
+                        <i th:text="${rhodo.getTaxonomy().getSection()}"></i>
+                    </a>
+                </td>
             </tr>
             <tr>
                 <td class="key"><b>Subsection</b></td>
-                <td class="value" th:text="${rhodo.getTaxonomy().getSubsection()}"></td>
+                <td class="value">
+                    <a th:if="${rhodo.getTaxonomy().getSubgenus() != null}"
+                       th:href="@{/taxonomic_search(subsection=${rhodo.getTaxonomy().getSubsection()})}">
+                        <i th:text="${rhodo.getTaxonomy().getSubsection()}"></i>
+                    </a>
+                </td>
             </tr>
         </th:block>
         <th:block th:if="${rhodo.getParentage() != null}">

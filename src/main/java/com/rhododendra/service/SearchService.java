@@ -143,6 +143,26 @@ public class SearchService {
 
     }
 
+    public static IndexResults<Rhododendron> searchRhodosByTaxonomy(String subgenus, String section, String subsection, int pageSize, int offset) throws IOException, ParseException {
+        var query = new BooleanQuery.Builder();
+        if (!Strings.isEmpty(subgenus)) {
+            query.add(new TermQuery(new Term(SUBGENUS_KEY, subgenus.toLowerCase())), BooleanClause.Occur.MUST);
+        } else if (!Strings.isEmpty(section)) {
+            query.add(new TermQuery(new Term(SECTION_KEY, section.toLowerCase())), BooleanClause.Occur.MUST);
+        } else if (!Strings.isEmpty(subsection)) {
+            query.add(new TermQuery(new Term(SUBSECTION_KEY, subsection.toLowerCase())), BooleanClause.Occur.MUST);
+        }
+        Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
+        return paginatedSearch(
+            RHODO_INDEX_PATH,
+            new TypeReference<Rhododendron>() {
+            },
+            pageSize,
+            offset,
+            indexSearcher -> indexSearcher.search(query.build(), Integer.MAX_VALUE, sort)
+        );
+    }
+
     public static List<PhotoDetails> searchPhotoDetails(String queryString) {
         try {
             return search(
