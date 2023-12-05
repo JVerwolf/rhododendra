@@ -205,10 +205,17 @@ div.content {
 }
 
 .picture-td {
-    width: 1%;
-    height: 1%;
+    width: 1px;
+    height: 1px;
     white-space: nowrap;
     padding: 3px;
+}
+
+.picture-td  div {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 

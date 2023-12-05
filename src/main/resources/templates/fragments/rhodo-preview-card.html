@@ -23,14 +23,14 @@
         <p th:if="${rhodo.getTaxonomy() != null}">
             <span th:if="${rhodo.getTaxonomy().getSubgenus() != null}">
                 <b>Subgenus: </b>
-                <a th:href="@{/taxonomic_search(subsection=${rhodo.getTaxonomy().getSubgenus()})}">
+                <a th:href="@{/taxonomic_search(subgenus=${rhodo.getTaxonomy().getSubgenus()})}">
                         <i th:text="${rhodo.getTaxonomy().getSubgenus()}"></i>
                     </a>
                 <br/>
             </span>
             <span th:if="${rhodo.getTaxonomy().getSection() != null}">
                 <b>Section: </b>
-               <a th:href="@{/taxonomic_search(subsection=${rhodo.getTaxonomy().getSection()})}">
+               <a th:href="@{/taxonomic_search(section=${rhodo.getTaxonomy().getSection()})}">
                         <i th:text="${rhodo.getTaxonomy().getSection()}"></i>
                     </a>
                 <br/>
@@ -50,11 +50,14 @@
     <td class="picture-td">
         <th:block th:if="${not #lists.isEmpty(rhodo.getPhotos())}">
             <a th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
-                <img th:src="${rhodo.getPhotos()[0]}" width="400">
+                <img th:src="${rhodo.getPhotos()[0]}" width="400" th:title="'More information'">
             </a>
         </th:block>
         <th:block th:if="${#lists.isEmpty(rhodo.getPhotos())}">
-            <a th:href="@{'/rhodos/'+ ${rhodo.getId()}}">More information</a>
+            <a style="text-align: center;" th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
+                <div><h6>More
+                    information</h6></div>
+            </a>
         </th:block>
     </td>
 </tr>
