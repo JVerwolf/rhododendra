@@ -27,8 +27,8 @@ public class RestResourceController {
                 "Sitemap: http://rhododendra.com/all_rhodos.txt");
     }
 
-    @GetMapping(value = {"/all_rhodos.txt"}, produces = MediaType.TEXT_PLAIN_VALUE)
-    public ResponseEntity<String> getAllRhodos() throws IOException {
+    @GetMapping(value = {"all_rhodos_2.txt"}, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> getAllRhodos() {
         return ResponseEntity
             .ok()
             .contentType(MediaType.TEXT_PLAIN)
