@@ -3,6 +3,7 @@ package com.rhododendra.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rhododendra.model.Botanist;
+import com.rhododendra.model.Hybridizer;
 import com.rhododendra.model.PhotoDetails;
 import com.rhododendra.model.Rhododendron;
 import com.rhododendra.model.Rhododendron.SearchFilters;
@@ -143,6 +144,67 @@ public class SearchService {
 
     }
 
+    public static IndexResults<Rhododendron> getRhodosByHybridizer(String hybridizerId, int pageSize, int offset) throws IOException, ParseException {
+        Query query;
+        if (Strings.isEmpty(hybridizerId)) {
+            query = new BooleanQuery.Builder().build(); // matches nothing if query is blank
+        } else {
+            query = new TermQuery(new Term(HYBRIDIZER_ID, hybridizerId));
+        }
+        // TODO add a sort by date
+        return paginatedSearch(
+            RHODO_INDEX_PATH,
+            new TypeReference<Rhododendron>() {
+            },
+            pageSize,
+            offset,
+            indexSearcher -> indexSearcher.search(query, Integer.MAX_VALUE)
+        );
+
+    }
+
+    public static IndexResults<Hybridizer> searchHybridizers(String queryString, int pageSize, int offset) throws IOException, ParseException {
+        Query query;
+
+        if (Strings.isEmpty(queryString)) {
+            query = new BooleanQuery.Builder().build(); // matches nothing if query is blank
+
+        } else {
+            int maxEdits = 0;
+            if (queryString.length() <= 2) {
+                maxEdits = 0;
+            } else if (queryString.length() <= 5) {
+                maxEdits = 2;
+            } else {
+                maxEdits = 2;
+            }
+
+            QueryBuilder queryBuilder = new QueryBuilder(new StandardAnalyzer());
+            query = new BooleanQuery.Builder()
+                .add(
+                    new BooleanClause(
+                        queryBuilder.createMinShouldMatchQuery(Hybridizer.NAME_KEY, queryString, .75f),
+                        BooleanClause.Occur.SHOULD
+                    )
+                )
+                .add(new BooleanClause(
+                    new FuzzyQuery(new Term(Hybridizer.NAME_KEY, queryString), maxEdits),
+                    BooleanClause.Occur.SHOULD)
+                )
+                .build();
+        }
+
+        return paginatedSearch(
+            HYBRIDIZER_INDEX_PATH,
+            new TypeReference<Hybridizer>() {
+            },
+            pageSize,
+            offset,
+            indexSearcher -> indexSearcher.search(query, Integer.MAX_VALUE)
+        );
+
+    }
+
     public static IndexResults<Rhododendron> searchRhodosByTaxonomy(String subgenus, String section, String subsection, int pageSize, int offset) throws IOException, ParseException {
         var query = new BooleanQuery.Builder();
         if (!Strings.isEmpty(subgenus)) {
@@ -225,6 +287,21 @@ public class SearchService {
             );
         } catch (Exception e) {
             logger.error("Could not search getRhodoById", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static List<Hybridizer> getHybridizerById(String id) {
+        if (id == null) return List.of();
+        try {
+            return search(
+                new TermQuery(new Term(Hybridizer.PRIMARY_ID_KEY, id)),
+                HYBRIDIZER_INDEX_PATH,
+                new TypeReference<Hybridizer>() {
+                }
+            );
+        } catch (Exception e) {
+            logger.error("Could not search getHybridizerById", e);
             return Collections.emptyList();
         }
     }

@@ -55,23 +55,20 @@
                 </th:block>
             </td>
         </tr>
-        <th:block th:if="${rhodo.getIs_species_selection()}">
-            <tr>
-                <td class="key"><b>Selected By</b></td>
-                <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  != null}"
-                    th:text="${rhodo.getHybridizer().getHybridizer() }"></td>
-                <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
-            </tr>
-        </th:block>
-        <th:block th:if="${not rhodo.isSpecies()}">
-            <tr>
-                <td class="key"><b>Hybridized By</b></td>
-                <td class="value" th:if="${rhodo.getHybridizer().getHybridizer() != null}"
-                    th:text="${rhodo.getHybridizer().getHybridizer() }"></td>
-                <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
-            </tr>
-            <tr>
-        </th:block>
+        <tr th:if="${rhodo.getIs_species_selection() || not rhodo.isSpecies()}">
+            <td th:if="${rhodo.getIs_species_selection()}" class="key"><b>Selected By</b></td>
+            <td th:if="${not rhodo.getIs_species_selection()}" class="key"><b>Hybridized By</b></td>
+
+            <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  != null}">
+                <a th:if="${rhodo.getHybridizer().getHybridizer_id() != null}"
+                   th:href="@{/hybridizer/__${rhodo.getHybridizer().getHybridizer_id()}__}">
+                    <b th:text="${rhodo.getHybridizer().getHybridizer() }"></b>
+                </a>
+                <span th:if="${rhodo.getHybridizer().getHybridizer_id() == null}"
+                      th:text="${rhodo.getHybridizer().getHybridizer()}"></span>
+            </td>
+            <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
+        </tr>
         <th:block th:if="${rhodo.getAzalea_group() != null}">
             <tr>
                 <td class="key"><b>Azalea group</b></td>
@@ -257,7 +254,7 @@
                         <dt>Tag:</dt>
                         <dd><img th:src="${resolvedPhotoDetail.getResolvedTagURL()}"></dd>
                     </th:block>
-<!--                    https://chooser-beta.creativecommons.org/-->
+                    <!--                    https://chooser-beta.creativecommons.org/-->
                 </dl>
             </td>
         </tr>

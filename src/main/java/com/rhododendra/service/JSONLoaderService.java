@@ -14,6 +14,7 @@ public class JSONLoaderService {
     final static String HYBRIDS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/hybrids.json";
     final static String AZALEAS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/azaleas.json";
     final static String VIREYAS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/vireyas.json";
+    final static String HYBRIDIZER_DETAILS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/hybridizers.json";
     final static String AZALEODENDRONS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/azaleodendrons.json";
     final static String PHOTO_DETAILS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/photo_details.json";
 
@@ -46,6 +47,13 @@ public class JSONLoaderService {
 
     public static List<PhotoDetails> loadPhotoDetails() throws IOException {
         File file = new File(PHOTO_DETAILS_PATH);
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(file, new TypeReference<>() {
+        });
+    }
+
+    public static List<Hybridizer> loadHybridizers() throws IOException {
+        File file = new File(HYBRIDIZER_DETAILS_PATH);
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(file, new TypeReference<>() {
         });

@@ -57,6 +57,17 @@ public class RhodoLogicService {
         return result;
     }
 
+    public static IndexResults<Rhododendron> getRhodosByHybridizer(String hybridizerId, int pageSize, int offset) throws IOException, ParseException {
+        // todo validate input
+        var result = SearchService.getRhodosByHybridizer(hybridizerId, pageSize, offset);
+        result.results.forEach(rhodo -> {
+                rhodo.setPhotos(ImageResolver.resolveImages(rhodo.getPhotos()));
+                addSelectedSpecies(rhodo);
+            }
+        );
+        return result;
+    }
+
     public static IndexResults<Rhododendron> rhodoTaxonomicSearch(String subgenus, String section, String subsection, int pageSize, int offset) throws IOException, ParseException {
         // todo validate input
         var result = SearchService.searchRhodosByTaxonomy(subgenus, section, subsection, pageSize, offset);

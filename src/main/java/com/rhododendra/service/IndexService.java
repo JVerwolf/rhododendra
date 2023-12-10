@@ -25,6 +25,7 @@ public class IndexService {
     public final static String BOTANIST_INDEX_PATH = BASE_INDEX_PATH + "/botanists";
     public final static String PHOTO_DETAIL_INDEX_PATH = BASE_INDEX_PATH + "/photo_details";
     public final static String RHODO_INDEX_PATH = BASE_INDEX_PATH + "/rhodos";
+    public final static String HYBRIDIZER_INDEX_PATH = BASE_INDEX_PATH + "/hybridizers";
 
 
     //Additional Search/Index keys
@@ -35,7 +36,7 @@ public class IndexService {
     public static final String SUBGENUS_KEY = "subgenus";
     public static final String SECTION_KEY = "section";
     public static final String SUBSECTION_KEY = "subsection";
-
+    public static final String HYBRIDIZER_ID = "hybridizer_id";
 
     public final static String SOURCE_KEY = "_source";
     public final static String PAGINATION_DESCRIPTOR_KEY = "descriptor"; // for pagination
@@ -79,6 +80,10 @@ public class IndexService {
                     rhodo.getPhotos().isEmpty() ? "false" : "true",
                     Field.Store.NO
                 ));
+                if (rhodo.getHybridizer() != null && rhodo.getHybridizer().getHybridizer_id() != null){
+                    document.add(new StringField(HYBRIDIZER_ID,rhodo.getHybridizer().getHybridizer_id(), Field.Store.NO));
+                }
+
                 var parentage = rhodo.getParentage();
                 if (parentage != null) {
                     var seed_parent = parentage.getSeed_parent_id();
@@ -118,13 +123,28 @@ public class IndexService {
         );
     }
 
+    public static void indexHybridizers() throws IOException {
+        index(
+            JSONLoaderService.loadHybridizers(),
+            HYBRIDIZER_INDEX_PATH,
+            Hybridizer.PRIMARY_ID_KEY,
+            (document, hybridizer) -> {
+                document.add(new SortedDocValuesField(Hybridizer.NAME_KEY_FOR_SORT, new BytesRef(hybridizer.getName())));
+                document.add(new TextField(Hybridizer.NAME_KEY, hybridizer.getName(), Field.Store.NO));
+                document.add(new StringField(PAGINATION_DESCRIPTOR_KEY, hybridizer.getName(), Field.Store.YES));
+            }
+        );
+    }
+
     public static void indexPhotoDetails() throws IOException {
         index(
             JSONLoaderService.loadPhotoDetails(),
             PHOTO_DETAIL_INDEX_PATH,
             PhotoDetails.PRIMARY_ID_KEY,
             (document, photoDetails) -> {
-                document.add(new TextField(PhotoDetails.PHOTO_BY, photoDetails.getPhotoBy(), Field.Store.NO));
+                if (photoDetails.getPhotoBy() != null) {
+                    document.add(new TextField(PhotoDetails.PHOTO_BY, photoDetails.getPhotoBy(), Field.Store.NO));
+                }
             }
         );
     }

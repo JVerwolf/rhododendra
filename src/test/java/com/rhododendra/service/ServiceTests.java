@@ -41,6 +41,15 @@ public class ServiceTests {
         assertEquals(1, getPhotoDetailsById("h11579_Douglas_R_Stephens_1_normal.jpg").size());
     }
 
+    @Test
+    void testIndexAndSearchHybridizers() throws IOException, ParseException {
+        indexHybridizers();
+        assertEquals(1, getHybridizerById("p303").size());
+        assertThat(searchHybridizers("Rothschild",10, 0).results).isNotEmpty();
+
+//        assertEquals(1, getPhotoDetailsById("h11579_Douglas_R_Stephens_1_normal.jpg").size());
+    }
+
 
     @Test
     void testLoadBotanist() throws IOException {

@@ -256,7 +256,7 @@ public class Rhododendron extends Indexable {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Hybridizer {
         String hybridizer;
-        Integer hybridizer_id;
+        String hybridizer_id;
 
         public String getHybridizer() {
             return hybridizer;
@@ -266,11 +266,11 @@ public class Rhododendron extends Indexable {
             this.hybridizer = hybridizer;
         }
 
-        public Integer getHybridizer_id() {
+        public String getHybridizer_id() {
             return hybridizer_id;
         }
 
-        public void setHybridizer_id(Integer hybridizer_id) {
+        public void setHybridizer_id(String hybridizer_id) {
             this.hybridizer_id = hybridizer_id;
         }
     }

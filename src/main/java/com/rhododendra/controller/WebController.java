@@ -162,7 +162,7 @@ public class WebController {
     }
 
     @RequestMapping(value = "/rhodos/{id}")
-    public String handleGetHybrid(Model model, @PathVariable("id") String id) {
+    public String handleGetRhodo(Model model, @PathVariable("id") String id) {
         var result = SearchService.getRhodoById(id);
         if (!result.isEmpty()) {
             var rhodo = result.get(0);
@@ -177,6 +177,32 @@ public class WebController {
             return "rhodo-detail";
         } else {
             logger.warn("Rhodo requested but not found: " + id);
+            return "404";
+        }
+    }
+
+    @RequestMapping(value = "/hybridizer/{id}")
+    public String handleGetHybridizer(
+        Model model, @PathVariable("id") String hybridizerId,
+        @RequestParam(value = "size", defaultValue = "50") int size,
+        @RequestParam(value = "offset", defaultValue = "0") int offset
+    ) throws IOException, ParseException {
+        var set_size = 50;
+        var result = SearchService.getHybridizerById(hybridizerId);
+        if (!result.isEmpty()) {
+            var hybridizer = result.get(0);
+            model.addAttribute("hybridizer", hybridizer);
+            model.addAttribute("hybridizerResolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(hybridizer.getPhotos()));
+            var results = RhodoLogicService.getRhodosByHybridizer(hybridizerId,set_size, offset);
+            model.addAttribute("rhodos", results.results)
+                .addAttribute("resultPages", results.indexPages)
+                .addAttribute("resultPagePos", results.indexPagePos)
+                .addAttribute("pageSize", set_size)
+                .addAttribute("id", hybridizerId)
+                .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
+            return "hybridizer-detail";
+        } else {
+            logger.warn("Hybridizer requested but not found: " + hybridizerId);
             return "404";
         }
     }
