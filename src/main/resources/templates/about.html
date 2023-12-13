@@ -9,43 +9,64 @@
     <div class="description-container">
         <h1 class="font-weight-bold">About</h1>
         <p><b>Rhododendron</b> (plural: <b>rhododendra</b>)</p>
-        <p>
-            This website lists rhododendron species and cultivars with photos and information.
-        </p>
-        <p>
-            <i>
-                This website is still <b>very early in it's development</b> - there's much more on the way!
-            </i>
-            Stay tuned as functionality and data are regularly added.
-        </p>
-
         <ul>
+            <li><a href="#what-is-this">What is Rhododendra?</a></li>
+            <li><a href="#disclaimer">Accuracy of Information</a></li>
             <li><a href="#todo-list">The Ever Growing To-Do List</a></li>
             <li><a href="#update-log">Update Log</a></li>
             <li><a href="#acknowledgements">Acknowledgements</a></li>
             <li><a href="#tech">Technical Details</a></li>
         </ul>
-
+        <h3 id="what-is-this">What is This Place?</h3>
+        <p>
+            This website lists 17,488 rhododendron species and cultivars with photos and information. This site is
+            non-commercial, and not owned by any organization. I built it for the benefit and enjoyment of others
+            who share an interest in Rhododendrons.
+        </p>
+        <p>
+            With all this data in one place, it's possible to explore connections between plants, e.g. searching for:
+            parents, siblings, children, and taxonomy. There are many more advanced search/visualization features to
+            come. In addition to exploring data, this website contains ~15,000 pictures, many of which show
+            details and plants available nowhere else.
+        </p>
+        <p>
+            This website seeks to continue the project started by the late, great, www.hirsutum.info. Though Hirsutum no
+            longer exists, I am profoundly grateful to the developers and contributors for their hard work assembling
+            photos and information. I built the code for Rhododendra from scratch, and used data from Hirsutum
+            listed as "public domain" and the pictures contained therein (owned by their contributors). I hope that this
+            website will one day become a worthy successor in continuing the work that Hirsutum started.
+        </p>
+        <p>
+            <i>
+                This website is still <b>very early in its development</b> - there's much more yet on the way!
+            </i>
+            Stay tuned as functionality and data are regularly added.
+        </p>
+        <h3 id="disclaimer">Accuracy of Information:</h3>
+        <p>There's a substantial amount of data on this site, and you may occasionally stumble on something that is
+            wrong or outdated. I have a plan to fix it. In the meantime, you can cross-reference data from the top-notch
+            resources in the <a th:href="@{/links}">Links</a> section.
+        </p>
+        <p>
+            My plan for updating stale info is to build a system for public contribution that is vetted by a community
+            of moderators. My goal is for this site to become a living thing, owned and updated by the community.
+        </p>
         <h3 id="todo-list">The Ever Growing To-Do List:</h3>
         <p>(Roughly ordered top to bottom)</p>
         <ul>
-            <li>(In progress) Add "Advanced Search" filters to the index, e.g. species, hybrid, color, hardiness</li>
-            <li>Investigate /rhodos/a11357</li>
-            <li>Add a "cookie" to save preference for advanced search</li>
-            <li>Add "Advanced Search" filters to the Search bar, e.g. species, hybrid, color, hardiness</li>
-            <li>Add links to other great rhodo resources</li>
-            <li>Fix capitalization issues in search</li>
             <li>Get an SSL cert for HTTPS so that I can safely transfer user input when it comes time to build a
                 contribution mechanism.
             </li>
-            <li>(In progress) Add styling so the page fits mobile devices and looks decent in general</li>
+            <li>Investigate /rhodos/a11357</li>
+            <li>Add links to other great rhodo resources</li>
+            <li>Fix capitalization issues in search</li>
             <li>Add page that shows full genetic trees</li>
             <li>Add data for botanists</li>
-            <li>Add data for hybridizers</li>
+            <li>Add hybridizer index page</li>
+            <li>Add Taxonomy index page</li>
             <li>Add new fields for rhodo data, eg. scent, cultivation notes, successfully grown in hardiness zones,
                 etc.
             </li>
-            <li>Add the ability to search on many more categories to make it easy to find and display information</li>
             <li>Add a mechanism to enable others to contribute with additional pictures, info, and corrections via a
                 "form" on the website (instead of manual data entry).
             </li>
@@ -60,6 +81,7 @@
             (Newest First)
         </p>
         <ul>
+            <li>Dec 09, 2023: Add data for hybridizers</li>
             <li>Dec 04, 2023: Add taxonomic search. Display taxonomy in index/search "cards"</li>
             <li>Nov 29, 2023: Add parent/children search, add styling updates, improve search "cards"</li>
             <li>Nov 28, 2023: Improve scientific stylistic nomenclature across the site</li>
@@ -75,6 +97,7 @@
             <li>Nov 20, 2023: Added all hi-res photos (Thanks to Tom Nosella for providing a clean backup)</li>
             <li>Nov 19, 2023: Update titles to improve stylistic nomenclature (not fully completed).</li>
             <li>Nov 15, 2023: Use a CDN (content delivery network) for faster picture delivery.</li>
+            <li>Add styling so the page looks decent in general (open for debate)</li>
             <li>italicize species, swap seed/pollen parent in attributes table</li>
             <li>Add data for azaleodendrons</li>
             <li>Add index filters for just pictures</li>
@@ -93,9 +116,8 @@
         </p>
         <p>
             Special thanks to <b><i>Sean Rafferty</i></b> for his generosity, time, and wealth of advice. Sean first
-            described
-            to me www.hirsutum.info, its utility to the community, and it's unfortunate demise. That conversation became
-            the origin of this project.
+            described www.hirsutum.info to me, its utility to the community, and it's unfortunate demise. That
+            conversation became the origin of this project.
         </p>
         <p>
             Thanks to <b><i>Ken Webb</i></b>, <b><i>Tony & Caroline Marquardt</i></b>, and the <b><i>good folks of the
@@ -105,10 +127,10 @@
         <h3 id="tech">Technical Details:</h3>
         <p>
         <ul>
-            <li>15,925 unique entries</li>
+            <li>17,488 unique entries</li>
             <li>14407 photos</li>
             <li>
-                Data scraping and munging was done using 2769 lines of Python (programming language).
+                Data scraping and munging was done using ~3000 lines of Python (programming language).
             </li>
             <li>Search was developed using Apache Lucene, which is a library for building custom search engines</li>
             <li>I wrote the backend in Java (programming language) as I wanted to keep it simple and use something
