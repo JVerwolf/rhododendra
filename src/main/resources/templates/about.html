@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head}"></head>
+<head>
+    <th:block th:include="~{fragments/head}"></th:block>
+    <title th:text="|About|"></title>
+    <meta name="description" th:content="|About Rhododendra.com|">
+    <link rel="canonical" th:href="|www.rhododendra.com/about|"/>
+</head>
 <body>
 <div th:replace="~{fragments/header}"></div>
 
@@ -107,7 +112,7 @@
             <li>Add data for hybrid azalea</li>
             <li>Display/link the parent/child relationships of cultivars (hybrids of, parents, etc.)</li>
             <li>Add the ability to scroll through category index with pagination</li>
-            <li>Add data for hybrid rhdodendra</li>
+            <li>Add data for hybrids</li>
         </ul>
         <h3 id="acknowledgements">Acknowledgements:</h3>
         <p>

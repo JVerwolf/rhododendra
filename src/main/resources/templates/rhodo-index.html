@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="english">
-<head th:replace="~{fragments/head}"></head>
+<head>
+    <th:block th:include="~{fragments/head}"></th:block>
+    <title th:text="|Index|"></title>
+    <meta name="description" th:content="|Index for rhododendrons starting with the letter ${currentLetter}|">
+    <link rel="canonical" th:href="|rhododendra.com/rhodo_index?letter=${currentLetter}|"/>
+</head>
 <body>
 <div th:replace="~{fragments/header}"></div>
 

@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/head}"></head>
+<head>
+    <th:block th:include="~{fragments/head}"></th:block>
+    <title th:text="|Home|"></title>
+    <meta name="description" th:content="|Home|">
+    <link rel="canonical" th:href="|www.rhododendra.com/home|"/>
+</head>
 <body>
 <div th:replace="~{fragments/header}"></div>
 

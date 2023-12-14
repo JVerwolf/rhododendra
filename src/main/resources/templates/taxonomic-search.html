@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="english">
-<head th:replace="~{fragments/head}"></head>
+<head>
+    <th:block th:include="~{fragments/head}"></th:block>
+    <title th:text="|Taxonomy Search:${subgenus != null ? subgenus : ''} ${section != null ? section : ''} ${subsection != null ? subsection : ''}|"></title>
+    <meta name="description" th:content="|Taxonomy Search for ${subgenus != null ? subgenus : ''} ${section != null ? section : ''} ${subsection != null ? subsection : ''}|">
+</head>
 <body>
 <div th:replace="~{fragments/header}"></div>
 

@@ -2,7 +2,9 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <th:block th:include="~{fragments/head}"></th:block>
-    <!--    <meta name="description" th:content="">-->
+    <title th:text="${hybridizer.getName()}"></title>
+    <meta name="description" th:content="|Hybridizer profile for ${hybridizer.getName()}|">
+    <link rel="canonical" th:href="|www.rhododendra.com/hybridizer/${id}|"/>
 </head>
 
 <body>
@@ -12,7 +14,7 @@
 <div class="content">
     <div class="description-container">
         <h1 class="font-weight-bold">Hybridizer Profile</h1>
-        <h2 style="text-align: center;"  th:text="${hybridizer.getName()}"></h2>
+        <h2 style="text-align: center;" th:text="${hybridizer.getName()}"></h2>
         <h3 style="text-align: center;" th:if="${hybridizer.getLocation() != null}"
             th:text="${ hybridizer.getLocation()}"></h3>
         <div style="display: flex; justify-content: center;" th:if="${not hybridizerResolvedPhotoDetails.isEmpty()}">

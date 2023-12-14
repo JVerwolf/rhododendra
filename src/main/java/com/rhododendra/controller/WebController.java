@@ -32,7 +32,7 @@ public class WebController {
     @RequestMapping("/rhodo_index")
     public String handleRhodoIndex(
         Model model,
-        @RequestParam("letter") String letter,
+        @RequestParam(value = "letter", defaultValue = "a") String letter,
         @RequestParam(value = "size", defaultValue = "50") int size,
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "justPics", defaultValue = "false") boolean justPics,
@@ -88,6 +88,7 @@ public class WebController {
         var originalRhodo = !originalRhodoList.isEmpty() ? originalRhodoList.get(0) : null;
 
         var results = RhodoLogicService.rhodoParentageSearch(seedParentId, pollenParentId, requireSeed, requirePollen, !ordered, originalRhodoId, set_size, offset);
+        var formattedName = RhodoLogicService.getFormattedRhodoName(originalRhodo);
         model.addAttribute("rhodos", results.results)
             .addAttribute("resultPages", results.indexPages)
             .addAttribute("resultPagePos", results.indexPagePos)
@@ -97,7 +98,8 @@ public class WebController {
             .addAttribute("pollenParentFormattedName", RhodoLogicService.getFormattedRhodoName(pollenParentId))
             .addAttribute("pollenParentId", pollenParentId)
             .addAttribute("originalRhodoId", originalRhodoId)
-            .addAttribute("originalRhodoFormattedName", RhodoLogicService.getFormattedRhodoName(originalRhodo))
+            .addAttribute("originalRhodoFormattedName", formattedName.replace("<i>","").replace("</i>",""))
+            .addAttribute("originalRhodoFormattedNameForHead", formattedName)
             .addAttribute("requireSeed", requireSeed)
             .addAttribute("requirePollen", requirePollen)
             .addAttribute("ordered", ordered)
@@ -167,6 +169,10 @@ public class WebController {
         if (!result.isEmpty()) {
             var rhodo = result.get(0);
             model.addAttribute("rhodo", rhodo);
+
+            var formattedName = rhodo.getFormattedName();
+            model.addAttribute("rhodoFormattedName", formattedName);
+            model.addAttribute("rhodoNameForHead", formattedName.replace("<i>","").replace("</i>",""));
             model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(rhodo.getPhotos()));
             if (rhodo.getIs_species_selection()) {
                 var speciesResult = SearchService.getRhodoById(rhodo.getSpecies_id());

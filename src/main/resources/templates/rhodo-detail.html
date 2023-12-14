@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:title="|Rhododendron ${rhodo.getName()}|">
+<head >
     <th:block th:include="~{fragments/head}"></th:block>
+    <title th:text="${rhodoNameForHead}"></title>
     <meta name="description" th:content="|Rhododendron ${rhodo.getName()} details and pictures|">
+    <link rel="canonical" th:href="|www.rhododendra.com/rhodos/${rhodo.getId()}|"/>
 </head>
 
 <body>
@@ -10,7 +12,7 @@
 <!--/*@thymesVar id="rhodo" type="com.rhododendra.model.Rhododendron"*/-->
 
 <div class="content">
-    <h1 class="font-weight-bold" th:utext="${rhodo.getFormattedName()}"></h1>
+    <h1 class="font-weight-bold" th:utext="${rhodoFormattedName}"></h1>
     <h2 style="text-align: center;">
         <span th:if="${not rhodo.getIs_species_selection()}" th:text="${rhodo.descriptionText()}"></span>
     </h2>

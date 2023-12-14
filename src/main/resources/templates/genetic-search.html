@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="english">
-<head th:replace="~{fragments/head}"></head>
+<head>
+    <th:block th:include="~{fragments/head}"></th:block>
+    <title th:text="|${useCase=='SIBLINGS' ? 'Sibling' : ''}${useCase=='CHILDREN' ? 'Offspring' : ''} Search: ${originalRhodoFormattedName}|"></title>
+    <meta name="description" th:content="|${useCase=='SIBLINGS' ? 'Sibling' : ''}${useCase=='CHILDREN' ? 'Offspring' : ''} Search: ${originalRhodoFormattedName}|">
+</head>
 <body>
 <div th:replace="~{fragments/header}"></div>
 
