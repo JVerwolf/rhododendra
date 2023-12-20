@@ -1,17 +1,24 @@
 package com.rhododendra.service;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.rhododendra.config.Settings;
+import com.rhododendra.config.AppSettings;
 import com.rhododendra.model.ResolvedPhotoDetails;
 import com.rhododendra.model.Rhododendron;
 import com.rhododendra.model.Rhododendron.SearchFilters;
 import com.rhododendra.service.SearchService.IndexResults;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
 
+@Service
 public class RhodoLogicService {
+    AppSettings appSettings;
+
+    public RhodoLogicService(AppSettings appSettings) {
+        this.appSettings = appSettings;
+    }
+
     public final static List<String> UPPER_CASE_ALPHABET = List.of("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z");
 
     public static IndexResults<Rhododendron> scrollRhodosByLetter(
@@ -238,9 +245,9 @@ public class RhodoLogicService {
             .toList();
     }
 
-    public static List<String> getAllRhodoDetailPages() {
+    public  List<String> getAllRhodoDetailPages() {
         return SearchService.getAllRhodoIds().stream()
-            .map(id -> Settings.DOMAIN + "/rhodos/" + id)
+            .map(id -> appSettings.domain + "/rhodos/" + id)
             .toList();
     }
 }

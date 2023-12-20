@@ -4,7 +4,7 @@
     <th:block th:include="~{fragments/head}"></th:block>
     <title th:text="${rhodoNameForHead}"></title>
     <meta name="description" th:content="|Rhododendron ${rhodo.getName()} details and pictures|">
-    <link rel="canonical" th:href="|www.rhododendra.com/rhodos/${rhodo.getId()}|"/>
+    <link rel="canonical" th:href="|${domain}/rhodos/${rhodo.getId()}|"/>
 </head>
 
 <body>

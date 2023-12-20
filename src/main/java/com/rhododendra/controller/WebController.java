@@ -1,5 +1,6 @@
 package com.rhododendra.controller;
 
+import com.rhododendra.config.AppSettings;
 import com.rhododendra.model.Rhododendron.SearchFilters;
 import com.rhododendra.service.RhodoLogicService;
 import com.rhododendra.service.SearchService;
@@ -22,10 +23,18 @@ import static com.rhododendra.service.RhodoLogicService.UPPER_CASE_ALPHABET;
 
 @Controller
 public class WebController {
+    AppSettings appSettings;
+    public WebController(
+        AppSettings appSettings
+    ) {
+        this.appSettings = appSettings;
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(WebController.class);
 
     @RequestMapping("/")
-    public String index() {
+    public String index(Model model) {
+        model.addAttribute("domain", appSettings.domain);
         return "home";
     }
 
@@ -59,7 +68,8 @@ public class WebController {
             .addAttribute("searchFilters", searchFilterStrings)
             .addAttribute("pageSize", set_size)
             .addAttribute("nextPage", RhodoLogicService.calculateNextIndexPage(results, letter))
-            .addAttribute("letters", UPPER_CASE_ALPHABET);
+            .addAttribute("letters", UPPER_CASE_ALPHABET)
+            .addAttribute("domain", appSettings.domain);
         return "rhodo-index";
     }
 
@@ -98,13 +108,14 @@ public class WebController {
             .addAttribute("pollenParentFormattedName", RhodoLogicService.getFormattedRhodoName(pollenParentId))
             .addAttribute("pollenParentId", pollenParentId)
             .addAttribute("originalRhodoId", originalRhodoId)
-            .addAttribute("originalRhodoFormattedName", formattedName.replace("<i>","").replace("</i>",""))
+            .addAttribute("originalRhodoFormattedName", formattedName.replace("<i>", "").replace("</i>", ""))
             .addAttribute("originalRhodoFormattedNameForHead", formattedName)
             .addAttribute("requireSeed", requireSeed)
             .addAttribute("requirePollen", requirePollen)
             .addAttribute("ordered", ordered)
             .addAttribute("useCase", usecase.name())
-            .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
+            .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray())
+            .addAttribute("domain", appSettings.domain);
         return "genetic-search";
     }
 
@@ -126,7 +137,8 @@ public class WebController {
             .addAttribute("subgenus", subgenus)
             .addAttribute("section", section)
             .addAttribute("subsection", subsection)
-            .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
+            .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray())
+            .addAttribute("domain", appSettings.domain);
         return "taxonomic-search";
     }
 
@@ -144,22 +156,27 @@ public class WebController {
             .addAttribute("resultPagePos", results.indexPagePos)
             .addAttribute("pageSize", set_size)
             .addAttribute("query", query)
-            .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
+            .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray())
+            .addAttribute("domain", appSettings.domain);
         return "search-results";
     }
 
     @RequestMapping(value = "/about")
-    public String handleAbout() {
+    public String handleAbout(Model model) {
+        model.addAttribute("domain", appSettings.domain);
         return "about";
     }
 
     @RequestMapping(value = "/contact")
-    public String handleContact() {
+    public String handleContact(Model model) {
+        model.addAttribute("domain", appSettings.domain);
         return "contact";
     }
 
     @RequestMapping(value = "/links")
-    public String handleLinks() {
+
+    public String handleLinks(Model model) {
+        model.addAttribute("domain", appSettings.domain);
         return "links";
     }
 
@@ -172,8 +189,9 @@ public class WebController {
 
             var formattedName = rhodo.getFormattedName();
             model.addAttribute("rhodoFormattedName", formattedName);
-            model.addAttribute("rhodoNameForHead", formattedName.replace("<i>","").replace("</i>",""));
+            model.addAttribute("rhodoNameForHead", formattedName.replace("<i>", "").replace("</i>", ""));
             model.addAttribute("resolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(rhodo.getPhotos()));
+            model.addAttribute("domain", appSettings.domain);
             if (rhodo.getIs_species_selection()) {
                 var speciesResult = SearchService.getRhodoById(rhodo.getSpecies_id());
                 if (!speciesResult.isEmpty()) {
@@ -199,13 +217,15 @@ public class WebController {
             var hybridizer = result.get(0);
             model.addAttribute("hybridizer", hybridizer);
             model.addAttribute("hybridizerResolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(hybridizer.getPhotos()));
-            var results = RhodoLogicService.getRhodosByHybridizer(hybridizerId,set_size, offset);
+            var results = RhodoLogicService.getRhodosByHybridizer(hybridizerId, set_size, offset);
             model.addAttribute("rhodos", results.results)
                 .addAttribute("resultPages", results.indexPages)
                 .addAttribute("resultPagePos", results.indexPagePos)
                 .addAttribute("pageSize", set_size)
                 .addAttribute("id", hybridizerId)
-                .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray());
+                .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray())
+                .addAttribute("domain", appSettings.domain);
+
             return "hybridizer-detail";
         } else {
             logger.warn("Hybridizer requested but not found: " + hybridizerId);

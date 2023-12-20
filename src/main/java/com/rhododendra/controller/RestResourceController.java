@@ -17,6 +17,11 @@ import org.springframework.core.io.Resource;
 
 @RestController
 public class RestResourceController {
+    RhodoLogicService rhodoLogicService;
+
+    public RestResourceController(RhodoLogicService rhodoLogicService) {
+        this.rhodoLogicService = rhodoLogicService;
+    }
 
     @GetMapping(value = {"/robots.txt", "/Robots.txt", "/robot.txt", "/Robot.txt"}, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> getRobotsTxt() throws IOException {
@@ -32,7 +37,7 @@ public class RestResourceController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.TEXT_PLAIN)
-            .body(String.join("\n", RhodoLogicService.getAllRhodoDetailPages()));
+            .body(String.join("\n", rhodoLogicService.getAllRhodoDetailPages()));
     }
 
     /**
