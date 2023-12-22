@@ -28,8 +28,8 @@ public class RestResourceController {
         return ResponseEntity
             .ok()
             .contentType(MediaType.TEXT_PLAIN)
-            .body("Sitemap: http://rhododendra.com/sitemap.txt \n" +
-                "Sitemap: http://rhododendra.com/all_rhodos.txt");
+            .body("Sitemap: https://rhododendra.com/sitemap.txt \n" +
+                "Sitemap: https://rhododendra.com/all_rhodos_2.txt");
     }
 
     @GetMapping(value = {"all_rhodos_2.txt"}, produces = MediaType.TEXT_PLAIN_VALUE)

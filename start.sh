@@ -5,3 +5,4 @@ while sudo lsof -i :80; do
   sleep 0.1
 done
 sudo nohup java -jar -Dspring.profiles.active=prod /home/ec2-user/rhododendra-0.0.1-SNAPSHOT.jar >> log.log 2>&1 &
+#sudo nohup java -jar -Dspring.profiles.active=staging /home/ec2-user/rhododendra-0.0.1-SNAPSHOT.jar >> log.log 2>&1 &

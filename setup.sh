@@ -15,6 +15,7 @@ sudo ln -s /opt/certbot/bin/certbot /usr/bin/certbot
 
 # Acquire the cert. Don't do this too often while testing - it will incur weekly rate limiting. Use staging env instead.
 sudo certbot certonly -a standalone -d "${DOMAIN}" -d "www.${DOMAIN}"
+#sudo certbot certonly -a standalone -d "rhododendra.org" -d "www.rhododendra.org"
 #sudo certbot certonly -a standalone -d "rhododendra.com" -d "www.rhododendra.com"
 
 # Add crontab for updating cert.
