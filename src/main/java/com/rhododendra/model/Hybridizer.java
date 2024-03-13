@@ -15,6 +15,16 @@ public class Hybridizer extends Indexable {
     private String location;
     private List<String> photos;
 
+    public Hybridizer() { // TODO can this be removed?
+    }
+
+    public Hybridizer(String id, String name, String location, List<String> photos) {
+        this.id = id;
+        this.name = name;
+        this.location = location;
+        this.photos = photos;
+    }
+
     public String getId() {
         return id;
     }

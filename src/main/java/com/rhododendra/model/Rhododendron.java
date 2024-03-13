@@ -4,24 +4,35 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rhododendra.service.RhodoLogicService;
+import jakarta.persistence.*;
 
 import java.util.List;
 
 //@JsonIgnoreProperties(ignoreUnknown=true)
+@Entity
+@Table(name = "RHODODENDRONS")
 @JsonIgnoreProperties({"path"})
 public class Rhododendron extends Indexable {
     public static final String PRIMARY_ID_KEY = "id";
     public static final String NAME_KEY = "name";
     public static final String NAME_KEY_FOR_SORT = "name_key_for_sort";
     public static final String SEARCH_FILTERS = "search_filters";
-
+    @Id
     String id;
     String name;
     String ten_year_height;
     String bloom_time;
     String flower_shape;
     String leaf_shape;
-    List<String> photos;
+    //    @OneToMany
+//    @JoinTable(name="RHODODENDRONS_TO_PHOTOS",
+//            joinColumns={@JoinColumn(name="Photo_ID")},
+//        inverseJoinColumns={@JoinColumn(name="Photo_ID")})
+    @ElementCollection
+    @CollectionTable(name = "RHODODENDRONS_TO_PHOTOS", joinColumns = @JoinColumn(name = "RhododendronId"))
+    @Column(name = "PhotoId")
+    List<String> photos; // todo these are FKs
+    @ElementCollection
     List<String> synonyms;
     String hardiness;
     String deciduous;
@@ -29,10 +40,12 @@ public class Rhododendron extends Indexable {
     String extra_information;
 
     // Selections and Hybrids
+
     Hybridizer hybridizer;
     String irrc_registered;
     String additional_parentage_info;
     String species_id; // for selection
+    @Transient
     Rhododendron selectedSpecies; // Don't store as this info can change, not the source of truth. Only for fetching and putting in model for display.
     String cultivation_since;
     Lepedote lepedote;
@@ -43,10 +56,12 @@ public class Rhododendron extends Indexable {
     // Species
     Taxonomy taxonomy;
     String first_described;
+    @ElementCollection
     List<String> first_described_botanists;
     String origin_location;
     String habit; // terestrial or epyphytic
     String observed_mature_height;
+    @ElementCollection
     List<Synonym> botanical_synonyms;
 
     // Azaleas
@@ -244,6 +259,7 @@ public class Rhododendron extends Indexable {
         return this.lepedote == Lepedote.ELEPEDOTE;
     }
 
+    @Embeddable
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Synonym(
         @JsonProperty(SYNONYM_KEY) String synonym,
@@ -253,6 +269,7 @@ public class Rhododendron extends Indexable {
         public static final String BOTANICAL_SHORTS_KEY = "botanical_shorts";
     }
 
+    @Embeddable
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Hybridizer {
         String hybridizer;
@@ -266,6 +283,9 @@ public class Rhododendron extends Indexable {
             this.hybridizer = hybridizer;
         }
 
+        // TODO add JPA annotation to reference foreign key
+        @CollectionTable(name = "RHODODENDRONS_TO_HYBRIDIZERS", joinColumns = @JoinColumn(name = "RhododendronId"))
+        @Column(name = "hybridizerId")
         public String getHybridizer_id() {
             return hybridizer_id;
         }
@@ -275,6 +295,7 @@ public class Rhododendron extends Indexable {
         }
     }
 
+    @Embeddable
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Taxonomy {
         String subgenus;
@@ -306,6 +327,7 @@ public class Rhododendron extends Indexable {
         }
     }
 
+    @Embeddable
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Parentage {
         String seed_parent;

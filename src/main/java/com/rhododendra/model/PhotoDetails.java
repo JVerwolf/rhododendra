@@ -2,36 +2,53 @@ package com.rhododendra.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
+@Entity
+@Table(name = "PHOTO_DETAILS")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PhotoDetails extends Indexable {
     public static final String PHOTO_BY = "photo_by";
-    public static final String DATE = "date";
-    public static final String LOCATION = "location";
     public static final String HI_RES_PHOTO = "hi_res_photo";
     public static final String PHOTO = "photo";
-    public static final String DESCRIPTION = "description";
-    public static final String NAME = "name";
-    public static final String TAG = "tag";
 
     public static final String PRIMARY_ID_KEY = PHOTO;
 
     @JsonProperty(PHOTO_BY)
     String photoBy;
-    @JsonProperty(DATE)
     String date;
-    @JsonProperty(LOCATION)
     String location;
     @JsonProperty(HI_RES_PHOTO)
     String hiResPhoto;
+    @Id
     @JsonProperty(PHOTO)
     String photo;
-    @JsonProperty(DESCRIPTION)
     String description;
-    @JsonProperty(NAME)
     String name;
-    @JsonProperty(TAG)
     String tag;
+
+    public PhotoDetails(){}
+    public PhotoDetails(
+        String photoBy,
+        String date,
+        String location,
+        String hiResPhoto,
+        String photo,
+        String description,
+        String name,
+        String tag
+    ) {
+        this.photoBy = photoBy;
+        this.date = date;
+        this.location = location;
+        this.hiResPhoto = hiResPhoto;
+        this.photo = photo;
+        this.description = description;
+        this.name = name;
+        this.tag = tag;
+    }
 
     @Override
     public String primaryIdValue() {
