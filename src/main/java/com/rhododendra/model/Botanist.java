@@ -26,6 +26,17 @@ public class Botanist extends Indexable {
     @JsonProperty(IMAGE_KEY)
     String image;
 
+    public Botanist() { // TODO can this be removed?
+    }
+
+    public Botanist(String botanicalShort, String location, String bornDied, String fullName, String image) {
+        this.botanicalShort = botanicalShort;
+        this.location = location;
+        this.bornDied = bornDied;
+        this.fullName = fullName;
+        this.image = image;
+    }
+
     public String getBotanicalShort() {
         return botanicalShort;
     }

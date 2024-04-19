@@ -4,11 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.rhododendra.service.RhodoLogicService;
+import jakarta.persistence.*;
 
 import java.util.List;
 
-//@JsonIgnoreProperties(ignoreUnknown=true)
-@JsonIgnoreProperties({"path"})
 public class Rhododendron extends Indexable {
     public static final String PRIMARY_ID_KEY = "id";
     public static final String NAME_KEY = "name";
@@ -58,6 +57,79 @@ public class Rhododendron extends Indexable {
     boolean is_natural_hybrid;
     boolean is_cultivar_group;
     RhodoCategory rhodoCategory;
+
+    public Rhododendron() {
+    }
+
+    public Rhododendron(
+        String id,
+        String name,
+        String ten_year_height,
+        String bloom_time,
+        String flower_shape,
+        String leaf_shape,
+        List<String> photos,
+        List<String> synonyms,
+        String hardiness,
+        String deciduous,
+        String colour,
+        String extra_information,
+        Hybridizer hybridizer,
+        String irrc_registered,
+        String additional_parentage_info,
+        String species_id,
+        Rhododendron selectedSpecies,
+        String cultivation_since,
+        Lepedote lepedote,
+        Parentage parentage,
+        Taxonomy taxonomy,
+        String first_described,
+        List<String> first_described_botanists,
+        String origin_location,
+        String habit,
+        String observed_mature_height,
+        List<Synonym> botanical_synonyms,
+        String azalea_group,
+        SpeciesOrCultivar speciesOrCultivar,
+        boolean is_species_selection,
+        boolean is_natural_hybrid,
+        boolean is_cultivar_group,
+        RhodoCategory rhodoCategory
+    ) {
+        this.id = id;
+        this.name = name;
+        this.ten_year_height = ten_year_height;
+        this.bloom_time = bloom_time;
+        this.flower_shape = flower_shape;
+        this.leaf_shape = leaf_shape;
+        this.photos = photos;
+        this.synonyms = synonyms;
+        this.hardiness = hardiness;
+        this.deciduous = deciduous;
+        this.colour = colour;
+        this.extra_information = extra_information;
+        this.hybridizer = hybridizer;
+        this.irrc_registered = irrc_registered;
+        this.additional_parentage_info = additional_parentage_info;
+        this.species_id = species_id;
+        this.selectedSpecies = selectedSpecies;
+        this.cultivation_since = cultivation_since;
+        this.lepedote = lepedote;
+        this.parentage = parentage;
+        this.taxonomy = taxonomy;
+        this.first_described = first_described;
+        this.first_described_botanists = first_described_botanists;
+        this.origin_location = origin_location;
+        this.habit = habit;
+        this.observed_mature_height = observed_mature_height;
+        this.botanical_synonyms = botanical_synonyms;
+        this.azalea_group = azalea_group;
+        this.speciesOrCultivar = speciesOrCultivar;
+        this.is_species_selection = is_species_selection;
+        this.is_natural_hybrid = is_natural_hybrid;
+        this.is_cultivar_group = is_cultivar_group;
+        this.rhodoCategory = rhodoCategory;
+    }
 
     @JsonIgnore
     @Override
@@ -228,7 +300,7 @@ public class Rhododendron extends Indexable {
             && !this.isSpecies();
     }
 
-
+    // Also stored/referenced in the DAO.
     public enum Lepedote {
         LEPEDOTE,
         ELEPEDOTE,
@@ -244,6 +316,7 @@ public class Rhododendron extends Indexable {
         return this.lepedote == Lepedote.ELEPEDOTE;
     }
 
+    @Embeddable
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Synonym(
         @JsonProperty(SYNONYM_KEY) String synonym,
@@ -253,10 +326,19 @@ public class Rhododendron extends Indexable {
         public static final String BOTANICAL_SHORTS_KEY = "botanical_shorts";
     }
 
+    // TODO Rename to HybridizationDetails
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Hybridizer {
-        String hybridizer;
+        String hybridizer; // hybridizer detail string.
         String hybridizer_id;
+
+        public Hybridizer() {
+        }
+
+        public Hybridizer(String hybridizer, String hybridizer_id) {
+            this.hybridizer = hybridizer;
+            this.hybridizer_id = hybridizer_id;
+        }
 
         public String getHybridizer() {
             return hybridizer;
@@ -275,11 +357,21 @@ public class Rhododendron extends Indexable {
         }
     }
 
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Taxonomy {
         String subgenus;
         String section;
         String subsection;
+
+        public Taxonomy() {
+        }
+
+        public Taxonomy(String subgenus, String section, String subsection) {
+            this.subgenus = subgenus;
+            this.section = section;
+            this.subsection = subsection;
+        }
 
         public String getSubgenus() {
             return subgenus;
@@ -306,12 +398,23 @@ public class Rhododendron extends Indexable {
         }
     }
 
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Parentage {
         String seed_parent;
         String seed_parent_id;
         String pollen_parent;
         String pollen_parent_id;
+
+        public Parentage() {
+        }
+
+        public Parentage(String seed_parent, String seed_parent_id, String pollen_parent, String pollen_parent_id) {
+            this.seed_parent = seed_parent;
+            this.seed_parent_id = seed_parent_id;
+            this.pollen_parent = pollen_parent;
+            this.pollen_parent_id = pollen_parent_id;
+        }
 
         public String getSeed_parent() {
             return seed_parent;
