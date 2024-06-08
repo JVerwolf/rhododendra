@@ -152,13 +152,14 @@ public class SearchService {
             query = new TermQuery(new Term(HYBRIDIZER_ID, hybridizerId));
         }
         // TODO add a sort by date
+        Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
         return paginatedSearch(
             RHODO_INDEX_PATH,
             new TypeReference<Rhododendron>() {
             },
             pageSize,
             offset,
-            indexSearcher -> indexSearcher.search(query, Integer.MAX_VALUE)
+            indexSearcher -> indexSearcher.search(query, Integer.MAX_VALUE, sort)
         );
 
     }
