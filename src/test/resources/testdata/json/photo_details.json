@@ -1,0 +1,23 @@
+[
+  {
+    "photo_by": "Wedemire",
+    "date": "2020-01-01",
+    "location": "TestLocation",
+    "hi_res_photo": "",
+    "photo": "s390_denudatum_17_normal.jpg",
+    "description": "Test photo",
+    "name": "TestName",
+    "tag": "tag"
+  },
+  {
+    "photo_by": "Wedemire",
+    "date": "2020-01-02",
+    "location": "TestLocation",
+    "hi_res_photo": "",
+    "photo": "h11579_Douglas_R_Stephens_1_normal.jpg",
+    "description": "Test photo 2",
+    "name": "TestName2",
+    "tag": "tag2"
+  }
+]
+

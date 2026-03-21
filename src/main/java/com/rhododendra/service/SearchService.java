@@ -1,7 +1,9 @@
 package com.rhododendra.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rhododendra.db.BotanistRepository;
+import com.rhododendra.db.HybridizerRepository;
+import com.rhododendra.db.PhotoDetailsRepository;
+import com.rhododendra.db.RhododendronRepository;
 import com.rhododendra.model.Botanist;
 import com.rhododendra.model.Hybridizer;
 import com.rhododendra.model.PhotoDetails;
@@ -22,9 +24,11 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.QueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,18 +37,47 @@ import static com.rhododendra.model.Rhododendron.PRIMARY_ID_KEY;
 import static com.rhododendra.model.Rhododendron.SEARCH_FILTERS;
 import static com.rhododendra.service.IndexService.*;
 
+@Service
 public class SearchService {
-    private static Logger logger = LoggerFactory.getLogger(SearchService.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final Logger logger = LoggerFactory.getLogger(SearchService.class);
+
+    private static RhododendronRepository rhododendronRepository;
+    private static HybridizerRepository hybridizerRepository;
+    private static BotanistRepository botanistRepository;
+    private static PhotoDetailsRepository photoDetailsRepository;
+
+    public SearchService(
+        RhododendronRepository rhododendronRepository,
+        HybridizerRepository hybridizerRepository,
+        BotanistRepository botanistRepository,
+        PhotoDetailsRepository photoDetailsRepository
+    ) {
+        SearchService.rhododendronRepository = rhododendronRepository;
+        SearchService.hybridizerRepository = hybridizerRepository;
+        SearchService.botanistRepository = botanistRepository;
+        SearchService.photoDetailsRepository = photoDetailsRepository;
+    }
 
     public static List<Botanist> searchBotanists(String queryString) {
         try {
-            return search(
-                new QueryParser(Botanist.FULL_NAME_KEY, new StandardAnalyzer()).parse(queryString),
-                BOTANIST_INDEX_PATH,
-                new TypeReference<>() {
+            var query = new QueryParser(Botanist.FULL_NAME_KEY, new StandardAnalyzer()).parse(queryString);
+            Directory indexDirectory = FSDirectory.open(Paths.get(BOTANIST_INDEX_PATH));
+            IndexReader indexReader = DirectoryReader.open(indexDirectory);
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = searcher.search(query, 10);
+
+            List<Botanist> results = new ArrayList<>();
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                var document = searcher.doc(scoreDoc.doc);
+                var id = document.get(Botanist.PRIMARY_ID_KEY);
+                if (id != null) {
+                    Botanist botanist = botanistRepository.getById(id);
+                    if (botanist != null) {
+                        results.add(botanist);
+                    }
                 }
-            );
+            }
+            return results;
         } catch (Exception e) {
             logger.error("Could not search searchBotanists", e);
             return Collections.emptyList();
@@ -92,10 +125,7 @@ public class SearchService {
         }
 
 
-        return paginatedSearch(
-            RHODO_INDEX_PATH,
-            new TypeReference<Rhododendron>() {
-            },
+        return paginatedRhodoSearch(
             pageSize,
             offset,
             indexSearcher -> indexSearcher.search(geneticQuery.build(), Integer.MAX_VALUE)
@@ -133,10 +163,7 @@ public class SearchService {
                 .build();
         }
 
-        return paginatedSearch(
-            RHODO_INDEX_PATH,
-            new TypeReference<Rhododendron>() {
-            },
+        return paginatedRhodoSearch(
             pageSize,
             offset,
             indexSearcher -> indexSearcher.search(query, Integer.MAX_VALUE)
@@ -153,10 +180,7 @@ public class SearchService {
         }
         // TODO add a sort by date
         Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
-        return paginatedSearch(
-            RHODO_INDEX_PATH,
-            new TypeReference<Rhododendron>() {
-            },
+        return paginatedRhodoSearch(
             pageSize,
             offset,
             indexSearcher -> indexSearcher.search(query, Integer.MAX_VALUE, sort)
@@ -195,10 +219,7 @@ public class SearchService {
                 .build();
         }
 
-        return paginatedSearch(
-            HYBRIDIZER_INDEX_PATH,
-            new TypeReference<Hybridizer>() {
-            },
+        return paginatedHybridizerSearch(
             pageSize,
             offset,
             indexSearcher -> indexSearcher.search(query, Integer.MAX_VALUE)
@@ -216,10 +237,7 @@ public class SearchService {
             query.add(new TermQuery(new Term(SUBSECTION_KEY, subsection.toLowerCase())), BooleanClause.Occur.MUST);
         }
         Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
-        return paginatedSearch(
-            RHODO_INDEX_PATH,
-            new TypeReference<Rhododendron>() {
-            },
+        return paginatedRhodoSearch(
             pageSize,
             offset,
             indexSearcher -> indexSearcher.search(query.build(), Integer.MAX_VALUE, sort)
@@ -228,12 +246,24 @@ public class SearchService {
 
     public static List<PhotoDetails> searchPhotoDetails(String queryString) {
         try {
-            return search(
-                new QueryParser(PhotoDetails.PHOTO_BY, new StandardAnalyzer()).parse(queryString),
-                PHOTO_DETAIL_INDEX_PATH,
-                new TypeReference<>() {
+            var query = new QueryParser(PhotoDetails.PHOTO_BY, new StandardAnalyzer()).parse(queryString);
+            Directory indexDirectory = FSDirectory.open(Paths.get(PHOTO_DETAIL_INDEX_PATH));
+            IndexReader indexReader = DirectoryReader.open(indexDirectory);
+            IndexSearcher searcher = new IndexSearcher(indexReader);
+            TopDocs topDocs = searcher.search(query, 10);
+
+            List<PhotoDetails> results = new ArrayList<>();
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                var document = searcher.doc(scoreDoc.doc);
+                var id = document.get(PhotoDetails.PRIMARY_ID_KEY);
+                if (id != null) {
+                    PhotoDetails p = photoDetailsRepository.getById(id);
+                    if (p != null) {
+                        results.add(p);
+                    }
                 }
-            );
+            }
+            return results;
         } catch (Exception e) {
             logger.error("Could not search searchPhotoDetails", e);
             return Collections.emptyList();
@@ -263,15 +293,15 @@ public class SearchService {
     }
 
     public static List<Botanist> getBotanistById(String id) {
+        if (id == null) return List.of();
         try {
-            return search(
-                new TermQuery(new Term(Botanist.PRIMARY_ID_KEY, id)),
-                BOTANIST_INDEX_PATH,
-                new TypeReference<>() {
-                }
-            );
+            Botanist botanist = botanistRepository.getById(id);
+            if (botanist == null) {
+                return List.of();
+            }
+            return List.of(botanist);
         } catch (Exception e) {
-            logger.error("Could not search getBotanistById", e);
+            logger.error("Could not load Botanist from DB", e);
             return Collections.emptyList();
         }
     }
@@ -280,14 +310,13 @@ public class SearchService {
     public static List<Rhododendron> getRhodoById(String id) {
         if (id == null) return List.of();
         try {
-            return search(
-                new TermQuery(new Term(PRIMARY_ID_KEY, id)),
-                RHODO_INDEX_PATH,
-                new TypeReference<Rhododendron>() {
-                }
-            );
+            Rhododendron rhodo = rhododendronRepository.getById(id);
+            if (rhodo == null) {
+                return List.of();
+            }
+            return List.of(rhodo);
         } catch (Exception e) {
-            logger.error("Could not search getRhodoById", e);
+            logger.error("Could not load Rhododendron from DB", e);
             return Collections.emptyList();
         }
     }
@@ -295,28 +324,27 @@ public class SearchService {
     public static List<Hybridizer> getHybridizerById(String id) {
         if (id == null) return List.of();
         try {
-            return search(
-                new TermQuery(new Term(Hybridizer.PRIMARY_ID_KEY, id)),
-                HYBRIDIZER_INDEX_PATH,
-                new TypeReference<Hybridizer>() {
-                }
-            );
+            Hybridizer h = hybridizerRepository.getById(id);
+            if (h == null) {
+                return List.of();
+            }
+            return List.of(h);
         } catch (Exception e) {
-            logger.error("Could not search getHybridizerById", e);
+            logger.error("Could not load Hybridizer from DB", e);
             return Collections.emptyList();
         }
     }
 
     public static List<PhotoDetails> getPhotoDetailsById(String id) {
+        if (id == null) return List.of();
         try {
-            return search(
-                new TermQuery(new Term(PhotoDetails.PRIMARY_ID_KEY, id)),
-                PHOTO_DETAIL_INDEX_PATH,
-                new TypeReference<>() {
-                }
-            );
+            PhotoDetails p = photoDetailsRepository.getById(id);
+            if (p == null) {
+                return List.of();
+            }
+            return List.of(p);
         } catch (Exception e) {
-            logger.error("Could not search getPhotoDetailsById", e);
+            logger.error("Could not load PhotoDetails from DB", e);
             return Collections.emptyList();
         }
     }
@@ -341,10 +369,7 @@ public class SearchService {
         boolean onlyPics, // TODO refactor to Settings Object
         List<SearchFilters> searchFilters // TODO refactor to Settings Object
     ) throws IOException {
-        return paginatedSearch(
-            RHODO_INDEX_PATH,
-            new TypeReference<Rhododendron>() {
-            },
+        return paginatedRhodoSearch(
             pageSize,
             offset,
             (searcher) -> {
@@ -365,40 +390,6 @@ public class SearchService {
             }
         );
     }
-
-    private static <T> List<T> search(
-        Query query,
-        String indexPath,
-        TypeReference<T> tr
-    ) throws IOException {
-        return search(query, indexPath, tr, 10);
-    }
-
-
-    private static <T> List<T> search(
-        Query query,
-        String indexPath,
-        TypeReference<T> tr,
-        int numResults
-    ) throws IOException {
-        Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));
-        IndexReader indexReader = DirectoryReader.open(indexDirectory);
-        IndexSearcher searcher = new IndexSearcher(indexReader);
-        TopDocs topDocs = searcher.search(query, numResults);
-
-        List<T> searchResults = new ArrayList<>();
-        for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-            var document = searcher.doc(scoreDoc.doc);
-            for (var field : document.getFields(SOURCE_KEY)) {
-                T result = objectMapper.readValue(
-                    field.stringValue(),
-                    tr);
-                searchResults.add(result);
-            }
-        }
-        return searchResults;
-    }
-
 
     public static class IndexPage {
         public String startValue;
@@ -450,41 +441,89 @@ public class SearchService {
         return field.stringValue();
     }
 
-    private static <T> T readSource(
-        ScoreDoc scoreDoc,
-        IndexSearcher searcher,
-        TypeReference<T> tr
-    ) throws IOException {
-        var document = searcher.doc(scoreDoc.doc);
-        var field = document.getField(SOURCE_KEY);
-        return objectMapper.readValue(
-            field.stringValue(),
-            tr
-        );
-    }
-
-    private static <T> IndexResults<T> paginatedSearch(
-        String indexPath,
-        TypeReference<T> tr,
+    private static IndexResults<Rhododendron> paginatedRhodoSearch(
         int pageSize,
         int offset,
         CheckedFunction<IndexSearcher, TopDocs, IOException> performSearch
     ) throws IOException {
-        Directory indexDirectory = FSDirectory.open(Paths.get(indexPath));
+        Directory indexDirectory = FSDirectory.open(Paths.get(RHODO_INDEX_PATH));
         IndexReader indexReader = DirectoryReader.open(indexDirectory);
         IndexSearcher searcher = new IndexSearcher(indexReader);
         TopDocs topDocs = performSearch.apply(searcher);
 
-        // Read the Source values.
+        // Read the Source values via DB hydration.
         var startPos = Math.min(topDocs.scoreDocs.length, offset); // todo off by 1?
         var endPos = Math.min(topDocs.scoreDocs.length - 1, offset + pageSize); // todo off by 1?
-        List<T> results = new ArrayList<>();
+        List<Rhododendron> results = new ArrayList<>();
         for (int i = startPos; i <= endPos; i++) {
-            var result = readSource(topDocs.scoreDocs[i], searcher, tr);
-            results.add(result);
+            var doc = searcher.doc(topDocs.scoreDocs[i].doc);
+            var id = doc.get(PRIMARY_ID_KEY);
+            if (id != null) {
+                try {
+                    Rhododendron rhodo = rhododendronRepository.getById(id);
+                    if (rhodo != null) {
+                        results.add(rhodo);
+                    }
+                } catch (SQLException e) {
+                    throw new IOException("Failed to load rhododendron from DB for id " + id, e);
+                }
+            }
         }
 
         // Read the index pages.
+        var indexPages = paginationOffsets(
+            pageSize,
+            topDocs.scoreDocs.length,
+            (pageStart, pageEnd) -> {
+                var startValue = readPaginationDescriptor(topDocs.scoreDocs[pageStart], searcher);
+                var endValue = readPaginationDescriptor(topDocs.scoreDocs[pageEnd], searcher);
+                return new IndexPage(
+                    startValue.substring(0, Math.min(4, startValue.length())),
+                    pageStart,
+                    endValue.substring(0, Math.min(4, endValue.length())),
+                    pageEnd
+                );
+            }
+        );
+
+        var pageNum = offset / pageSize;
+        var indexPagePosition = Math.min(indexPages.size(), pageNum);
+
+        return new IndexResults<>(
+            indexPages,
+            indexPagePosition,
+            results
+        );
+    }
+
+    private static IndexResults<Hybridizer> paginatedHybridizerSearch(
+        int pageSize,
+        int offset,
+        CheckedFunction<IndexSearcher, TopDocs, IOException> performSearch
+    ) throws IOException {
+        Directory indexDirectory = FSDirectory.open(Paths.get(HYBRIDIZER_INDEX_PATH));
+        IndexReader indexReader = DirectoryReader.open(indexDirectory);
+        IndexSearcher searcher = new IndexSearcher(indexReader);
+        TopDocs topDocs = performSearch.apply(searcher);
+
+        var startPos = Math.min(topDocs.scoreDocs.length, offset);
+        var endPos = Math.min(topDocs.scoreDocs.length - 1, offset + pageSize);
+        List<Hybridizer> results = new ArrayList<>();
+        for (int i = startPos; i <= endPos; i++) {
+            var doc = searcher.doc(topDocs.scoreDocs[i].doc);
+            var id = doc.get(Hybridizer.PRIMARY_ID_KEY);
+            if (id != null) {
+                try {
+                    Hybridizer h = hybridizerRepository.getById(id);
+                    if (h != null) {
+                        results.add(h);
+                    }
+                } catch (SQLException e) {
+                    throw new IOException("Failed to load hybridizer from DB for id " + id, e);
+                }
+            }
+        }
+
         var indexPages = paginationOffsets(
             pageSize,
             topDocs.scoreDocs.length,

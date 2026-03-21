@@ -3,9 +3,14 @@ package com.rhododendra.service;
 import com.rhododendra.model.Botanist;
 import com.rhododendra.model.Rhododendron;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 import static com.rhododendra.service.IndexService.*;
@@ -13,29 +18,46 @@ import static com.rhododendra.service.SearchService.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ServiceTests {
 
+    @Autowired
+    JSONLoaderService jsonLoaderService;
+
+    @Autowired
+    com.rhododendra.db.MigrateJsonToSqlite migrateJsonToSqlite;
+
+    @BeforeAll
+    void beforeAll() throws IOException {
+        try {
+            migrateJsonToSqlite.runMigration();
+        } catch (SQLException e) {
+            throw new IOException(e);
+        }
+        indexBotanists();
+        indexHybridizers();
+        indexPhotoDetails();
+        indexRhodos();
+    }
 
     @Test
-    void testIndexAndSearchBotanists() throws IOException {
-        indexBotanists();
+    void testIndexAndSearchBotanists() {
         assertThat(searchBotanists("Forrest")).isNotEmpty();
         assertEquals(1, getBotanistById("Forrest").size());
     }
 
     @Test
     void testIndexAndSearchRhodos() throws IOException, ParseException {
-        indexRhodos();
         assertThat(searchRhodos("lemon", 1, 0).results).isNotEmpty();
         assertThat(searchRhodos("anna", 1, 0).results).isNotEmpty();
         assertEquals(1, getRhodoById("h1").size());
         assertEquals(1, getRhodoById("s1").size());
-        assertThat(getAllRhodosByFirstLetter("s", 10, 5, false, null).results).isNotEmpty();
+        assertThat(getAllRhodosByFirstLetter("a", 10, 0, false, null).results).isNotEmpty();
     }
 
     @Test
-    void testIndexAndSearchPhotoDetails() throws IOException {
-        indexPhotoDetails();
+    void testIndexAndSearchPhotoDetails() {
         assertThat(searchPhotoDetails("Wedemire")).isNotEmpty();
         assertEquals(1, getPhotoDetailsById("s390_denudatum_17_normal.jpg").size());
         assertEquals(1, getPhotoDetailsById("h11579_Douglas_R_Stephens_1_normal.jpg").size());
@@ -43,7 +65,6 @@ public class ServiceTests {
 
     @Test
     void testIndexAndSearchHybridizers() throws IOException, ParseException {
-        indexHybridizers();
         assertEquals(1, getHybridizerById("p303").size());
         assertThat(searchHybridizers("Rothschild",10, 0).results).isNotEmpty();
 
@@ -53,13 +74,13 @@ public class ServiceTests {
 
     @Test
     void testLoadBotanist() throws IOException {
-        List<Botanist> botanists = JSONLoaderService.loadBotanists();
+        List<Botanist> botanists = jsonLoaderService.loadBotanists();
         assertThat(botanists).isNotEmpty();
     }
 
     @Test
     void testLoadRhodos() throws IOException {
-        List<Rhododendron> rhodos = JSONLoaderService.loadRhodos();
+        List<Rhododendron> rhodos = jsonLoaderService.loadRhodos();
         assertThat(rhodos).isNotEmpty();
     }
 
@@ -75,7 +96,7 @@ public class ServiceTests {
     }
 
     @Test
-    void testGetAllRhodoIds(){
+    void testGetAllRhodoIds() {
         assertThat(SearchService.getAllRhodoIds()).isNotNull();
     }
 }

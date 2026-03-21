@@ -1,0 +1,18 @@
+[
+  {
+    "id": "h1",
+    "name": "Lemon Dream",
+    "speciesOrCultivar": "CULTIVAR",
+    "is_species_selection": false,
+    "is_natural_hybrid": false,
+    "is_cultivar_group": false,
+    "rhodoCategory": "RHODO",
+    "photos": ["h11579_Douglas_R_Stephens_1_normal.jpg"],
+    "synonyms": [],
+    "hybridizer": {
+      "hybridizer": "Rothschild",
+      "hybridizer_id": "p303"
+    }
+  }
+]
+

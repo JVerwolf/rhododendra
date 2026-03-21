@@ -3,59 +3,57 @@ package com.rhododendra.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rhododendra.model.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+@Service
 public class JSONLoaderService {
-    final static String BOTANISTS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/species_botanists.json";
-    final static String SPECIES_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/species.json";
-    final static String HYBRIDS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/hybrids.json";
-    final static String AZALEAS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/azaleas.json";
-    final static String VIREYAS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/vireyas.json";
-    final static String HYBRIDIZER_DETAILS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/hybridizers.json";
-    final static String AZALEODENDRONS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/azaleodendrons.json";
-    final static String PHOTO_DETAILS_PATH = "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/photo_details.json";
 
-    public static List<Botanist> loadBotanists() throws IOException {
-        File file = new File(BOTANISTS_PATH);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(file, new TypeReference<>() {
-        });
+    private final File botanistsPath;
+    private final File speciesPath;
+    private final File hybridsPath;
+    private final File azaleasPath;
+    private final File vireyasPath;
+    private final File hybridizerDetailsPath;
+    private final File azaleodendronsPath;
+    private final File photoDetailsPath;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public JSONLoaderService(@Value("${data.jsonDir}") String jsonDir) {
+        File base = new File(jsonDir);
+        this.botanistsPath = new File(base, "species_botanists.json");
+        this.speciesPath = new File(base, "species.json");
+        this.hybridsPath = new File(base, "hybrids.json");
+        this.azaleasPath = new File(base, "azaleas.json");
+        this.vireyasPath = new File(base, "vireyas.json");
+        this.hybridizerDetailsPath = new File(base, "hybridizers.json");
+        this.azaleodendronsPath = new File(base, "azaleodendrons.json");
+        this.photoDetailsPath = new File(base, "photo_details.json");
     }
 
-    public static List<Rhododendron> loadRhodos() throws IOException {
-        File speciesFile = new File(SPECIES_PATH);
-        File hybridsFile = new File(HYBRIDS_PATH);
-        File azaleasFile = new File(AZALEAS_PATH);
-        File vireyasFile = new File(VIREYAS_PATH);
-        File azaleodendronsFile = new File(AZALEODENDRONS_PATH);
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<Rhododendron> result = objectMapper.readValue(speciesFile, new TypeReference<List<Rhododendron>>() {
-        });
-        result.addAll(objectMapper.readValue(hybridsFile, new TypeReference<List<Rhododendron>>() {
-        }));
-        result.addAll(objectMapper.readValue(azaleasFile, new TypeReference<List<Rhododendron>>() {
-        }));
-        result.addAll(objectMapper.readValue(vireyasFile, new TypeReference<List<Rhododendron>>() {
-        }));
-        result.addAll(objectMapper.readValue(azaleodendronsFile, new TypeReference<List<Rhododendron>>() {
-        }));
+    public List<Botanist> loadBotanists() throws IOException {
+        return objectMapper.readValue(botanistsPath, new TypeReference<>() {});
+    }
+
+    public List<Rhododendron> loadRhodos() throws IOException {
+        List<Rhododendron> result = objectMapper.readValue(speciesPath, new TypeReference<List<Rhododendron>>() {});
+        result.addAll(objectMapper.readValue(hybridsPath, new TypeReference<List<Rhododendron>>() {}));
+        result.addAll(objectMapper.readValue(azaleasPath, new TypeReference<List<Rhododendron>>() {}));
+        result.addAll(objectMapper.readValue(vireyasPath, new TypeReference<List<Rhododendron>>() {}));
+        result.addAll(objectMapper.readValue(azaleodendronsPath, new TypeReference<List<Rhododendron>>() {}));
         return result;
     }
 
-    public static List<PhotoDetails> loadPhotoDetails() throws IOException {
-        File file = new File(PHOTO_DETAILS_PATH);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(file, new TypeReference<>() {
-        });
+    public List<PhotoDetails> loadPhotoDetails() throws IOException {
+        return objectMapper.readValue(photoDetailsPath, new TypeReference<>() {});
     }
 
-    public static List<Hybridizer> loadHybridizers() throws IOException {
-        File file = new File(HYBRIDIZER_DETAILS_PATH);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(file, new TypeReference<>() {
-        });
+    public List<Hybridizer> loadHybridizers() throws IOException {
+        return objectMapper.readValue(hybridizerDetailsPath, new TypeReference<>() {});
     }
 }

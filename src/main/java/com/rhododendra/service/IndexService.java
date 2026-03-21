@@ -1,7 +1,15 @@
 package com.rhododendra.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rhododendra.model.*;
+import com.rhododendra.db.BotanistRepository;
+import com.rhododendra.db.HybridizerRepository;
+import com.rhododendra.db.PhotoDetailsRepository;
+import com.rhododendra.db.RhododendronRepository;
+import com.rhododendra.model.Botanist;
+import com.rhododendra.model.Hybridizer;
+import com.rhododendra.model.Indexable;
+import com.rhododendra.model.PhotoDetails;
+import com.rhododendra.model.Rhododendron;
 import com.rhododendra.util.Util;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -10,22 +18,25 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
+import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
+@Service
 public class IndexService {
-    public final static String BASE_INDEX_PATH = "index";
-    public final static String BOTANIST_INDEX_PATH = BASE_INDEX_PATH + "/botanists";
-    public final static String PHOTO_DETAIL_INDEX_PATH = BASE_INDEX_PATH + "/photo_details";
-    public final static String RHODO_INDEX_PATH = BASE_INDEX_PATH + "/rhodos";
-    public final static String HYBRIDIZER_INDEX_PATH = BASE_INDEX_PATH + "/hybridizers";
+    public static final String BASE_INDEX_PATH = "index";
+    public static final String BOTANIST_INDEX_PATH = BASE_INDEX_PATH + "/botanists";
+    public static final String PHOTO_DETAIL_INDEX_PATH = BASE_INDEX_PATH + "/photo_details";
+    public static final String RHODO_INDEX_PATH = BASE_INDEX_PATH + "/rhodos";
+    public static final String HYBRIDIZER_INDEX_PATH = BASE_INDEX_PATH + "/hybridizers";
 
 
     //Additional Search/Index keys
@@ -38,10 +49,30 @@ public class IndexService {
     public static final String SUBSECTION_KEY = "subsection";
     public static final String HYBRIDIZER_ID = "hybridizer_id";
 
-    public final static String SOURCE_KEY = "_source";
-    public final static String PAGINATION_DESCRIPTOR_KEY = "descriptor"; // for pagination
+    public static final String SOURCE_KEY = "_source";
+    public static final String PAGINATION_DESCRIPTOR_KEY = "descriptor"; // for pagination
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static RhododendronRepository rhododendronRepository;
+    private static HybridizerRepository hybridizerRepository;
+    private static BotanistRepository botanistRepository;
+    private static PhotoDetailsRepository photoDetailsRepository;
+    private static com.rhododendra.db.Db db;
+
+    public IndexService(
+        RhododendronRepository rhododendronRepository,
+        HybridizerRepository hybridizerRepository,
+        BotanistRepository botanistRepository,
+        PhotoDetailsRepository photoDetailsRepository,
+        com.rhododendra.db.Db db
+    ) {
+        IndexService.rhododendronRepository = rhododendronRepository;
+        IndexService.hybridizerRepository = hybridizerRepository;
+        IndexService.botanistRepository = botanistRepository;
+        IndexService.photoDetailsRepository = photoDetailsRepository;
+        IndexService.db = db;
+    }
 
     public static String generateRhodoNameForIndexing(Rhododendron rhodo, Map<String, Rhododendron> idToRhodoMap) {
         if (rhodo.getIs_species_selection()) {
@@ -58,11 +89,12 @@ public class IndexService {
 
 
     public static void indexRhodos() throws IOException {
-        final var idToRhodoMap = JSONLoaderService.loadRhodos().stream()
+        List<Rhododendron> rhodos = loadAllRhodosFromDb();
+        final var idToRhodoMap = rhodos.stream()
             .collect(Collectors.toMap(Rhododendron::getId, Function.identity()));
 
         index(
-            JSONLoaderService.loadRhodos(),
+            rhodos,
             RHODO_INDEX_PATH,
             Rhododendron.PRIMARY_ID_KEY,
             (document, rhodo) -> {
@@ -124,8 +156,9 @@ public class IndexService {
     }
 
     public static void indexHybridizers() throws IOException {
+        List<Hybridizer> hybridizers = loadAllHybridizersFromDb();
         index(
-            JSONLoaderService.loadHybridizers(),
+            hybridizers,
             HYBRIDIZER_INDEX_PATH,
             Hybridizer.PRIMARY_ID_KEY,
             (document, hybridizer) -> {
@@ -137,8 +170,9 @@ public class IndexService {
     }
 
     public static void indexPhotoDetails() throws IOException {
+        List<PhotoDetails> photos = loadAllPhotoDetailsFromDb();
         index(
-            JSONLoaderService.loadPhotoDetails(),
+            photos,
             PHOTO_DETAIL_INDEX_PATH,
             PhotoDetails.PRIMARY_ID_KEY,
             (document, photoDetails) -> {
@@ -151,8 +185,9 @@ public class IndexService {
 
 
     public static void indexBotanists() throws IOException {
+        List<Botanist> botanists = loadAllBotanistsFromDb();
         index(
-            JSONLoaderService.loadBotanists(),
+            botanists,
             BOTANIST_INDEX_PATH,
             Botanist.PRIMARY_ID_KEY,
             (document, botanist) -> {
@@ -202,4 +237,76 @@ public class IndexService {
         sourceFieldType.freeze();
         return sourceFieldType;
     }
+    private static List<Rhododendron> loadAllRhodosFromDb() {
+        List<Rhododendron> result = new ArrayList<>();
+        try (var conn = db.getConnection();
+             var ps = conn.prepareStatement("SELECT id FROM rhododendron");
+             var rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String id = rs.getString("id");
+                Rhododendron rhodo = rhododendronRepository.getById(id);
+                if (rhodo != null) {
+                    result.add(rhodo);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to load rhododendrons from database", e);
+        }
+        return result;
+    }
+
+    private static List<Hybridizer> loadAllHybridizersFromDb() {
+        List<Hybridizer> result = new ArrayList<>();
+        try (var conn = db.getConnection();
+             var ps = conn.prepareStatement("SELECT id FROM hybridizer");
+             var rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String id = rs.getString("id");
+                Hybridizer h = hybridizerRepository.getById(id);
+                if (h != null) {
+                    result.add(h);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to load hybridizers from database", e);
+        }
+        return result;
+    }
+
+    private static List<Botanist> loadAllBotanistsFromDb() {
+        List<Botanist> result = new ArrayList<>();
+        try (var conn = db.getConnection();
+             var ps = conn.prepareStatement("SELECT botanical_short FROM botanist");
+             var rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String id = rs.getString("botanical_short");
+                Botanist b = botanistRepository.getById(id);
+                if (b != null) {
+                    result.add(b);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to load botanists from database", e);
+        }
+        return result;
+    }
+
+    private static List<PhotoDetails> loadAllPhotoDetailsFromDb() {
+        List<PhotoDetails> result = new ArrayList<>();
+        try (var conn = db.getConnection();
+             var ps = conn.prepareStatement("SELECT photo FROM photo_details");
+             var rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String id = rs.getString("photo");
+                PhotoDetails p = photoDetailsRepository.getById(id);
+                if (p != null) {
+                    result.add(p);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to load photo details from database", e);
+        }
+        return result;
+    }
 }
+

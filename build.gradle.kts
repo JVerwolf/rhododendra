@@ -22,6 +22,7 @@ dependencies {
 	implementation("org.apache.lucene:lucene-core:9.7.0")
 	implementation("org.apache.lucene:lucene-queryparser:9.7.0")
 	implementation("com.fasterxml.jackson.core:jackson-core:2.15.2")
+	implementation("org.xerial:sqlite-jdbc:3.46.0.0")
 
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -29,4 +30,27 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.register<JavaExec>("migrateAndIndex") {
+	group = "application"
+	description =
+		"Migrates JSON from the hirsutum scraper output directory into SQLite, then rebuilds Lucene indexes under ./index"
+	classpath = sourceSets["main"].runtimeClasspath
+	mainClass.set("com.rhododendra.cli.MigrateAndIndexApplication")
+	workingDir = project.layout.projectDirectory.asFile
+
+	val dataJsonDir =
+		(project.findProperty("dataJsonDir") as String?)
+			?: "/Users/john.verwolf/code/hirsutum_scraper/outputs/data/"
+	val dbPath =
+		(project.findProperty("dbPath") as String?)
+			?: "${project.layout.projectDirectory.asFile}/data/rhododendra.sqlite"
+	val domain =
+		(project.findProperty("domain") as String?)
+			?: "https://rhododendra.com"
+
+	systemProperty("data.jsonDir", dataJsonDir)
+	systemProperty("db.path", dbPath)
+	systemProperty("domain", domain)
 }
