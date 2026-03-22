@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head >
+<head>
     <th:block th:include="~{fragments/head}"></th:block>
     <title th:text="${rhodoNameForHead}"></title>
     <meta name="description" th:content="|Rhododendron ${rhodo.getName()} details and pictures|">
@@ -23,13 +23,127 @@
             <i th:text="|R. ${original_species.getName()}|"></i>
         </a>
     </h2>
-    <div style="margin-bottom: .25em; margin-top: .25em">
-        <a th:if="${rhodo.isCultivar()}"
-           th:href="@{/genetic_search(useCase='SIBLINGS',seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}"
-           class="btn btn-secondary btn-sm" role="button" aria-pressed="true">Search Siblings </a>
-        <a th:href="@{/genetic_search(useCase='CHILDREN',seedParentId=${rhodo.getId()},pollenParentId=${rhodo.getId()},originalRhodoId=${rhodo.getId()})}"
-           class="btn btn-secondary btn-sm" role="button" aria-pressed="true">Search Offspring </a>
+    <div th:if="${editSuccess}" class="alert alert-success rhodo-edit-flash" role="alert">Changes saved.</div>
+    <div th:if="${editError}" class="alert alert-danger rhodo-edit-flash" role="alert" th:text="${editError}">Error</div>
+    <div class="rhodo-detail-toolbar">
+        <div class="rhodo-detail-toolbar__left">
+            <a th:if="${rhodo.isCultivar()}"
+               th:href="@{/genetic_search(useCase='SIBLINGS',seedParentId=${rhodo.getSeedParentId()},pollenParentId=${rhodo.getPollenParentId()},originalRhodoId=${rhodo.getId()})}"
+               class="btn btn-secondary btn-sm" role="button" aria-pressed="true">Search Siblings </a>
+            <a th:href="@{/genetic_search(useCase='CHILDREN',seedParentId=${rhodo.getId()},pollenParentId=${rhodo.getId()},originalRhodoId=${rhodo.getId()})}"
+               class="btn btn-secondary btn-sm" role="button" aria-pressed="true">Search Offspring </a>
+        </div>
+        <div class="rhodo-detail-toolbar__right" th:if="${oauthLoggedIn}">
+            <button type="button" id="rhodo-edit-toggle" class="btn btn-secondary btn-sm">Edit details</button>
+        </div>
     </div>
+    <div th:if="${oauthLoggedIn}" id="rhodo-edit-panel" class="rhodo-edit-panel">
+        <form th:action="@{/rhodos/{id}/edit(id=${rhodo.getId()})}" method="post" class="rhodo-edit-form">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <table class="bordered-table attributes-detail-table rhodo-edit-form__table">
+                <tr>
+                    <td class="key"><b>10 Year Height</b></td>
+                    <td class="value"><input type="text" name="ten_year_height" class="form-control form-control-sm"
+                                             th:value="${rhodo.getTen_year_height()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Bloom Time</b></td>
+                    <td class="value"><input type="text" name="bloom_time" class="form-control form-control-sm"
+                                             th:value="${rhodo.getBloom_time()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Flower</b></td>
+                    <td class="value"><input type="text" name="flower_shape" class="form-control form-control-sm"
+                                             th:value="${rhodo.getFlower_shape()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Leaves</b></td>
+                    <td class="value"><input type="text" name="leaf_shape" class="form-control form-control-sm"
+                                             th:value="${rhodo.getLeaf_shape()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Predominant Colour</b></td>
+                    <td class="value"><input type="text" name="colour" class="form-control form-control-sm"
+                                             th:value="${rhodo.getColour()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Winter Foliage</b></td>
+                    <td class="value"><input type="text" name="deciduous" class="form-control form-control-sm"
+                                             th:value="${rhodo.getDeciduous()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Hardiness</b></td>
+                    <td class="value"><input type="text" name="hardiness" class="form-control form-control-sm"
+                                             th:value="${rhodo.getHardiness()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Azalea group</b></td>
+                    <td class="value"><input type="text" name="azalea_group" class="form-control form-control-sm"
+                                             th:value="${rhodo.getAzalea_group()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Subgenus</b></td>
+                    <td class="value"><input type="text" name="subgenus" class="form-control form-control-sm"
+                                             th:value="${rhodo.getTaxonomy() != null ? rhodo.getTaxonomy().getSubgenus() : ''}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Section</b></td>
+                    <td class="value"><input type="text" name="section" class="form-control form-control-sm"
+                                             th:value="${rhodo.getTaxonomy() != null ? rhodo.getTaxonomy().getSection() : ''}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Subsection</b></td>
+                    <td class="value"><input type="text" name="subsection" class="form-control form-control-sm"
+                                             th:value="${rhodo.getTaxonomy() != null ? rhodo.getTaxonomy().getSubsection() : ''}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>In cultivation since</b></td>
+                    <td class="value"><input type="text" name="cultivation_since" class="form-control form-control-sm"
+                                             th:value="${rhodo.getCultivation_since()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>First Described</b></td>
+                    <td class="value"><input type="text" name="first_described" class="form-control form-control-sm"
+                                             th:value="${rhodo.getFirst_described()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Origin</b></td>
+                    <td class="value"><input type="text" name="origin_location" class="form-control form-control-sm"
+                                             th:value="${rhodo.getOrigin_location()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Habitat</b></td>
+                    <td class="value"><input type="text" name="habit" class="form-control form-control-sm"
+                                             th:value="${rhodo.getHabit()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Mature Wild Height</b></td>
+                    <td class="value"><input type="text" name="observed_mature_height" class="form-control form-control-sm"
+                                             th:value="${rhodo.getObserved_mature_height()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Additional<br/>Parentage Info</b></td>
+                    <td class="value"><input type="text" name="additional_parentage_info" class="form-control form-control-sm"
+                                             th:value="${rhodo.getAdditional_parentage_info()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Status</b></td>
+                    <td class="value"><input type="text" name="irrc_registered" class="form-control form-control-sm"
+                                             th:value="${rhodo.getIrrc_registered()}"/></td>
+                </tr>
+                <tr>
+                    <td class="key"><b>Extra Information</b></td>
+                    <td class="value"><textarea name="extra_information" class="form-control form-control-sm" rows="4"
+                                               th:text="${rhodo.getExtra_information() != null ? rhodo.getExtra_information() : ''}"></textarea></td>
+                </tr>
+            </table>
+            <div class="rhodo-edit-form__actions">
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                <button type="button" id="rhodo-edit-cancel" class="btn btn-secondary btn-sm">Cancel</button>
+            </div>
+        </form>
+    </div>
+    <script th:if="${oauthLoggedIn}" th:src="@{/js/rhodo-detail.js}" defer></script>
     <table class="bordered-table attributes-detail-table">
         <tr th:if="${not rhodo.getBotanical_synonyms().isEmpty()}">
             <td class="key"><b>Botanical<br/>Synonyms</b></td>

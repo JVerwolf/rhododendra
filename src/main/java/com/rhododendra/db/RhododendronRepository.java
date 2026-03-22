@@ -237,6 +237,86 @@ public class RhododendronRepository {
         }
     }
 
+    /**
+     * Updates descriptive/cultivation columns only. Blank strings clear nullable columns.
+     * Does not touch photos, synonyms, parent FKs, or identity fields.
+     */
+    public int updateEditableFields(
+        String id,
+        String tenYearHeight,
+        String bloomTime,
+        String flowerShape,
+        String leafShape,
+        String colour,
+        String deciduous,
+        String hardiness,
+        String extraInformation,
+        String additionalParentageInfo,
+        String cultivationSince,
+        String firstDescribed,
+        String originLocation,
+        String habit,
+        String observedMatureHeight,
+        String azaleaGroup,
+        String irrcRegistered,
+        String subgenus,
+        String section,
+        String subsection
+    ) throws SQLException {
+        var sql = """
+            UPDATE rhododendron SET
+                ten_year_height = ?,
+                bloom_time = ?,
+                flower_shape = ?,
+                leaf_shape = ?,
+                colour = ?,
+                deciduous = ?,
+                hardiness = ?,
+                extra_information = ?,
+                additional_parentage_info = ?,
+                cultivation_since = ?,
+                first_described = ?,
+                origin_location = ?,
+                habit = ?,
+                observed_mature_height = ?,
+                azalea_group = ?,
+                irrc_registered = ?,
+                subgenus = ?,
+                section = ?,
+                subsection = ?
+            WHERE id = ?
+            """;
+        try (var conn = db.getConnection();
+             var ps = conn.prepareStatement(sql)) {
+            int i = 1;
+            ps.setString(i++, blankToNull(tenYearHeight));
+            ps.setString(i++, blankToNull(bloomTime));
+            ps.setString(i++, blankToNull(flowerShape));
+            ps.setString(i++, blankToNull(leafShape));
+            ps.setString(i++, blankToNull(colour));
+            ps.setString(i++, blankToNull(deciduous));
+            ps.setString(i++, blankToNull(hardiness));
+            ps.setString(i++, blankToNull(extraInformation));
+            ps.setString(i++, blankToNull(additionalParentageInfo));
+            ps.setString(i++, blankToNull(cultivationSince));
+            ps.setString(i++, blankToNull(firstDescribed));
+            ps.setString(i++, blankToNull(originLocation));
+            ps.setString(i++, blankToNull(habit));
+            ps.setString(i++, blankToNull(observedMatureHeight));
+            ps.setString(i++, blankToNull(azaleaGroup));
+            ps.setString(i++, blankToNull(irrcRegistered));
+            ps.setString(i++, blankToNull(subgenus));
+            ps.setString(i++, blankToNull(section));
+            ps.setString(i++, blankToNull(subsection));
+            ps.setString(i, id);
+            return ps.executeUpdate();
+        }
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s;
+    }
+
     private static String normalizeFk(String id) {
         return id == null || id.isBlank() ? null : id;
     }

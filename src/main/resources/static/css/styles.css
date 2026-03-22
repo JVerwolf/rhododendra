@@ -282,6 +282,55 @@ input:checked + .slider:before {
     text-align: center;
 }
 
+.rhodo-detail-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.25em;
+    margin-top: 0.25em;
+}
+
+.rhodo-detail-toolbar__left {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.rhodo-detail-toolbar__right {
+    margin-left: auto;
+}
+
+.rhodo-edit-panel {
+    display: none;
+    margin-bottom: 1em;
+    padding: 0.75em;
+    border: 2px solid black;
+    background-color: #fafafa;
+}
+
+.rhodo-edit-panel.is-open {
+    display: block;
+}
+
+.rhodo-edit-form__table {
+    width: 100%;
+}
+
+.rhodo-edit-form__actions {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.rhodo-edit-flash {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
 div.content {
     max-width: 800px;
     background-color: #ffffff;

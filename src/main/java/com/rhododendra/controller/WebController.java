@@ -1,6 +1,7 @@
 package com.rhododendra.controller;
 
 import com.rhododendra.config.AppSettings;
+import com.rhododendra.db.RhododendronRepository;
 import com.rhododendra.model.Rhododendron.SearchFilters;
 import com.rhododendra.service.RhodoLogicService;
 import com.rhododendra.service.SearchService;
@@ -10,10 +11,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.rhododendra.security.PostLoginRedirect;
+
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,10 +32,14 @@ import static com.rhododendra.service.RhodoLogicService.UPPER_CASE_ALPHABET;
 @Controller
 public class WebController {
     AppSettings appSettings;
+    RhododendronRepository rhododendronRepository;
+
     public WebController(
-        AppSettings appSettings
+        AppSettings appSettings,
+        RhododendronRepository rhododendronRepository
     ) {
         this.appSettings = appSettings;
+        this.rhododendronRepository = rhododendronRepository;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(WebController.class);
@@ -39,8 +51,17 @@ public class WebController {
     }
 
     @RequestMapping("/login")
-    public String login(Model model) {
+    public String login(
+        Model model,
+        @RequestParam(name = "continue", required = false) String continueTarget,
+        HttpSession session
+    ) {
         model.addAttribute("domain", appSettings.domain);
+        if (continueTarget != null && PostLoginRedirect.isSafeRedirect(continueTarget)) {
+            session.setAttribute(PostLoginRedirect.SESSION_ATTRIBUTE, continueTarget);
+        } else {
+            session.removeAttribute(PostLoginRedirect.SESSION_ATTRIBUTE);
+        }
         return "login";
     }
 
@@ -209,6 +230,70 @@ public class WebController {
             logger.warn("Rhodo requested but not found: " + id);
             return "404";
         }
+    }
+
+    @PostMapping("/rhodos/{id}/edit")
+    public String saveRhodoEdit(
+        @PathVariable("id") String id,
+        @RequestParam(value = "ten_year_height", required = false) String tenYearHeight,
+        @RequestParam(value = "bloom_time", required = false) String bloomTime,
+        @RequestParam(value = "flower_shape", required = false) String flowerShape,
+        @RequestParam(value = "leaf_shape", required = false) String leafShape,
+        @RequestParam(value = "colour", required = false) String colour,
+        @RequestParam(value = "deciduous", required = false) String deciduous,
+        @RequestParam(value = "hardiness", required = false) String hardiness,
+        @RequestParam(value = "extra_information", required = false) String extraInformation,
+        @RequestParam(value = "additional_parentage_info", required = false) String additionalParentageInfo,
+        @RequestParam(value = "cultivation_since", required = false) String cultivationSince,
+        @RequestParam(value = "first_described", required = false) String firstDescribed,
+        @RequestParam(value = "origin_location", required = false) String originLocation,
+        @RequestParam(value = "habit", required = false) String habit,
+        @RequestParam(value = "observed_mature_height", required = false) String observedMatureHeight,
+        @RequestParam(value = "azalea_group", required = false) String azaleaGroup,
+        @RequestParam(value = "irrc_registered", required = false) String irrcRegistered,
+        @RequestParam(value = "subgenus", required = false) String subgenus,
+        @RequestParam(value = "section", required = false) String section,
+        @RequestParam(value = "subsection", required = false) String subsection,
+        RedirectAttributes redirectAttributes
+    ) {
+        var result = SearchService.getRhodoById(id);
+        if (result.isEmpty()) {
+            logger.warn("Rhodo edit requested but not found: {}", id);
+            return "404";
+        }
+        try {
+            int updated = rhododendronRepository.updateEditableFields(
+                id,
+                tenYearHeight,
+                bloomTime,
+                flowerShape,
+                leafShape,
+                colour,
+                deciduous,
+                hardiness,
+                extraInformation,
+                additionalParentageInfo,
+                cultivationSince,
+                firstDescribed,
+                originLocation,
+                habit,
+                observedMatureHeight,
+                azaleaGroup,
+                irrcRegistered,
+                subgenus,
+                section,
+                subsection
+            );
+            if (updated == 0) {
+                redirectAttributes.addFlashAttribute("editError", "No row updated.");
+            } else {
+                redirectAttributes.addFlashAttribute("editSuccess", true);
+            }
+        } catch (SQLException e) {
+            logger.error("Failed to update rhododendron {}", id, e);
+            redirectAttributes.addFlashAttribute("editError", "Could not save changes.");
+        }
+        return "redirect:/rhodos/" + id;
     }
 
     @RequestMapping(value = "/hybridizer/{id}")

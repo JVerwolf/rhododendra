@@ -116,5 +116,43 @@ public class DbRepositoryTests {
         assertThat(loaded.getHybridizer().getHybridizer_id()).isEqualTo("hz1");
         assertThat(loaded.getHybridizer().getHybridizer()).isEqualTo("Resolved Hybridizer Name");
     }
+
+    @Test
+    void testUpdateEditableFields() throws SQLException {
+        var rhodo = new Rhododendron();
+        rhodo.setId("r-edit-fields");
+        rhodo.setName("Editable");
+        rhodo.setTen_year_height("2m");
+        rhodo.setBloom_time("May");
+        rhododendronRepository.upsert(rhodo);
+
+        rhododendronRepository.updateEditableFields(
+            "r-edit-fields",
+            "5m",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        var loaded = rhododendronRepository.getById("r-edit-fields");
+        assertThat(loaded).isNotNull();
+        assertThat(loaded.getTen_year_height()).isEqualTo("5m");
+        assertThat(loaded.getBloom_time()).isNull();
+    }
 }
 

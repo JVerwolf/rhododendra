@@ -5,12 +5,13 @@
     <a th:href="@{/contact}">Contact</a>
     <a th:href="@{/links}">Links</a>
     <div class="nav-auth" sec:authorize="!isAuthenticated()">
-        <a th:href="@{/login}">Sign in</a>
+        <a th:href="@{/login(continue=${signInContinueUrl})}">Sign in</a>
     </div>
     <div class="nav-auth" sec:authorize="isAuthenticated()">
         <span class="nav-auth-user" th:text="${oauthEmail != null and !oauthEmail.isEmpty() ? oauthEmail : oauthDisplayName}">user</span>
         <form th:action="@{/logout}" method="post" class="nav-auth-logout">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <input type="hidden" name="continue" th:value="${signInContinueUrl}"/>
             <button type="submit" class="btn btn-link nav-auth-logout-btn">Log out</button>
         </form>
     </div>
