@@ -38,6 +38,12 @@ public class WebController {
         return "home";
     }
 
+    @RequestMapping("/login")
+    public String login(Model model) {
+        model.addAttribute("domain", appSettings.domain);
+        return "login";
+    }
+
     @RequestMapping("/rhodo_index")
     public String handleRhodoIndex(
         Model model,

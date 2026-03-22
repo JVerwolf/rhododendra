@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="~{fragments/head}"></th:block>
+    <title>Sign in</title>
+    <meta name="description" content="Sign in to Rhododendra">
+    <link rel="canonical" th:href="|${domain}/login|"/>
+</head>
+<body>
+<div th:replace="~{fragments/header}"></div>
+
+<div class="content">
+    <div class="description-container">
+        <h1 class="font-weight-bold">Sign in</h1>
+        <p>Sign in with your Google or Facebook account. We never store a password—only your name and email from the provider you choose.</p>
+        <div class="login-actions">
+            <a class="login-provider login-provider--google" th:href="@{/oauth2/authorization/google}">
+                <span class="login-provider__icon" aria-hidden="true">
+                    <svg class="login-provider__svg login-provider__svg--google" viewBox="0 0 48 48" width="28" height="28" role="img">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6C43.13 41.92 46.98 34.01 46.98 24.55z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
+                </span>
+                <span class="login-provider__label">Continue with Google</span>
+            </a>
+            <a class="login-provider login-provider--facebook" th:href="@{/oauth2/authorization/facebook}">
+                <span class="login-provider__icon" aria-hidden="true">
+                    <svg class="login-provider__svg login-provider__svg--facebook" viewBox="0 0 24 24" width="26" height="26" role="img">
+                        <path fill="#3b5998" d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                    </svg>
+                </span>
+                <span class="login-provider__label">Continue with Facebook</span>
+            </a>
+        </div>
+        <p class="text-muted small mt-3">
+            Facebook may not return an email for every account; you can still sign in using your name from Facebook.
+        </p>
+    </div>
+</div>
+</body>
+</html>

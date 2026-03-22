@@ -1,6 +1,7 @@
 package com.rhododendra.db;
 
 import com.rhododendra.model.Botanist;
+import com.rhododendra.model.Hybridizer;
 import com.rhododendra.model.PhotoDetails;
 import com.rhododendra.model.Rhododendron;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,9 @@ public class DbRepositoryTests {
     @Autowired
     private PhotoDetailsRepository photoDetailsRepository;
 
+    @Autowired
+    private HybridizerRepository hybridizerRepository;
+
     @BeforeEach
     void cleanup() throws SQLException {
         try (var conn = db.getConnection();
@@ -42,6 +46,7 @@ public class DbRepositoryTests {
             stmt.executeUpdate("DELETE FROM rhododendron_synonym");
             stmt.executeUpdate("DELETE FROM rhododendron_photo");
             stmt.executeUpdate("DELETE FROM rhododendron");
+            stmt.executeUpdate("DELETE FROM hybridizer");
             stmt.executeUpdate("DELETE FROM botanist");
             stmt.executeUpdate("DELETE FROM photo_details");
         }
@@ -86,6 +91,30 @@ public class DbRepositoryTests {
         assertThat(loaded.getBotanical_synonyms()).hasSize(1);
         assertThat(loaded.getBotanical_synonyms().get(0).synonym()).isEqualTo("Bot Syn 1");
         assertThat(loaded.getBotanical_synonyms().get(0).botanical_shorts()).containsExactly("B1");
+    }
+
+    @Test
+    void testRhododendronLoadsHybridizerNameFromHybridizerTable() throws SQLException {
+        var hybridizer = new Hybridizer();
+        hybridizer.setId("hz1");
+        hybridizer.setName("Resolved Hybridizer Name");
+        hybridizerRepository.upsert(hybridizer);
+
+        var inner = new Rhododendron.Hybridizer();
+        inner.setHybridizer_id("hz1");
+        var rhodo = new Rhododendron();
+        rhodo.setId("r-hz");
+        rhodo.setName("With hybridizer");
+        rhodo.setSpeciesOrCultivar(Rhododendron.SpeciesOrCultivar.CULTIVAR);
+        rhodo.setHybridizer(inner);
+
+        rhododendronRepository.upsert(rhodo);
+
+        var loaded = rhododendronRepository.getById("r-hz");
+        assertThat(loaded).isNotNull();
+        assertThat(loaded.getHybridizer()).isNotNull();
+        assertThat(loaded.getHybridizer().getHybridizer_id()).isEqualTo("hz1");
+        assertThat(loaded.getHybridizer().getHybridizer()).isEqualTo("Resolved Hybridizer Name");
     }
 }
 

@@ -61,7 +61,7 @@
             <td th:if="${rhodo.getIs_species_selection()}" class="key"><b>Selected By</b></td>
             <td th:if="${not rhodo.getIs_species_selection()}" class="key"><b>Hybridized By</b></td>
 
-            <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  != null}">
+            <td class="value" th:if="${rhodo.getHybridizer() != null && rhodo.getHybridizer().getHybridizer() != null}">
                 <a th:if="${rhodo.getHybridizer().getHybridizer_id() != null}"
                    th:href="@{/hybridizer/__${rhodo.getHybridizer().getHybridizer_id()}__}">
                     <b th:text="${rhodo.getHybridizer().getHybridizer() }"></b>
@@ -69,7 +69,7 @@
                 <span th:if="${rhodo.getHybridizer().getHybridizer_id() == null}"
                       th:text="${rhodo.getHybridizer().getHybridizer()}"></span>
             </td>
-            <td class="value" th:if="${rhodo.getHybridizer().getHybridizer()  == null}">Unknown</td>
+            <td class="value" th:if="${rhodo.getHybridizer() == null || rhodo.getHybridizer().getHybridizer() == null}">Unknown</td>
         </tr>
         <th:block th:if="${rhodo.getAzalea_group() != null}">
             <tr>
@@ -184,13 +184,13 @@
         </tr>
         <tr>
             <td class="key"><b>Leaves</b></td>
-            <td class="value" th:if="${rhodo.getLeaf_shape()} != null" th:text="${rhodo.getLeaf_shape()}"></td>
-            <td class="value" th:if="${rhodo.getLeaf_shape()} == null">?</td>
+            <td class="value" th:if="${rhodo.getLeaf_shape() != null}" th:text="${rhodo.getLeaf_shape()}"></td>
+            <td class="value" th:if="${rhodo.getLeaf_shape() == null}">?</td>
         </tr>
         <tr>
             <td class="key"><b>Winter Foliage</b></td>
-            <td class="value" th:if="${rhodo.getDeciduous()} != null" th:text="${rhodo.getDeciduous()}"></td>
-            <td class="value" th:if="${rhodo.getDeciduous()} == null">?</td>
+            <td class="value" th:if="${rhodo.getDeciduous() != null}" th:text="${rhodo.getDeciduous()}"></td>
+            <td class="value" th:if="${rhodo.getDeciduous() == null}">?</td>
         </tr>
         <tr th:if="${rhodo.getAdditional_parentage_info() != null}">
             <td class="key"><b>Additional<br/>Parentage Info</b></td>

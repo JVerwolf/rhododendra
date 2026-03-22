@@ -272,9 +272,10 @@ public class RhododendronRepository {
 
     public Rhododendron getById(String id) throws SQLException {
         var sql = """
-            SELECT *
-            FROM rhododendron
-            WHERE id = ?
+            SELECT r.*, hz.name AS hybridizer_name
+            FROM rhododendron r
+            LEFT JOIN hybridizer hz ON hz.id = r.hybridizer_id
+            WHERE r.id = ?
             """;
         try (var conn = db.getConnection();
              var ps = conn.prepareStatement(sql)) {
@@ -335,11 +336,12 @@ public class RhododendronRepository {
                     r.setParentage(parentage);
                 }
 
-                // hybridizer: we only store ID here; the full Hybridizer object can be resolved by higher-level services
+                // hybridizer_id is on rhododendron; display name comes from hybridizer table (JSON name is not stored redundantly)
                 var hybridizerId = rs.getString("hybridizer_id");
                 if (hybridizerId != null) {
                     var inner = new Rhododendron.Hybridizer();
                     inner.setHybridizer_id(hybridizerId);
+                    inner.setHybridizer(rs.getString("hybridizer_name"));
                     r.setHybridizer(inner);
                 }
 

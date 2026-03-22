@@ -22,6 +22,38 @@ By default the app reads [`src/main/resources/application.properties`](src/main/
 
 Open [http://localhost:8090](http://localhost:8090).
 
+### Local sign-in (Google / Facebook OAuth)
+
+Sign-in uses Spring Security OAuth2; the app does **not** store passwords. Credentials come from environment variables (see [`application.properties`](src/main/resources/application.properties) for the exact property names Spring maps them to).
+
+**Google ([Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Credentials)**
+
+1. Create an OAuth **Client ID** of type **Web application** (not Android, iOS, or Desktop).
+2. Under **Authorized redirect URIs**, add the callback Spring Security uses:
+
+   `http://localhost:8090/login/oauth2/code/google`
+
+3. If you browse the app as `http://127.0.0.1:8090` instead of `localhost`, add a second redirect URI with `127.0.0.1`—Google treats hostnames literally.
+4. Set real values locally (example):
+
+   ```bash
+   export GOOGLE_CLIENT_ID="your-id.apps.googleusercontent.com"
+   export GOOGLE_CLIENT_SECRET="your-secret"
+   ./gradlew bootRun
+   ```
+
+   Unset variables fall back to dummy placeholders and **will not** work with Google. If the consent screen is in **Testing** mode, add your Google account under **Test users**.
+
+**Facebook ([Meta for Developers](https://developers.facebook.com/))**
+
+- Add **Facebook Login** and set **Valid OAuth Redirect URIs** to:
+
+  `http://localhost:8090/login/oauth2/code/facebook`
+
+- Set `FACEBOOK_CLIENT_ID` and `FACEBOOK_CLIENT_SECRET` the same way as Google.
+
+**After logout:** each “Continue with …” link sends extra OAuth parameters so Google shows an **account chooser** (`prompt=select_account`) and Facebook prompts for **login again** (`auth_type=reauthenticate`). That avoids the browser silently reusing the last Google/Facebook session without letting you pick a different account or provider. Implementation: [`ReauthenticationOAuth2AuthorizationRequestResolver`](src/main/java/com/rhododendra/config/ReauthenticationOAuth2AuthorizationRequestResolver.java).
+
 To use another profile (e.g. production SSL settings in `application-prod.properties`):
 
 ```bash
