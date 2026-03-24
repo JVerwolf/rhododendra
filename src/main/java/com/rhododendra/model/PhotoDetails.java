@@ -1,5 +1,6 @@
 package com.rhododendra.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -14,7 +15,10 @@ public class PhotoDetails extends Indexable {
     public static final String NAME = "name";
     public static final String TAG = "tag";
 
-    public static final String PRIMARY_ID_KEY = PHOTO;
+    public static final String PRIMARY_ID_KEY = "id";
+
+    @JsonIgnore
+    Long id;
 
     @JsonProperty(PHOTO_BY)
     String photoBy;
@@ -35,7 +39,15 @@ public class PhotoDetails extends Indexable {
 
     @Override
     public String primaryIdValue() {
-        return photo;
+        return id == null ? "" : String.valueOf(id);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getPhotoBy() {

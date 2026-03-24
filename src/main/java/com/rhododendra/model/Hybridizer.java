@@ -1,6 +1,7 @@
 package com.rhododendra.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
@@ -10,17 +11,30 @@ public class Hybridizer extends Indexable {
     public static final String NAME_KEY_FOR_SORT = "name_key_for_sort";
 
 
-    private String id;
+    @JsonIgnore
+    private Long id;
+    @JsonProperty("id")
+    private String oldId;
     private String name;
     private String location;
     private List<String> photos;
 
-    public String getId() {
+    @JsonIgnore
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    @JsonIgnore
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getOldId() {
+        return oldId;
+    }
+
+    public void setOldId(String oldId) {
+        this.oldId = oldId;
     }
 
     public String getName() {
@@ -50,6 +64,6 @@ public class Hybridizer extends Indexable {
     @JsonIgnore
     @Override
     public String primaryIdValue() {
-        return getId();
+        return getId() == null ? "" : String.valueOf(getId());
     }
 }

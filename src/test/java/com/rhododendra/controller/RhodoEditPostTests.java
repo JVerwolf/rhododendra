@@ -28,7 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 class RhodoEditPostTests {
 
-    private static final String RHODO_ID = "edit-post-r1";
+    private static final String RHODO_OLD_ID = "edit-post-r1";
+    private Long rhodoId;
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,15 +53,15 @@ class RhodoEditPostTests {
         }
 
         var rhodo = new Rhododendron();
-        rhodo.setId(RHODO_ID);
+        rhodo.setOldId(RHODO_OLD_ID);
         rhodo.setName("Post Edit Test");
         rhodo.setTen_year_height("1m");
-        rhododendronRepository.upsert(rhodo);
+        rhodoId = rhododendronRepository.upsert(rhodo);
     }
 
     @Test
     void postEditWithoutAuthenticationRedirectsToLogin() throws Exception {
-        mockMvc.perform(post("/rhodos/" + RHODO_ID + "/edit")
+        mockMvc.perform(post("/rhodos/" + rhodoId + "/edit")
                 .with(csrf())
                 .param("ten_year_height", "9m"))
             .andExpect(status().isFound())
@@ -70,7 +71,7 @@ class RhodoEditPostTests {
     @Test
     @WithMockUser
     void postEditWithAuthenticationRedirectsAndUpdates() throws Exception {
-        mockMvc.perform(post("/rhodos/" + RHODO_ID + "/edit")
+        mockMvc.perform(post("/rhodos/" + rhodoId + "/edit")
                 .with(csrf())
                 .param("ten_year_height", "9m")
                 .param("bloom_time", "")
@@ -92,9 +93,9 @@ class RhodoEditPostTests {
                 .param("section", "")
                 .param("subsection", ""))
             .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/rhodos/" + RHODO_ID));
+            .andExpect(redirectedUrl("/rhodos/" + rhodoId));
 
-        var loaded = rhododendronRepository.getById(RHODO_ID);
+        var loaded = rhododendronRepository.getById(rhodoId);
         assertThat(loaded).isNotNull();
         assertThat(loaded.getTen_year_height()).isEqualTo("9m");
     }

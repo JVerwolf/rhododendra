@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="~{fragments/head}"></th:block>
+    <title th:text="${botanist.getFullName() != null ? botanist.getFullName() : botanist.getBotanicalShort()}"></title>
+    <meta name="description" th:content="|Botanist profile for ${botanist.getFullName() != null ? botanist.getFullName() : botanist.getBotanicalShort()}|">
+    <link rel="canonical" th:href="|${domain}/botanist/${botanist.getId()}|"/>
+</head>
+
+<body>
+<div th:replace="~{fragments/header}"></div>
+
+<div class="content">
+    <div class="description-container">
+        <h1 class="font-weight-bold">Botanist Profile</h1>
+        <h2 style="text-align: center;" th:text="${botanist.getFullName() != null ? botanist.getFullName() : botanist.getBotanicalShort()}"></h2>
+        <h3 style="text-align: center;" th:text="${'(' + botanist.getBotanicalShort() + ')'}"></h3>
+        <h3 style="text-align: center;" th:if="${botanist.getBornDied() != null}" th:text="${botanist.getBornDied()}"></h3>
+        <h3 style="text-align: center;" th:if="${botanist.getLocation() != null}" th:text="${botanist.getLocation()}"></h3>
+        <div style="display: flex; justify-content: center;" th:if="${botanist.getImage() != null}">
+            <img th:src="${botanist.getImage()}" th:title="${botanist.getFullName() != null ? botanist.getFullName() : botanist.getBotanicalShort()}"/>
+        </div>
+    </div>
+</div>
+</body>
+</html>

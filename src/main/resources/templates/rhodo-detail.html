@@ -259,8 +259,11 @@
             <td class="key"><b>First Described</b></td>
             <td class="value" th:if="${rhodo.getFirst_described() != null}">
                 <span th:text="${rhodo.getFirst_described()}"></span>
-                <span th:if="${not rhodo.getFirst_described_botanists().isEmpty()}"
-                      th:text="' ('+ ${#strings.listJoin(rhodo.getFirst_described_botanists(), ',')} + ')'"></span>
+                <span th:if="${not rhodo.getFirst_described_botanists().isEmpty()}">
+                    (<th:block th:each="botanist, stat : ${rhodo.getFirst_described_botanists()}">
+                        <a th:href="@{/botanist/{id}(id=${botanist.getId()})}" th:text="${botanist.getBotanicalShort()}"></a><span th:if="${not stat.last}">, </span>
+                    </th:block>)
+                </span>
             </td>
         </tr>
         <tr th:if="${rhodo.getOrigin_location() != null}">

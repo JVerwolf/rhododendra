@@ -15,7 +15,10 @@ public class Rhododendron extends Indexable {
     public static final String NAME_KEY_FOR_SORT = "name_key_for_sort";
     public static final String SEARCH_FILTERS = "search_filters";
 
-    String id;
+    @JsonIgnore
+    Long id;
+    @JsonProperty("id")
+    String oldId;
     String name;
     String ten_year_height;
     String bloom_time;
@@ -32,7 +35,9 @@ public class Rhododendron extends Indexable {
     Hybridizer hybridizer;
     String irrc_registered;
     String additional_parentage_info;
-    String species_id; // for selection
+    Long species_id; // DB FK for selection
+    @JsonProperty("species_id")
+    String species_old_id; // JSON/source id for selection
     Rhododendron selectedSpecies; // Don't store as this info can change, not the source of truth. Only for fetching and putting in model for display.
     String cultivation_since;
     Lepedote lepedote;
@@ -43,7 +48,10 @@ public class Rhododendron extends Indexable {
     // Species
     Taxonomy taxonomy;
     String first_described;
-    List<String> first_described_botanists;
+    @JsonIgnore
+    List<Botanist> first_described_botanists;
+    @JsonProperty("first_described_botanists")
+    List<String> first_described_botanist_shorts;
     String origin_location;
     String habit; // terestrial or epyphytic
     String observed_mature_height;
@@ -62,7 +70,7 @@ public class Rhododendron extends Indexable {
     @JsonIgnore
     @Override
     public String primaryIdValue() {
-        return id;
+        return id == null ? "" : String.valueOf(id);
     }
 
     public static enum SpeciesOrCultivar {
@@ -142,7 +150,7 @@ public class Rhododendron extends Indexable {
     }
 
     @JsonIgnore
-    public String getSeedParentId() {
+    public Long getSeedParentId() {
         if (parentage != null && parentage.seed_parent_id != null) {
             return parentage.seed_parent_id;
         } else if (is_species_selection) {
@@ -154,7 +162,7 @@ public class Rhododendron extends Indexable {
     }
 
     @JsonIgnore
-    public String getPollenParentId() {
+    public Long getPollenParentId() {
         if (parentage != null && parentage.pollen_parent_id != null) {
             return parentage.pollen_parent_id;
         } else if (is_species_selection) {
@@ -256,7 +264,9 @@ public class Rhododendron extends Indexable {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Hybridizer {
         String hybridizer;
-        String hybridizer_id;
+        Long hybridizer_id;
+        @JsonProperty("hybridizer_id")
+        String hybridizer_old_id;
 
         public String getHybridizer() {
             return hybridizer;
@@ -266,12 +276,24 @@ public class Rhododendron extends Indexable {
             this.hybridizer = hybridizer;
         }
 
-        public String getHybridizer_id() {
+        @JsonIgnore
+        public Long getHybridizer_id() {
             return hybridizer_id;
         }
 
-        public void setHybridizer_id(String hybridizer_id) {
+        @JsonIgnore
+        public void setHybridizer_id(Long hybridizer_id) {
             this.hybridizer_id = hybridizer_id;
+        }
+
+        @JsonIgnore
+        public String getHybridizerOldId() {
+            return hybridizer_old_id;
+        }
+
+        @JsonIgnore
+        public void setHybridizerOldId(String hybridizer_old_id) {
+            this.hybridizer_old_id = hybridizer_old_id;
         }
     }
 
@@ -309,9 +331,13 @@ public class Rhododendron extends Indexable {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Parentage {
         String seed_parent;
-        String seed_parent_id;
+        Long seed_parent_id;
+        @JsonProperty("seed_parent_id")
+        String seed_parent_old_id;
         String pollen_parent;
-        String pollen_parent_id;
+        Long pollen_parent_id;
+        @JsonProperty("pollen_parent_id")
+        String pollen_parent_old_id;
 
         public String getSeed_parent() {
             return seed_parent;
@@ -321,11 +347,13 @@ public class Rhododendron extends Indexable {
             this.seed_parent = seed_parent;
         }
 
-        public String getSeed_parent_id() {
+        @JsonIgnore
+        public Long getSeed_parent_id() {
             return seed_parent_id;
         }
 
-        public void setSeed_parent_id(String seed_parent_id) {
+        @JsonIgnore
+        public void setSeed_parent_id(Long seed_parent_id) {
             this.seed_parent_id = seed_parent_id;
         }
 
@@ -337,12 +365,34 @@ public class Rhododendron extends Indexable {
             this.pollen_parent = pollen_parent;
         }
 
-        public String getPollen_parent_id() {
+        @JsonIgnore
+        public Long getPollen_parent_id() {
             return pollen_parent_id;
         }
 
-        public void setPollen_parent_id(String pollen_parent_id) {
+        @JsonIgnore
+        public void setPollen_parent_id(Long pollen_parent_id) {
             this.pollen_parent_id = pollen_parent_id;
+        }
+
+        @JsonIgnore
+        public String getSeedParentOldId() {
+            return seed_parent_old_id;
+        }
+
+        @JsonIgnore
+        public void setSeedParentOldId(String seed_parent_old_id) {
+            this.seed_parent_old_id = seed_parent_old_id;
+        }
+
+        @JsonIgnore
+        public String getPollenParentOldId() {
+            return pollen_parent_old_id;
+        }
+
+        @JsonIgnore
+        public void setPollenParentOldId(String pollen_parent_old_id) {
+            this.pollen_parent_old_id = pollen_parent_old_id;
         }
     }
 
@@ -386,12 +436,22 @@ public class Rhododendron extends Indexable {
         this.is_cultivar_group = is_cultivar_group;
     }
 
-    public String getId() {
+    @JsonIgnore
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    @JsonIgnore
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getOldId() {
+        return oldId;
+    }
+
+    public void setOldId(String oldId) {
+        this.oldId = oldId;
     }
 
     public String getName() {
@@ -506,12 +566,24 @@ public class Rhododendron extends Indexable {
         this.additional_parentage_info = additional_parentage_info;
     }
 
-    public String getSpecies_id() {
+    @JsonIgnore
+    public Long getSpecies_id() {
         return species_id;
     }
 
-    public void setSpecies_id(String species_id) {
+    @JsonIgnore
+    public void setSpecies_id(Long species_id) {
         this.species_id = species_id;
+    }
+
+    @JsonIgnore
+    public String getSpeciesOldId() {
+        return species_old_id;
+    }
+
+    @JsonIgnore
+    public void setSpeciesOldId(String species_old_id) {
+        this.species_old_id = species_old_id;
     }
 
     @JsonIgnore
@@ -564,12 +636,20 @@ public class Rhododendron extends Indexable {
         this.first_described = first_described;
     }
 
-    public List<String> getFirst_described_botanists() {
+    public List<Botanist> getFirst_described_botanists() {
         return first_described_botanists;
     }
 
-    public void setFirst_described_botanists(List<String> first_described_botanists) {
+    public void setFirst_described_botanists(List<Botanist> first_described_botanists) {
         this.first_described_botanists = first_described_botanists;
+    }
+
+    public List<String> getFirst_described_botanist_shorts() {
+        return first_described_botanist_shorts;
+    }
+
+    public void setFirst_described_botanist_shorts(List<String> first_described_botanist_shorts) {
+        this.first_described_botanist_shorts = first_described_botanist_shorts;
     }
 
     public String getOrigin_location() {

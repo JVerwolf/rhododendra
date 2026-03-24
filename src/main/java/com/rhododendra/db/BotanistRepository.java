@@ -14,7 +14,7 @@ public class BotanistRepository {
         this.db = db;
     }
 
-    public void upsert(Botanist botanist) throws SQLException {
+    public Long upsert(Botanist botanist) throws SQLException {
         var sql = """
             INSERT INTO botanist (botanical_short, full_name, location, born_died, image)
             VALUES (?, ?, ?, ?, ?)
@@ -32,12 +32,40 @@ public class BotanistRepository {
             ps.setString(4, botanist.getBornDied());
             ps.setString(5, botanist.getImage());
             ps.executeUpdate();
+            Botanist stored = getByBotanicalShort(botanist.getBotanicalShort());
+            if (stored == null || stored.getId() == null) {
+                throw new SQLException("Botanist upsert failed for botanical_short=" + botanist.getBotanicalShort());
+            }
+            return stored.getId();
         }
     }
 
-    public Botanist getById(String botanicalShort) throws SQLException {
+    public Botanist getById(Long id) throws SQLException {
         var sql = """
-            SELECT botanical_short, full_name, location, born_died, image
+            SELECT id, botanical_short, full_name, location, born_died, image
+            FROM botanist
+            WHERE id = ?
+            """;
+        try (var conn = db.getConnection();
+             var ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            try (var rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+                var b = new Botanist();
+                b.setId(rs.getLong("id"));
+                b.setBotanicalShort(rs.getString("botanical_short"));
+                b.setFullName(rs.getString("full_name"));
+                b.setLocation(rs.getString("location"));
+                b.setBornDied(rs.getString("born_died"));
+                b.setImage(rs.getString("image"));
+                return b;
+            }
+        }
+    }
+
+    public Botanist getByBotanicalShort(String botanicalShort) throws SQLException {
+        var sql = """
+            SELECT id, botanical_short, full_name, location, born_died, image
             FROM botanist
             WHERE botanical_short = ?
             """;
@@ -47,6 +75,7 @@ public class BotanistRepository {
             try (var rs = ps.executeQuery()) {
                 if (!rs.next()) return null;
                 var b = new Botanist();
+                b.setId(rs.getLong("id"));
                 b.setBotanicalShort(rs.getString("botanical_short"));
                 b.setFullName(rs.getString("full_name"));
                 b.setLocation(rs.getString("location"));

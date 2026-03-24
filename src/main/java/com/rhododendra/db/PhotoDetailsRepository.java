@@ -14,7 +14,7 @@ public class PhotoDetailsRepository {
         this.db = db;
     }
 
-    public void upsert(PhotoDetails photo) throws SQLException {
+    public Long upsert(PhotoDetails photo) throws SQLException {
         var sql = """
             INSERT INTO photo_details (photo, photo_by, date, location, hi_res_photo, description, name, tag)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -38,21 +38,53 @@ public class PhotoDetailsRepository {
             ps.setString(7, photo.getName());
             ps.setString(8, photo.getTag());
             ps.executeUpdate();
+            PhotoDetails stored = getByPhoto(photo.getPhoto());
+            if (stored == null || stored.getId() == null) {
+                throw new SQLException("PhotoDetails upsert failed for photo=" + photo.getPhoto());
+            }
+            return stored.getId();
         }
     }
 
-    public PhotoDetails getById(String id) throws SQLException {
+    public PhotoDetails getById(Long id) throws SQLException {
         var sql = """
-            SELECT photo, photo_by, date, location, hi_res_photo, description, name, tag
+            SELECT id, photo, photo_by, date, location, hi_res_photo, description, name, tag
+            FROM photo_details
+            WHERE id = ?
+            """;
+        try (var conn = db.getConnection();
+             var ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, id);
+            try (var rs = ps.executeQuery()) {
+                if (!rs.next()) return null;
+                var p = new PhotoDetails();
+                p.setId(rs.getLong("id"));
+                p.setPhoto(rs.getString("photo"));
+                p.setPhotoBy(rs.getString("photo_by"));
+                p.setDate(rs.getString("date"));
+                p.setLocation(rs.getString("location"));
+                p.setHiResPhoto(rs.getString("hi_res_photo"));
+                p.setDescription(rs.getString("description"));
+                p.setName(rs.getString("name"));
+                p.setTag(rs.getString("tag"));
+                return p;
+            }
+        }
+    }
+
+    public PhotoDetails getByPhoto(String photo) throws SQLException {
+        var sql = """
+            SELECT id, photo, photo_by, date, location, hi_res_photo, description, name, tag
             FROM photo_details
             WHERE photo = ?
             """;
         try (var conn = db.getConnection();
              var ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
+            ps.setString(1, photo);
             try (var rs = ps.executeQuery()) {
                 if (!rs.next()) return null;
                 var p = new PhotoDetails();
+                p.setId(rs.getLong("id"));
                 p.setPhoto(rs.getString("photo"));
                 p.setPhotoBy(rs.getString("photo_by"));
                 p.setDate(rs.getString("date"));

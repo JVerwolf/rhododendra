@@ -74,7 +74,7 @@ public class IndexService {
         IndexService.db = db;
     }
 
-    public static String generateRhodoNameForIndexing(Rhododendron rhodo, Map<String, Rhododendron> idToRhodoMap) {
+    public static String generateRhodoNameForIndexing(Rhododendron rhodo, Map<Long, Rhododendron> idToRhodoMap) {
         if (rhodo.getIs_species_selection()) {
             try {
                 return idToRhodoMap.get(rhodo.getSpecies_id()).getName().toLowerCase() + " " + rhodo.getName().toLowerCase();
@@ -113,25 +113,25 @@ public class IndexService {
                     Field.Store.NO
                 ));
                 if (rhodo.getHybridizer() != null && rhodo.getHybridizer().getHybridizer_id() != null){
-                    document.add(new StringField(HYBRIDIZER_ID,rhodo.getHybridizer().getHybridizer_id(), Field.Store.NO));
+                    document.add(new StringField(HYBRIDIZER_ID, String.valueOf(rhodo.getHybridizer().getHybridizer_id()), Field.Store.NO));
                 }
 
                 var parentage = rhodo.getParentage();
                 if (parentage != null) {
                     var seed_parent = parentage.getSeed_parent_id();
                     if (seed_parent != null) {
-                        document.add(new StringField(SEED_PARENT_KEY, seed_parent, Field.Store.NO));
+                        document.add(new StringField(SEED_PARENT_KEY, String.valueOf(seed_parent), Field.Store.NO));
                     }
                     var pollen_parent = parentage.getPollen_parent_id();
                     if (pollen_parent != null) {
-                        document.add(new StringField(POLLEN_PARENT_KEY, pollen_parent, Field.Store.NO));
+                        document.add(new StringField(POLLEN_PARENT_KEY, String.valueOf(pollen_parent), Field.Store.NO));
                     }
                 } else if (rhodo.isSpecies()) {
-                    document.add(new StringField(SEED_PARENT_KEY, rhodo.getId(), Field.Store.NO));
-                    document.add(new StringField(POLLEN_PARENT_KEY, rhodo.getId(), Field.Store.NO));
+                    document.add(new StringField(SEED_PARENT_KEY, String.valueOf(rhodo.getId()), Field.Store.NO));
+                    document.add(new StringField(POLLEN_PARENT_KEY, String.valueOf(rhodo.getId()), Field.Store.NO));
                 } else if (rhodo.getIs_species_selection()) {
-                    document.add(new StringField(SEED_PARENT_KEY, rhodo.getSpecies_id(), Field.Store.NO));
-                    document.add(new StringField(POLLEN_PARENT_KEY, rhodo.getSpecies_id(), Field.Store.NO));
+                    document.add(new StringField(SEED_PARENT_KEY, String.valueOf(rhodo.getSpecies_id()), Field.Store.NO));
+                    document.add(new StringField(POLLEN_PARENT_KEY, String.valueOf(rhodo.getSpecies_id()), Field.Store.NO));
                 }
 
                 // Set the taxonomy of a species selection to the original species
@@ -243,7 +243,7 @@ public class IndexService {
              var ps = conn.prepareStatement("SELECT id FROM rhododendron");
              var rs = ps.executeQuery()) {
             while (rs.next()) {
-                String id = rs.getString("id");
+                Long id = rs.getLong("id");
                 Rhododendron rhodo = rhododendronRepository.getById(id);
                 if (rhodo != null) {
                     result.add(rhodo);
@@ -261,7 +261,7 @@ public class IndexService {
              var ps = conn.prepareStatement("SELECT id FROM hybridizer");
              var rs = ps.executeQuery()) {
             while (rs.next()) {
-                String id = rs.getString("id");
+                Long id = rs.getLong("id");
                 Hybridizer h = hybridizerRepository.getById(id);
                 if (h != null) {
                     result.add(h);
@@ -276,10 +276,10 @@ public class IndexService {
     private static List<Botanist> loadAllBotanistsFromDb() {
         List<Botanist> result = new ArrayList<>();
         try (var conn = db.getConnection();
-             var ps = conn.prepareStatement("SELECT botanical_short FROM botanist");
+             var ps = conn.prepareStatement("SELECT id FROM botanist");
              var rs = ps.executeQuery()) {
             while (rs.next()) {
-                String id = rs.getString("botanical_short");
+                Long id = rs.getLong("id");
                 Botanist b = botanistRepository.getById(id);
                 if (b != null) {
                     result.add(b);
@@ -294,10 +294,10 @@ public class IndexService {
     private static List<PhotoDetails> loadAllPhotoDetailsFromDb() {
         List<PhotoDetails> result = new ArrayList<>();
         try (var conn = db.getConnection();
-             var ps = conn.prepareStatement("SELECT photo FROM photo_details");
+             var ps = conn.prepareStatement("SELECT id FROM photo_details");
              var rs = ps.executeQuery()) {
             while (rs.next()) {
-                String id = rs.getString("photo");
+                Long id = rs.getLong("id");
                 PhotoDetails p = photoDetailsRepository.getById(id);
                 if (p != null) {
                     result.add(p);

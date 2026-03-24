@@ -64,7 +64,7 @@ public class RhodoLogicService {
         return result;
     }
 
-    public static IndexResults<Rhododendron> getRhodosByHybridizer(String hybridizerId, int pageSize, int offset) throws IOException, ParseException {
+    public static IndexResults<Rhododendron> getRhodosByHybridizer(Long hybridizerId, int pageSize, int offset) throws IOException, ParseException {
         // todo validate input
         var result = SearchService.getRhodosByHybridizer(hybridizerId, pageSize, offset);
         result.results.forEach(rhodo -> {
@@ -87,12 +87,12 @@ public class RhodoLogicService {
     }
 
     public static IndexResults<Rhododendron> rhodoParentageSearch(
-        String seedParent,
-        String pollenParent,
+        Long seedParent,
+        Long pollenParent,
         boolean requireSeed,
         boolean requirePollen,
         boolean allowReverse,
-        String originalRhodoId,
+        Long originalRhodoId,
         int pageSize,
         int offset
     ) throws IOException {
@@ -126,7 +126,7 @@ public class RhodoLogicService {
     }
 
 
-    public static String getFormattedRhodoName(String id) {
+    public static String getFormattedRhodoName(Long id) {
         var result = SearchService.getRhodoById(id);
         if (!result.isEmpty()) {
             return getFormattedRhodoName(result.get(0));

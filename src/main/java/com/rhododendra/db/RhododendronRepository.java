@@ -1,5 +1,6 @@
 package com.rhododendra.db;
 
+import com.rhododendra.model.Botanist;
 import com.rhododendra.model.Rhododendron;
 import com.rhododendra.model.Rhododendron.Parentage;
 import com.rhododendra.model.Rhododendron.Synonym;
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 public class RhododendronRepository {
@@ -23,10 +25,15 @@ public class RhododendronRepository {
         this.db = db;
     }
 
-    public void upsert(Rhododendron rhodo) throws SQLException {
+    public Long upsert(
+        Rhododendron rhodo,
+        Long hybridizerId,
+        Map<String, Long> photoIdByName,
+        Map<String, Long> botanistIdByShort
+    ) throws SQLException {
         var sql = """
             INSERT INTO rhododendron (
-                id, name, species_or_cultivar, is_species_selection, is_natural_hybrid, is_cultivar_group,
+                old_id, name, species_or_cultivar, is_species_selection, is_natural_hybrid, is_cultivar_group,
                 rhodo_category, ten_year_height, bloom_time, flower_shape, leaf_shape,
                 hardiness, deciduous, colour, extra_information,
                 irrc_registered, additional_parentage_info, species_id, cultivation_since, lepedote,
@@ -35,7 +42,7 @@ public class RhododendronRepository {
                 seed_parent_id, seed_parent_name, pollen_parent_id, pollen_parent_name,
                 hybridizer_id
             ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            ON CONFLICT(id) DO UPDATE SET
+            ON CONFLICT(old_id) DO UPDATE SET
                 name = excluded.name,
                 species_or_cultivar = excluded.species_or_cultivar,
                 is_species_selection = excluded.is_species_selection,
@@ -70,7 +77,7 @@ public class RhododendronRepository {
         try (var conn = db.getConnection()) {
             conn.setAutoCommit(false);
             try (var ps = conn.prepareStatement(sql)) {
-                ps.setString(1, rhodo.getId());
+                ps.setString(1, rhodo.getOldId());
                 ps.setString(2, rhodo.getName());
                 ps.setString(3, rhodo.getSpeciesOrCultivar() == null ? null : rhodo.getSpeciesOrCultivar().name());
                 ps.setInt(4, rhodo.getIs_species_selection() ? 1 : 0);
@@ -88,7 +95,7 @@ public class RhododendronRepository {
                 ps.setString(16, rhodo.getIrrc_registered());
                 ps.setString(17, rhodo.getAdditional_parentage_info());
                 // Defer FKs to rhododendron(id): filled in updateParentForeignKeys() after all rows exist
-                ps.setString(18, null);
+                ps.setObject(18, null);
                 ps.setString(19, rhodo.getCultivation_since());
                 ps.setString(20, rhodo.getLepedote() == null ? null : rhodo.getLepedote().name());
                 ps.setString(21, rhodo.getFirst_described());
@@ -103,16 +110,19 @@ public class RhododendronRepository {
                 ps.setString(28, taxonomy == null ? null : taxonomy.getSubsection());
 
                 Parentage parentage = rhodo.getParentage();
-                ps.setString(29, null);
+                ps.setObject(29, null);
                 ps.setString(30, parentage == null ? null : parentage.getSeed_parent());
-                ps.setString(31, null);
+                ps.setObject(31, null);
                 ps.setString(32, parentage == null ? null : parentage.getPollen_parent());
-
-                var hybridizer = rhodo.getHybridizer();
-                ps.setString(33, hybridizer == null ? null : hybridizer.getHybridizer_id());
+                ps.setObject(33, hybridizerId);
 
                 ps.executeUpdate();
             }
+            Long rhodoId = selectIdByOldId(conn, rhodo.getOldId());
+            if (rhodoId == null) {
+                throw new SQLException("Rhododendron upsert failed for old_id=" + rhodo.getOldId());
+            }
+            rhodo.setId(rhodoId);
 
             // Clear and re-insert list relationships
             try (var deletePhotos = conn.prepareStatement("DELETE FROM rhododendron_photo WHERE rhodo_id = ?");
@@ -121,15 +131,15 @@ public class RhododendronRepository {
                  var deleteBotSyn = conn.prepareStatement("DELETE FROM rhododendron_botanical_synonym WHERE rhodo_id = ?");
                  var deleteBotSynBot = conn.prepareStatement("DELETE FROM rhododendron_botanical_synonym_botanist WHERE rhodo_id = ?")) {
 
-                deletePhotos.setString(1, rhodo.getId());
+                deletePhotos.setLong(1, rhodoId);
                 deletePhotos.executeUpdate();
-                deleteSynonyms.setString(1, rhodo.getId());
+                deleteSynonyms.setLong(1, rhodoId);
                 deleteSynonyms.executeUpdate();
-                deleteFirstDesc.setString(1, rhodo.getId());
+                deleteFirstDesc.setLong(1, rhodoId);
                 deleteFirstDesc.executeUpdate();
-                deleteBotSyn.setString(1, rhodo.getId());
+                deleteBotSyn.setLong(1, rhodoId);
                 deleteBotSyn.executeUpdate();
-                deleteBotSynBot.setString(1, rhodo.getId());
+                deleteBotSynBot.setLong(1, rhodoId);
                 deleteBotSynBot.executeUpdate();
             }
 
@@ -138,9 +148,11 @@ public class RhododendronRepository {
                 try (var insert = conn.prepareStatement(
                     "INSERT INTO rhododendron_photo (rhodo_id, photo_id, pos) VALUES (?,?,?)")) {
                     int pos = 0;
-                    for (var photoId : rhodo.getPhotos()) {
-                        insert.setString(1, rhodo.getId());
-                        insert.setString(2, photoId);
+                    for (var photoName : rhodo.getPhotos()) {
+                        Long photoId = resolvePhotoId(conn, photoIdByName, photoName);
+                        if (photoId == null) continue;
+                        insert.setLong(1, rhodoId);
+                        insert.setLong(2, photoId);
                         insert.setInt(3, pos++);
                         insert.addBatch();
                     }
@@ -154,7 +166,7 @@ public class RhododendronRepository {
                     "INSERT INTO rhododendron_synonym (rhodo_id, synonym, pos) VALUES (?,?,?)")) {
                     int pos = 0;
                     for (var syn : rhodo.getSynonyms()) {
-                        insert.setString(1, rhodo.getId());
+                        insert.setLong(1, rhodoId);
                         insert.setString(2, syn);
                         insert.setInt(3, pos++);
                         insert.addBatch();
@@ -164,13 +176,15 @@ public class RhododendronRepository {
             }
 
             // first described botanists
-            if (rhodo.getFirst_described_botanists() != null) {
+            if (rhodo.getFirst_described_botanist_shorts() != null) {
                 try (var insert = conn.prepareStatement(
-                    "INSERT INTO rhododendron_first_described_botanist (rhodo_id, botanical_short, pos) VALUES (?,?,?)")) {
+                    "INSERT INTO rhododendron_first_described_botanist (rhodo_id, botanist_id, pos) VALUES (?,?,?)")) {
                     int pos = 0;
-                    for (var b : rhodo.getFirst_described_botanists()) {
-                        insert.setString(1, rhodo.getId());
-                        insert.setString(2, b);
+                    for (var bShort : rhodo.getFirst_described_botanist_shorts()) {
+                        Long botanistId = resolveBotanistId(conn, botanistIdByShort, bShort);
+                        if (botanistId == null) continue;
+                        insert.setLong(1, rhodoId);
+                        insert.setLong(2, botanistId);
                         insert.setInt(3, pos++);
                         insert.addBatch();
                     }
@@ -183,10 +197,10 @@ public class RhododendronRepository {
                 try (var insertSyn = conn.prepareStatement(
                          "INSERT INTO rhododendron_botanical_synonym (rhodo_id, synonym, pos) VALUES (?,?,?)");
                      var insertSynBot = conn.prepareStatement(
-                         "INSERT INTO rhododendron_botanical_synonym_botanist (rhodo_id, synonym_pos, botanical_short, pos) VALUES (?,?,?,?)")) {
+                         "INSERT INTO rhododendron_botanical_synonym_botanist (rhodo_id, synonym_pos, botanist_id, pos) VALUES (?,?,?,?)")) {
                     int synPos = 0;
                     for (Synonym syn : rhodo.getBotanical_synonyms()) {
-                        insertSyn.setString(1, rhodo.getId());
+                        insertSyn.setLong(1, rhodoId);
                         insertSyn.setString(2, syn.synonym());
                         insertSyn.setInt(3, synPos);
                         insertSyn.addBatch();
@@ -194,9 +208,11 @@ public class RhododendronRepository {
                         if (syn.botanical_shorts() != null) {
                             int bPos = 0;
                             for (String bShort : syn.botanical_shorts()) {
-                                insertSynBot.setString(1, rhodo.getId());
+                                Long botanistId = resolveBotanistId(conn, botanistIdByShort, bShort);
+                                if (botanistId == null) continue;
+                                insertSynBot.setLong(1, rhodoId);
                                 insertSynBot.setInt(2, synPos);
-                                insertSynBot.setString(3, bShort);
+                                insertSynBot.setLong(3, botanistId);
                                 insertSynBot.setInt(4, bPos++);
                                 insertSynBot.addBatch();
                             }
@@ -209,10 +225,21 @@ public class RhododendronRepository {
             }
 
             conn.commit();
+            return rhodoId;
         }
     }
 
-    public void updateParentForeignKeys(Rhododendron rhodo, Set<String> knownRhodoIds) throws SQLException {
+    public Long upsert(Rhododendron rhodo) throws SQLException {
+        Long hybridizerId = null;
+        if (rhodo.getHybridizer() != null && rhodo.getHybridizer().getHybridizerOldId() != null) {
+            try (var conn = db.getConnection()) {
+                hybridizerId = lookupHybridizerIdByOldId(conn, rhodo.getHybridizer().getHybridizerOldId());
+            }
+        }
+        return upsert(rhodo, hybridizerId, null, null);
+    }
+
+    public void updateParentForeignKeys(Rhododendron rhodo, Map<String, Long> knownRhodoIds) throws SQLException {
         var sql = """
             UPDATE rhododendron
             SET species_id = ?, seed_parent_id = ?, pollen_parent_id = ?
@@ -221,18 +248,14 @@ public class RhododendronRepository {
         try (var conn = db.getConnection();
              var ps = conn.prepareStatement(sql)) {
             Parentage p = rhodo.getParentage();
-            String speciesId = normalizeFk(rhodo.getSpecies_id());
-            String seedId = p == null ? null : normalizeFk(p.getSeed_parent_id());
-            String pollenId = p == null ? null : normalizeFk(p.getPollen_parent_id());
+            Long speciesId = resolveRhodoFk(knownRhodoIds, rhodo.getOldId(), "species_id", rhodo.getSpeciesOldId());
+            Long seedId = resolveRhodoFk(knownRhodoIds, rhodo.getOldId(), "seed_parent_id", p == null ? null : p.getSeedParentOldId());
+            Long pollenId = resolveRhodoFk(knownRhodoIds, rhodo.getOldId(), "pollen_parent_id", p == null ? null : p.getPollenParentOldId());
 
-            speciesId = resolveRhodoFk(conn, knownRhodoIds, rhodo.getId(), "species_id", speciesId);
-            seedId = resolveRhodoFk(conn, knownRhodoIds, rhodo.getId(), "seed_parent_id", seedId);
-            pollenId = resolveRhodoFk(conn, knownRhodoIds, rhodo.getId(), "pollen_parent_id", pollenId);
-
-            ps.setString(1, speciesId);
-            ps.setString(2, seedId);
-            ps.setString(3, pollenId);
-            ps.setString(4, rhodo.getId());
+            ps.setObject(1, speciesId);
+            ps.setObject(2, seedId);
+            ps.setObject(3, pollenId);
+            ps.setLong(4, rhodo.getId());
             ps.executeUpdate();
         }
     }
@@ -242,7 +265,7 @@ public class RhododendronRepository {
      * Does not touch photos, synonyms, parent FKs, or identity fields.
      */
     public int updateEditableFields(
-        String id,
+        Long id,
         String tenYearHeight,
         String bloomTime,
         String flowerShape,
@@ -308,7 +331,7 @@ public class RhododendronRepository {
             ps.setString(i++, blankToNull(subgenus));
             ps.setString(i++, blankToNull(section));
             ps.setString(i++, blankToNull(subsection));
-            ps.setString(i, id);
+            ps.setLong(i, id);
             return ps.executeUpdate();
         }
     }
@@ -317,53 +340,93 @@ public class RhododendronRepository {
         return s == null || s.isBlank() ? null : s;
     }
 
-    private static String normalizeFk(String id) {
-        return id == null || id.isBlank() ? null : id;
-    }
-
-    private String resolveRhodoFk(
-        java.sql.Connection conn,
-        Set<String> knownRhodoIds,
+    private Long resolveRhodoFk(
+        Map<String, Long> knownRhodoIds,
         String rowId,
         String columnLabel,
         String refId
-    ) throws SQLException {
-        if (refId == null) {
+    ) {
+        if (refId == null || refId.isBlank()) {
             return null;
         }
-        boolean ok = knownRhodoIds != null
-            ? knownRhodoIds.contains(refId)
-            : rhodoRowExists(conn, refId);
-        if (!ok) {
+        Long resolved = knownRhodoIds.get(refId);
+        if (resolved == null) {
             log.warn("Rhododendron {}: {}={} not found, storing null", rowId, columnLabel, refId);
             return null;
         }
-        return refId;
+        return resolved;
     }
 
-    private static boolean rhodoRowExists(java.sql.Connection conn, String id) throws SQLException {
-        try (var ps = conn.prepareStatement("SELECT 1 FROM rhododendron WHERE id = ? LIMIT 1")) {
-            ps.setString(1, id);
+    private static Long selectIdByOldId(java.sql.Connection conn, String oldId) throws SQLException {
+        try (var ps = conn.prepareStatement("SELECT id FROM rhododendron WHERE old_id = ? LIMIT 1")) {
+            ps.setString(1, oldId);
             try (var rs = ps.executeQuery()) {
-                return rs.next();
+                return rs.next() ? rs.getLong("id") : null;
             }
         }
     }
 
-    public Rhododendron getById(String id) throws SQLException {
+    private static Long resolvePhotoId(java.sql.Connection conn, Map<String, Long> photoIdByName, String photoName) throws SQLException {
+        if (photoIdByName != null && photoIdByName.containsKey(photoName)) {
+            return photoIdByName.get(photoName);
+        }
+        try (var ps = conn.prepareStatement("SELECT id FROM photo_details WHERE photo = ?")) {
+            ps.setString(1, photoName);
+            try (var rs = ps.executeQuery()) {
+                return rs.next() ? rs.getLong("id") : null;
+            }
+        }
+    }
+
+    private static Long resolveBotanistId(java.sql.Connection conn, Map<String, Long> botanistIdByShort, String botanicalShort) throws SQLException {
+        if (botanistIdByShort != null && botanistIdByShort.containsKey(botanicalShort)) {
+            return botanistIdByShort.get(botanicalShort);
+        }
+        try (var ps = conn.prepareStatement("SELECT id FROM botanist WHERE botanical_short = ?")) {
+            ps.setString(1, botanicalShort);
+            try (var rs = ps.executeQuery()) {
+                return rs.next() ? rs.getLong("id") : null;
+            }
+        }
+    }
+
+    private static Long lookupHybridizerIdByOldId(java.sql.Connection conn, String oldId) throws SQLException {
+        try (var ps = conn.prepareStatement("SELECT id FROM hybridizer WHERE old_id = ?")) {
+            ps.setString(1, oldId);
+            try (var rs = ps.executeQuery()) {
+                return rs.next() ? rs.getLong("id") : null;
+            }
+        }
+    }
+
+    public Rhododendron getById(Long id) throws SQLException {
+        return getByColumn("r.id = ?", ps -> ps.setLong(1, id));
+    }
+
+    public Rhododendron getByOldId(String oldId) throws SQLException {
+        return getByColumn("r.old_id = ?", ps -> ps.setString(1, oldId));
+    }
+
+    private interface StatementBinder {
+        void bind(java.sql.PreparedStatement ps) throws SQLException;
+    }
+
+    private Rhododendron getByColumn(String whereClause, StatementBinder binder) throws SQLException {
         var sql = """
             SELECT r.*, hz.name AS hybridizer_name
             FROM rhododendron r
             LEFT JOIN hybridizer hz ON hz.id = r.hybridizer_id
-            WHERE r.id = ?
+            WHERE %s
             """;
+        sql = sql.formatted(whereClause);
         try (var conn = db.getConnection();
              var ps = conn.prepareStatement(sql)) {
-            ps.setString(1, id);
+            binder.bind(ps);
             try (var rs = ps.executeQuery()) {
                 if (!rs.next()) return null;
                 var r = new Rhododendron();
-                r.setId(rs.getString("id"));
+                r.setId(rs.getLong("id"));
+                r.setOldId(rs.getString("old_id"));
                 r.setName(rs.getString("name"));
                 var soc = rs.getString("species_or_cultivar");
                 if (soc != null) {
@@ -386,7 +449,10 @@ public class RhododendronRepository {
                 r.setExtra_information(rs.getString("extra_information"));
                 r.setIrrc_registered(rs.getString("irrc_registered"));
                 r.setAdditional_parentage_info(rs.getString("additional_parentage_info"));
-                r.setSpecies_id(rs.getString("species_id"));
+                var speciesIdObj = rs.getObject("species_id");
+                if (speciesIdObj != null) {
+                    r.setSpecies_id(rs.getLong("species_id"));
+                }
                 r.setCultivation_since(rs.getString("cultivation_since"));
                 var lep = rs.getString("lepedote");
                 if (lep != null) {
@@ -407,9 +473,15 @@ public class RhododendronRepository {
                 }
 
                 var parentage = new Parentage();
-                parentage.setSeed_parent_id(rs.getString("seed_parent_id"));
+                var seedParentIdObj = rs.getObject("seed_parent_id");
+                if (seedParentIdObj != null) {
+                    parentage.setSeed_parent_id(rs.getLong("seed_parent_id"));
+                }
                 parentage.setSeed_parent(rs.getString("seed_parent_name"));
-                parentage.setPollen_parent_id(rs.getString("pollen_parent_id"));
+                var pollenParentIdObj = rs.getObject("pollen_parent_id");
+                if (pollenParentIdObj != null) {
+                    parentage.setPollen_parent_id(rs.getLong("pollen_parent_id"));
+                }
                 parentage.setPollen_parent(rs.getString("pollen_parent_name"));
                 if (parentage.getSeed_parent_id() != null || parentage.getPollen_parent_id() != null
                     || parentage.getSeed_parent() != null || parentage.getPollen_parent() != null) {
@@ -417,44 +489,44 @@ public class RhododendronRepository {
                 }
 
                 // hybridizer_id is on rhododendron; display name comes from hybridizer table (JSON name is not stored redundantly)
-                var hybridizerId = rs.getString("hybridizer_id");
-                if (hybridizerId != null) {
+                var hybridizerIdObj = rs.getObject("hybridizer_id");
+                if (hybridizerIdObj != null) {
                     var inner = new Rhododendron.Hybridizer();
-                    inner.setHybridizer_id(hybridizerId);
+                    inner.setHybridizer_id(rs.getLong("hybridizer_id"));
                     inner.setHybridizer(rs.getString("hybridizer_name"));
                     r.setHybridizer(inner);
                 }
 
                 // lists
-                r.setPhotos(loadPhotos(conn, id));
-                r.setSynonyms(loadSimpleSynonyms(conn, id));
-                r.setFirst_described_botanists(loadFirstDescribedBotanists(conn, id));
-                r.setBotanical_synonyms(loadBotanicalSynonyms(conn, id));
+                r.setPhotos(loadPhotos(conn, r.getId()));
+                r.setSynonyms(loadSimpleSynonyms(conn, r.getId()));
+                r.setFirst_described_botanists(loadFirstDescribedBotanists(conn, r.getId()));
+                r.setBotanical_synonyms(loadBotanicalSynonyms(conn, r.getId()));
 
                 return r;
             }
         }
     }
 
-    private java.util.List<String> loadPhotos(java.sql.Connection conn, String id) throws SQLException {
+    private List<String> loadPhotos(java.sql.Connection conn, Long id) throws SQLException {
         var list = new ArrayList<String>();
         try (var ps = conn.prepareStatement(
-            "SELECT photo_id FROM rhododendron_photo WHERE rhodo_id = ? ORDER BY pos")) {
-            ps.setString(1, id);
+            "SELECT pd.photo FROM rhododendron_photo rp JOIN photo_details pd ON pd.id = rp.photo_id WHERE rp.rhodo_id = ? ORDER BY rp.pos")) {
+            ps.setLong(1, id);
             try (var rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(rs.getString("photo_id"));
+                    list.add(rs.getString("photo"));
                 }
             }
         }
         return list;
     }
 
-    private java.util.List<String> loadSimpleSynonyms(java.sql.Connection conn, String id) throws SQLException {
+    private List<String> loadSimpleSynonyms(java.sql.Connection conn, Long id) throws SQLException {
         var list = new ArrayList<String>();
         try (var ps = conn.prepareStatement(
             "SELECT synonym FROM rhododendron_synonym WHERE rhodo_id = ? ORDER BY pos")) {
-            ps.setString(1, id);
+            ps.setLong(1, id);
             try (var rs = ps.executeQuery()) {
                 while (rs.next()) {
                     list.add(rs.getString("synonym"));
@@ -464,33 +536,45 @@ public class RhododendronRepository {
         return list;
     }
 
-    private java.util.List<String> loadFirstDescribedBotanists(java.sql.Connection conn, String id) throws SQLException {
-        var list = new ArrayList<String>();
+    private List<Botanist> loadFirstDescribedBotanists(java.sql.Connection conn, Long id) throws SQLException {
+        var list = new ArrayList<Botanist>();
         try (var ps = conn.prepareStatement(
-            "SELECT botanical_short FROM rhododendron_first_described_botanist WHERE rhodo_id = ? ORDER BY pos")) {
-            ps.setString(1, id);
+            "SELECT b.id, b.botanical_short, b.full_name, b.location, b.born_died, b.image " +
+                "FROM rhododendron_first_described_botanist rfdb " +
+                "JOIN botanist b ON b.id = rfdb.botanist_id " +
+                "WHERE rfdb.rhodo_id = ? ORDER BY rfdb.pos")) {
+            ps.setLong(1, id);
             try (var rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(rs.getString("botanical_short"));
+                    var botanist = new Botanist();
+                    botanist.setId(rs.getLong("id"));
+                    botanist.setBotanicalShort(rs.getString("botanical_short"));
+                    botanist.setFullName(rs.getString("full_name"));
+                    botanist.setLocation(rs.getString("location"));
+                    botanist.setBornDied(rs.getString("born_died"));
+                    botanist.setImage(rs.getString("image"));
+                    list.add(botanist);
                 }
             }
         }
         return list;
     }
 
-    private java.util.List<Synonym> loadBotanicalSynonyms(java.sql.Connection conn, String id) throws SQLException {
+    private List<Synonym> loadBotanicalSynonyms(java.sql.Connection conn, Long id) throws SQLException {
         var list = new ArrayList<Synonym>();
         try (var ps = conn.prepareStatement(
             "SELECT synonym, pos FROM rhododendron_botanical_synonym WHERE rhodo_id = ? ORDER BY pos")) {
-            ps.setString(1, id);
+            ps.setLong(1, id);
             try (var rs = ps.executeQuery()) {
                 while (rs.next()) {
                     var synonym = rs.getString("synonym");
                     var synPos = rs.getInt("pos");
                     var shorts = new ArrayList<String>();
                     try (var ps2 = conn.prepareStatement(
-                        "SELECT botanical_short FROM rhododendron_botanical_synonym_botanist WHERE rhodo_id = ? AND synonym_pos = ? ORDER BY pos")) {
-                        ps2.setString(1, id);
+                        "SELECT b.botanical_short FROM rhododendron_botanical_synonym_botanist rbsb " +
+                            "JOIN botanist b ON b.id = rbsb.botanist_id " +
+                            "WHERE rbsb.rhodo_id = ? AND rbsb.synonym_pos = ? ORDER BY rbsb.pos")) {
+                        ps2.setLong(1, id);
                         ps2.setInt(2, synPos);
                         try (var rs2 = ps2.executeQuery()) {
                             while (rs2.next()) {

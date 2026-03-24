@@ -44,28 +44,28 @@ public class ServiceTests {
     @Test
     void testIndexAndSearchBotanists() {
         assertThat(searchBotanists("Forrest")).isNotEmpty();
-        assertEquals(1, getBotanistById("Forrest").size());
+        assertEquals(1, getBotanistByBotanicalShort("Forrest").size());
     }
 
     @Test
     void testIndexAndSearchRhodos() throws IOException, ParseException {
         assertThat(searchRhodos("lemon", 1, 0).results).isNotEmpty();
         assertThat(searchRhodos("anna", 1, 0).results).isNotEmpty();
-        assertEquals(1, getRhodoById("h1").size());
-        assertEquals(1, getRhodoById("s1").size());
+        assertEquals(1, getRhodoByOldId("h1").size());
+        assertEquals(1, getRhodoByOldId("s1").size());
         assertThat(getAllRhodosByFirstLetter("a", 10, 0, false, null).results).isNotEmpty();
     }
 
     @Test
     void testIndexAndSearchPhotoDetails() {
         assertThat(searchPhotoDetails("Wedemire")).isNotEmpty();
-        assertEquals(1, getPhotoDetailsById("s390_denudatum_17_normal.jpg").size());
-        assertEquals(1, getPhotoDetailsById("h11579_Douglas_R_Stephens_1_normal.jpg").size());
+        assertEquals(1, getPhotoDetailsByPhoto("s390_denudatum_17_normal.jpg").size());
+        assertEquals(1, getPhotoDetailsByPhoto("h11579_Douglas_R_Stephens_1_normal.jpg").size());
     }
 
     @Test
     void testIndexAndSearchHybridizers() throws IOException, ParseException {
-        assertEquals(1, getHybridizerById("p303").size());
+        assertEquals(1, getHybridizerByOldId("p303").size());
         assertThat(searchHybridizers("Rothschild",10, 0).results).isNotEmpty();
 
 //        assertEquals(1, getPhotoDetailsById("h11579_Douglas_R_Stephens_1_normal.jpg").size());

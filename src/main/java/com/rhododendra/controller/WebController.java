@@ -8,6 +8,7 @@ import com.rhododendra.service.SearchService;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import com.rhododendra.security.PostLoginRedirect;
 
@@ -43,6 +45,24 @@ public class WebController {
     }
 
     private static final Logger logger = LoggerFactory.getLogger(WebController.class);
+
+    private static boolean isLegacyId(String id) {
+        return id == null || id.isBlank() || !id.chars().allMatch(Character::isDigit);
+    }
+
+    private static Long parseNumericId(String id) {
+        try {
+            return Long.parseLong(id);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static RedirectView permanentRedirectTo(String target) {
+        RedirectView redirectView = new RedirectView(target);
+        redirectView.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+        return redirectView;
+    }
 
     @RequestMapping("/")
     public String index(Model model) {
@@ -108,12 +128,12 @@ public class WebController {
     @RequestMapping("/genetic_search")
     public String handleGeneticSearch(
         Model model,
-        @RequestParam(value = "seedParentId", required = false) String seedParentId,
-        @RequestParam(value = "pollenParentId", required = false) String pollenParentId,
+        @RequestParam(value = "seedParentId", required = false) Long seedParentId,
+        @RequestParam(value = "pollenParentId", required = false) Long pollenParentId,
         @RequestParam(value = "requireSeed", defaultValue = "false") boolean requireSeed,
         @RequestParam(value = "requirePollen", defaultValue = "false") boolean requirePollen,
         @RequestParam(value = "ordered", defaultValue = "false") boolean ordered,
-        @RequestParam(value = "originalRhodoId", required = false) String originalRhodoId,
+        @RequestParam(value = "originalRhodoId", required = false) Long originalRhodoId,
         @RequestParam(value = "useCase", required = true) UseCase usecase,
         @RequestParam(value = "size", defaultValue = "50") int size,
         @RequestParam(value = "offset", defaultValue = "0") int offset
@@ -208,8 +228,21 @@ public class WebController {
     }
 
     @RequestMapping(value = "/rhodos/{id}")
-    public String handleGetRhodo(Model model, @PathVariable("id") String id) {
-        var result = SearchService.getRhodoById(id);
+    public Object handleGetRhodo(Model model, @PathVariable("id") String id) {
+        if (isLegacyId(id)) {
+            var legacyResult = SearchService.getRhodoByOldId(id);
+            if (!legacyResult.isEmpty()) {
+                return permanentRedirectTo("/rhodos/" + legacyResult.get(0).getId());
+            }
+            logger.warn("Legacy rhodo requested but not found: {}", id);
+            return "404";
+        }
+        Long numericId = parseNumericId(id);
+        if (numericId == null) {
+            logger.warn("Invalid rhodo id requested: {}", id);
+            return "404";
+        }
+        var result = SearchService.getRhodoById(numericId);
         if (!result.isEmpty()) {
             var rhodo = result.get(0);
             model.addAttribute("rhodo", rhodo);
@@ -234,7 +267,7 @@ public class WebController {
 
     @PostMapping("/rhodos/{id}/edit")
     public String saveRhodoEdit(
-        @PathVariable("id") String id,
+        @PathVariable("id") Long id,
         @RequestParam(value = "ten_year_height", required = false) String tenYearHeight,
         @RequestParam(value = "bloom_time", required = false) String bloomTime,
         @RequestParam(value = "flower_shape", required = false) String flowerShape,
@@ -297,23 +330,36 @@ public class WebController {
     }
 
     @RequestMapping(value = "/hybridizer/{id}")
-    public String handleGetHybridizer(
+    public Object handleGetHybridizer(
         Model model, @PathVariable("id") String hybridizerId,
         @RequestParam(value = "size", defaultValue = "50") int size,
         @RequestParam(value = "offset", defaultValue = "0") int offset
     ) throws IOException, ParseException {
+        if (isLegacyId(hybridizerId)) {
+            var legacyResult = SearchService.getHybridizerByOldId(hybridizerId);
+            if (!legacyResult.isEmpty()) {
+                return permanentRedirectTo("/hybridizer/" + legacyResult.get(0).getId());
+            }
+            logger.warn("Legacy hybridizer requested but not found: {}", hybridizerId);
+            return "404";
+        }
+        Long numericId = parseNumericId(hybridizerId);
+        if (numericId == null) {
+            logger.warn("Invalid hybridizer id requested: {}", hybridizerId);
+            return "404";
+        }
         var set_size = 50;
-        var result = SearchService.getHybridizerById(hybridizerId);
+        var result = SearchService.getHybridizerById(numericId);
         if (!result.isEmpty()) {
             var hybridizer = result.get(0);
             model.addAttribute("hybridizer", hybridizer);
             model.addAttribute("hybridizerResolvedPhotoDetails", RhodoLogicService.getResolvedPhotoDetails(hybridizer.getPhotos()));
-            var results = RhodoLogicService.getRhodosByHybridizer(hybridizerId, set_size, offset);
+            var results = RhodoLogicService.getRhodosByHybridizer(numericId, set_size, offset);
             model.addAttribute("rhodos", results.results)
                 .addAttribute("resultPages", results.indexPages)
                 .addAttribute("resultPagePos", results.indexPagePos)
                 .addAttribute("pageSize", set_size)
-                .addAttribute("id", hybridizerId)
+                .addAttribute("id", numericId)
                 .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray())
                 .addAttribute("domain", appSettings.domain);
 
@@ -322,5 +368,30 @@ public class WebController {
             logger.warn("Hybridizer requested but not found: " + hybridizerId);
             return "404";
         }
+    }
+
+    @RequestMapping(value = "/botanist/{id}")
+    public Object handleGetBotanist(Model model, @PathVariable("id") String botanistId) {
+        if (isLegacyId(botanistId)) {
+            var legacyResult = SearchService.getBotanistByBotanicalShort(botanistId);
+            if (!legacyResult.isEmpty()) {
+                return permanentRedirectTo("/botanist/" + legacyResult.get(0).getId());
+            }
+            logger.warn("Legacy botanist requested but not found: {}", botanistId);
+            return "404";
+        }
+        Long numericId = parseNumericId(botanistId);
+        if (numericId == null) {
+            logger.warn("Invalid botanist id requested: {}", botanistId);
+            return "404";
+        }
+        var result = SearchService.getBotanistById(numericId);
+        if (result.isEmpty()) {
+            logger.warn("Botanist requested but not found: {}", numericId);
+            return "404";
+        }
+        model.addAttribute("botanist", result.get(0));
+        model.addAttribute("domain", appSettings.domain);
+        return "botanist-detail";
     }
 }

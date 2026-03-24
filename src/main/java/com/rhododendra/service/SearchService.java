@@ -71,7 +71,7 @@ public class SearchService {
                 var document = searcher.doc(scoreDoc.doc);
                 var id = document.get(Botanist.PRIMARY_ID_KEY);
                 if (id != null) {
-                    Botanist botanist = botanistRepository.getById(id);
+                    Botanist botanist = botanistRepository.getById(Long.parseLong(id));
                     if (botanist != null) {
                         results.add(botanist);
                     }
@@ -85,43 +85,45 @@ public class SearchService {
     }
 
     public static IndexResults<Rhododendron> searchByParentage(
-        String seedParentId,
-        String pollenParentId,
+        Long seedParentId,
+        Long pollenParentId,
         boolean requireSeed,
         boolean requirePollen,
         boolean allowReverse,
-        String originalRhodoId,
+        Long originalRhodoId,
         int pageSize,
         int offset
     ) throws IOException {
 
         var geneticQuery = new BooleanQuery.Builder();
         if (seedParentId != null) {
+            var seedParentIdStr = String.valueOf(seedParentId);
             var seedQuery = new BooleanQuery.Builder();
-            seedQuery.add(new TermQuery(new Term(SEED_PARENT_KEY, seedParentId)), BooleanClause.Occur.SHOULD);
+            seedQuery.add(new TermQuery(new Term(SEED_PARENT_KEY, seedParentIdStr)), BooleanClause.Occur.SHOULD);
             if (allowReverse) {
-                seedQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, seedParentId)), BooleanClause.Occur.SHOULD);
+                seedQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, seedParentIdStr)), BooleanClause.Occur.SHOULD);
             }
             geneticQuery.add(
                 seedQuery.build(),
                 requireSeed ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD
             );
-            geneticQuery.add(new TermQuery(new Term(PRIMARY_ID_KEY, seedParentId)), BooleanClause.Occur.MUST_NOT);
+            geneticQuery.add(new TermQuery(new Term(PRIMARY_ID_KEY, seedParentIdStr)), BooleanClause.Occur.MUST_NOT);
         }
         if (pollenParentId != null) {
+            var pollenParentIdStr = String.valueOf(pollenParentId);
             var pollenQuery = new BooleanQuery.Builder();
-            pollenQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, pollenParentId)), BooleanClause.Occur.SHOULD);
+            pollenQuery.add(new TermQuery(new Term(POLLEN_PARENT_KEY, pollenParentIdStr)), BooleanClause.Occur.SHOULD);
             if (allowReverse) {
-                pollenQuery.add(new TermQuery(new Term(SEED_PARENT_KEY, pollenParentId)), BooleanClause.Occur.SHOULD);
+                pollenQuery.add(new TermQuery(new Term(SEED_PARENT_KEY, pollenParentIdStr)), BooleanClause.Occur.SHOULD);
             }
             geneticQuery.add(
                 pollenQuery.build(),
                 requirePollen ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD
             );
-            geneticQuery.add(new TermQuery(new Term(PRIMARY_ID_KEY, pollenParentId)), BooleanClause.Occur.MUST_NOT);
+            geneticQuery.add(new TermQuery(new Term(PRIMARY_ID_KEY, pollenParentIdStr)), BooleanClause.Occur.MUST_NOT);
         }
         if (originalRhodoId != null) {
-            geneticQuery.add(new TermQuery(new Term(PRIMARY_ID_KEY, originalRhodoId)), BooleanClause.Occur.MUST_NOT);
+            geneticQuery.add(new TermQuery(new Term(PRIMARY_ID_KEY, String.valueOf(originalRhodoId))), BooleanClause.Occur.MUST_NOT);
         }
 
 
@@ -171,12 +173,12 @@ public class SearchService {
 
     }
 
-    public static IndexResults<Rhododendron> getRhodosByHybridizer(String hybridizerId, int pageSize, int offset) throws IOException, ParseException {
+    public static IndexResults<Rhododendron> getRhodosByHybridizer(Long hybridizerId, int pageSize, int offset) throws IOException, ParseException {
         Query query;
-        if (Strings.isEmpty(hybridizerId)) {
+        if (hybridizerId == null) {
             query = new BooleanQuery.Builder().build(); // matches nothing if query is blank
         } else {
-            query = new TermQuery(new Term(HYBRIDIZER_ID, hybridizerId));
+            query = new TermQuery(new Term(HYBRIDIZER_ID, String.valueOf(hybridizerId)));
         }
         // TODO add a sort by date
         Sort sort = new Sort(new SortField(Rhododendron.NAME_KEY_FOR_SORT, SortField.Type.STRING));
@@ -257,7 +259,7 @@ public class SearchService {
                 var document = searcher.doc(scoreDoc.doc);
                 var id = document.get(PhotoDetails.PRIMARY_ID_KEY);
                 if (id != null) {
-                    PhotoDetails p = photoDetailsRepository.getById(id);
+                    PhotoDetails p = photoDetailsRepository.getById(Long.parseLong(id));
                     if (p != null) {
                         results.add(p);
                     }
@@ -292,7 +294,7 @@ public class SearchService {
         }
     }
 
-    public static List<Botanist> getBotanistById(String id) {
+    public static List<Botanist> getBotanistById(Long id) {
         if (id == null) return List.of();
         try {
             Botanist botanist = botanistRepository.getById(id);
@@ -306,8 +308,22 @@ public class SearchService {
         }
     }
 
+    public static List<Botanist> getBotanistByBotanicalShort(String botanicalShort) {
+        if (botanicalShort == null) return List.of();
+        try {
+            Botanist botanist = botanistRepository.getByBotanicalShort(botanicalShort);
+            if (botanist == null) {
+                return List.of();
+            }
+            return List.of(botanist);
+        } catch (Exception e) {
+            logger.error("Could not load Botanist by botanical short from DB", e);
+            return Collections.emptyList();
+        }
+    }
 
-    public static List<Rhododendron> getRhodoById(String id) {
+
+    public static List<Rhododendron> getRhodoById(Long id) {
         if (id == null) return List.of();
         try {
             Rhododendron rhodo = rhododendronRepository.getById(id);
@@ -321,7 +337,21 @@ public class SearchService {
         }
     }
 
-    public static List<Hybridizer> getHybridizerById(String id) {
+    public static List<Rhododendron> getRhodoByOldId(String oldId) {
+        if (oldId == null) return List.of();
+        try {
+            Rhododendron rhodo = rhododendronRepository.getByOldId(oldId);
+            if (rhodo == null) {
+                return List.of();
+            }
+            return List.of(rhodo);
+        } catch (Exception e) {
+            logger.error("Could not load Rhododendron by old id from DB", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static List<Hybridizer> getHybridizerById(Long id) {
         if (id == null) return List.of();
         try {
             Hybridizer h = hybridizerRepository.getById(id);
@@ -335,7 +365,21 @@ public class SearchService {
         }
     }
 
-    public static List<PhotoDetails> getPhotoDetailsById(String id) {
+    public static List<Hybridizer> getHybridizerByOldId(String oldId) {
+        if (oldId == null) return List.of();
+        try {
+            Hybridizer h = hybridizerRepository.getByOldId(oldId);
+            if (h == null) {
+                return List.of();
+            }
+            return List.of(h);
+        } catch (Exception e) {
+            logger.error("Could not load Hybridizer by old id from DB", e);
+            return Collections.emptyList();
+        }
+    }
+
+    public static List<PhotoDetails> getPhotoDetailsById(Long id) {
         if (id == null) return List.of();
         try {
             PhotoDetails p = photoDetailsRepository.getById(id);
@@ -349,10 +393,24 @@ public class SearchService {
         }
     }
 
+    public static List<PhotoDetails> getPhotoDetailsByPhoto(String photo) {
+        if (photo == null) return List.of();
+        try {
+            PhotoDetails p = photoDetailsRepository.getByPhoto(photo);
+            if (p == null) {
+                return List.of();
+            }
+            return List.of(p);
+        } catch (Exception e) {
+            logger.error("Could not load PhotoDetails by photo filename from DB", e);
+            return Collections.emptyList();
+        }
+    }
+
     public static List<PhotoDetails> getMultiplePhotoDetailsById(List<String> ids) {
         try {
             return ids.stream()
-                .map(SearchService::getPhotoDetailsById)
+                .map(SearchService::getPhotoDetailsByPhoto)
                 .filter(photoDetails -> photoDetails != null && !photoDetails.isEmpty())
                 .map((photoDetails) -> photoDetails.get(0))
                 .toList();
@@ -460,7 +518,7 @@ public class SearchService {
             var id = doc.get(PRIMARY_ID_KEY);
             if (id != null) {
                 try {
-                    Rhododendron rhodo = rhododendronRepository.getById(id);
+                    Rhododendron rhodo = rhododendronRepository.getById(Long.parseLong(id));
                     if (rhodo != null) {
                         results.add(rhodo);
                     }
@@ -514,7 +572,7 @@ public class SearchService {
             var id = doc.get(Hybridizer.PRIMARY_ID_KEY);
             if (id != null) {
                 try {
-                    Hybridizer h = hybridizerRepository.getById(id);
+                    Hybridizer h = hybridizerRepository.getById(Long.parseLong(id));
                     if (h != null) {
                         results.add(h);
                     }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -42,25 +43,34 @@ public class Db implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
+        createSchema();
+    }
+
+    public void createSchema() throws SQLException {
         try (Connection conn = getConnection()) {
             initializeSchema(conn);
         }
     }
 
     private void initializeSchema(Connection conn) throws SQLException {
+        if (requiresSchemaReset(conn)) {
+            resetSchema(conn);
+        }
         try (Statement stmt = conn.createStatement()) {
             // Core tables
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS hybridizer (
-                    id TEXT PRIMARY KEY,
-                    name TEXT,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    old_id TEXT UNIQUE,
+                    name TEXT NOT NULL,
                     location TEXT
                 )
                 """);
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS botanist (
-                    botanical_short TEXT PRIMARY KEY,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    botanical_short TEXT NOT NULL UNIQUE,
                     full_name TEXT,
                     location TEXT,
                     born_died TEXT,
@@ -70,7 +80,8 @@ public class Db implements InitializingBean {
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS photo_details (
-                    photo TEXT PRIMARY KEY,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    photo TEXT NOT NULL UNIQUE,
                     photo_by TEXT,
                     date TEXT,
                     location TEXT,
@@ -83,13 +94,14 @@ public class Db implements InitializingBean {
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS rhododendron (
-                    id TEXT PRIMARY KEY,
-                    name TEXT,
-                    species_or_cultivar TEXT,
-                    is_species_selection INTEGER,
-                    is_natural_hybrid INTEGER,
-                    is_cultivar_group INTEGER,
-                    rhodo_category TEXT,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    old_id TEXT UNIQUE,
+                    name TEXT NOT NULL,
+                    species_or_cultivar TEXT CHECK(species_or_cultivar IN ('CULTIVAR','SPECIES')),
+                    is_species_selection INTEGER NOT NULL DEFAULT 0 CHECK(is_species_selection IN (0,1)),
+                    is_natural_hybrid INTEGER NOT NULL DEFAULT 0 CHECK(is_natural_hybrid IN (0,1)),
+                    is_cultivar_group INTEGER NOT NULL DEFAULT 0 CHECK(is_cultivar_group IN (0,1)),
+                    rhodo_category TEXT CHECK(rhodo_category IN ('AZALEODENDRON','AZALEA','RHODO','VIREYA','UNKNOWN')),
                     ten_year_height TEXT,
                     bloom_time TEXT,
                     flower_shape TEXT,
@@ -100,9 +112,9 @@ public class Db implements InitializingBean {
                     extra_information TEXT,
                     irrc_registered TEXT,
                     additional_parentage_info TEXT,
-                    species_id TEXT,
+                    species_id INTEGER,
                     cultivation_since TEXT,
-                    lepedote TEXT,
+                    lepedote TEXT CHECK(lepedote IN ('LEPEDOTE','ELEPEDOTE')),
                     first_described TEXT,
                     origin_location TEXT,
                     habit TEXT,
@@ -111,11 +123,11 @@ public class Db implements InitializingBean {
                     subgenus TEXT,
                     section TEXT,
                     subsection TEXT,
-                    seed_parent_id TEXT,
+                    seed_parent_id INTEGER,
                     seed_parent_name TEXT,
-                    pollen_parent_id TEXT,
+                    pollen_parent_id INTEGER,
                     pollen_parent_name TEXT,
-                    hybridizer_id TEXT,
+                    hybridizer_id INTEGER,
                     FOREIGN KEY (species_id) REFERENCES rhododendron(id),
                     FOREIGN KEY (seed_parent_id) REFERENCES rhododendron(id),
                     FOREIGN KEY (pollen_parent_id) REFERENCES rhododendron(id),
@@ -126,29 +138,29 @@ public class Db implements InitializingBean {
             // Join tables
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS rhododendron_photo (
-                    rhodo_id TEXT NOT NULL,
-                    photo_id TEXT NOT NULL,
+                    rhodo_id INTEGER NOT NULL,
+                    photo_id INTEGER NOT NULL,
                     pos INTEGER NOT NULL,
                     PRIMARY KEY (rhodo_id, pos),
                     FOREIGN KEY (rhodo_id) REFERENCES rhododendron(id) ON DELETE CASCADE,
-                    FOREIGN KEY (photo_id) REFERENCES photo_details(photo)
+                    FOREIGN KEY (photo_id) REFERENCES photo_details(id)
                 )
                 """);
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS hybridizer_photo (
-                    hybridizer_id TEXT NOT NULL,
-                    photo_id TEXT NOT NULL,
+                    hybridizer_id INTEGER NOT NULL,
+                    photo_id INTEGER NOT NULL,
                     pos INTEGER NOT NULL,
                     PRIMARY KEY (hybridizer_id, pos),
                     FOREIGN KEY (hybridizer_id) REFERENCES hybridizer(id) ON DELETE CASCADE,
-                    FOREIGN KEY (photo_id) REFERENCES photo_details(photo)
+                    FOREIGN KEY (photo_id) REFERENCES photo_details(id)
                 )
                 """);
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS rhododendron_synonym (
-                    rhodo_id TEXT NOT NULL,
+                    rhodo_id INTEGER NOT NULL,
                     synonym TEXT NOT NULL,
                     pos INTEGER NOT NULL,
                     PRIMARY KEY (rhodo_id, pos),
@@ -158,18 +170,18 @@ public class Db implements InitializingBean {
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS rhododendron_first_described_botanist (
-                    rhodo_id TEXT NOT NULL,
-                    botanical_short TEXT NOT NULL,
+                    rhodo_id INTEGER NOT NULL,
+                    botanist_id INTEGER NOT NULL,
                     pos INTEGER NOT NULL,
                     PRIMARY KEY (rhodo_id, pos),
                     FOREIGN KEY (rhodo_id) REFERENCES rhododendron(id) ON DELETE CASCADE,
-                    FOREIGN KEY (botanical_short) REFERENCES botanist(botanical_short)
+                    FOREIGN KEY (botanist_id) REFERENCES botanist(id)
                 )
                 """);
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS rhododendron_botanical_synonym (
-                    rhodo_id TEXT NOT NULL,
+                    rhodo_id INTEGER NOT NULL,
                     synonym TEXT NOT NULL,
                     pos INTEGER NOT NULL,
                     PRIMARY KEY (rhodo_id, pos),
@@ -179,15 +191,61 @@ public class Db implements InitializingBean {
 
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS rhododendron_botanical_synonym_botanist (
-                    rhodo_id TEXT NOT NULL,
+                    rhodo_id INTEGER NOT NULL,
                     synonym_pos INTEGER NOT NULL,
-                    botanical_short TEXT NOT NULL,
+                    botanist_id INTEGER NOT NULL,
                     pos INTEGER NOT NULL,
                     PRIMARY KEY (rhodo_id, synonym_pos, pos),
                     FOREIGN KEY (rhodo_id) REFERENCES rhododendron(id) ON DELETE CASCADE,
-                    FOREIGN KEY (botanical_short) REFERENCES botanist(botanical_short)
+                    FOREIGN KEY (botanist_id) REFERENCES botanist(id)
                 )
                 """);
+        }
+    }
+
+    private static boolean requiresSchemaReset(Connection conn) throws SQLException {
+        if (!tableExists(conn, "rhododendron")) {
+            return false;
+        }
+        return !columnExists(conn, "rhododendron", "old_id")
+            || !columnExists(conn, "botanist", "id")
+            || !columnExists(conn, "hybridizer", "old_id")
+            || !columnExists(conn, "photo_details", "id");
+    }
+
+    private static void resetSchema(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("DROP TABLE IF EXISTS rhododendron_botanical_synonym_botanist");
+            stmt.execute("DROP TABLE IF EXISTS rhododendron_botanical_synonym");
+            stmt.execute("DROP TABLE IF EXISTS rhododendron_first_described_botanist");
+            stmt.execute("DROP TABLE IF EXISTS rhododendron_synonym");
+            stmt.execute("DROP TABLE IF EXISTS rhododendron_photo");
+            stmt.execute("DROP TABLE IF EXISTS hybridizer_photo");
+            stmt.execute("DROP TABLE IF EXISTS rhododendron");
+            stmt.execute("DROP TABLE IF EXISTS hybridizer");
+            stmt.execute("DROP TABLE IF EXISTS botanist");
+            stmt.execute("DROP TABLE IF EXISTS photo_details");
+        }
+    }
+
+    private static boolean tableExists(Connection conn, String tableName) throws SQLException {
+        try (var ps = conn.prepareStatement("SELECT name FROM sqlite_master WHERE type='table' AND name=?")) {
+            ps.setString(1, tableName);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    private static boolean columnExists(Connection conn, String tableName, String columnName) throws SQLException {
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("PRAGMA table_info(" + tableName + ")")) {
+            while (rs.next()) {
+                if (columnName.equalsIgnoreCase(rs.getString("name"))) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

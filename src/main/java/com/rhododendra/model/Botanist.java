@@ -13,7 +13,10 @@ public class Botanist extends Indexable {
     public static final String FULL_NAME_KEY = "full_name";
     public static final String IMAGE_KEY = "image";
 
-    public static final String PRIMARY_ID_KEY = BOTANICAL_SHORT_KEY;
+    public static final String PRIMARY_ID_KEY = "id";
+
+    @JsonIgnore
+    Long id;
 
     @JsonProperty(BOTANICAL_SHORT_KEY)
     String botanicalShort;
@@ -66,9 +69,17 @@ public class Botanist extends Indexable {
         this.image = image;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     @JsonIgnore
     @Override
     public String primaryIdValue() {
-        return getBotanicalShort();
+        return id == null ? "" : String.valueOf(id);
     }
 }
