@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
@@ -89,6 +91,15 @@ public class MigrateJsonToSqlite {
                     Long hybridizerId = (h == null || h.getHybridizerOldId() == null)
                         ? null
                         : hybridizerOldIdToId.get(h.getHybridizerOldId());
+
+                    Rhododendron.RhodoKind kind = rhodo.computeRhodoKind();
+                    rhodo.setRhodoKind(kind);
+
+                    Integer introduced = parseIntroducedYear(rhodo);
+                    rhodo.setIntroduced(introduced);
+
+                    rhodo.setLepidote(Rhododendron.Lepidote.UNKNOWN);
+
                     return rhododendronRepository.upsert(rhodo, hybridizerId, photoNameToId, botanistShortToId);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -100,6 +111,24 @@ public class MigrateJsonToSqlite {
         logger.info("Migrated {} rhododendrons", rhodos.size());
 
         logger.info("JSON → SQLite migration completed");
+    }
+
+    private static final Pattern TRAILING_YEAR = Pattern.compile("(\\d{4})\\s*$");
+
+    static Integer parseIntroducedYear(Rhododendron rhodo) {
+        if (rhodo.getCultivation_since() != null && !rhodo.getCultivation_since().isBlank()) {
+            try {
+                return Integer.parseInt(rhodo.getCultivation_since().trim());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        if (rhodo.getHybridizer() != null && rhodo.getHybridizer().getHybridizer() != null) {
+            Matcher m = TRAILING_YEAR.matcher(rhodo.getHybridizer().getHybridizer());
+            if (m.find()) {
+                return Integer.parseInt(m.group(1));
+            }
+        }
+        return null;
     }
 
     private void rebuildDatabaseFile() throws SQLException {

@@ -102,6 +102,11 @@ public class Db implements InitializingBean {
                     is_natural_hybrid INTEGER NOT NULL DEFAULT 0 CHECK(is_natural_hybrid IN (0,1)),
                     is_cultivar_group INTEGER NOT NULL DEFAULT 0 CHECK(is_cultivar_group IN (0,1)),
                     rhodo_category TEXT CHECK(rhodo_category IN ('AZALEODENDRON','AZALEA','RHODO','VIREYA','UNKNOWN')),
+                    rhodo_kind TEXT NOT NULL DEFAULT 'ARTIFICIAL_HYBRID'
+                        CHECK(rhodo_kind IN ('SPECIES','NATURAL_HYBRID','ARTIFICIAL_HYBRID','SPECIES_SELECTION','CULTIVAR_GROUP')),
+                    lepidote TEXT NOT NULL DEFAULT 'UNKNOWN'
+                        CHECK(lepidote IN ('LEPIDOTE','ELEPIDOTE','UNKNOWN')),
+                    introduced INTEGER,
                     ten_year_height TEXT,
                     bloom_time TEXT,
                     flower_shape TEXT,
@@ -113,8 +118,6 @@ public class Db implements InitializingBean {
                     irrc_registered TEXT,
                     additional_parentage_info TEXT,
                     species_id INTEGER,
-                    cultivation_since TEXT,
-                    lepedote TEXT CHECK(lepedote IN ('LEPEDOTE','ELEPEDOTE')),
                     first_described TEXT,
                     origin_location TEXT,
                     habit TEXT,
@@ -131,7 +134,14 @@ public class Db implements InitializingBean {
                     FOREIGN KEY (species_id) REFERENCES rhododendron(id),
                     FOREIGN KEY (seed_parent_id) REFERENCES rhododendron(id),
                     FOREIGN KEY (pollen_parent_id) REFERENCES rhododendron(id),
-                    FOREIGN KEY (hybridizer_id) REFERENCES hybridizer(id)
+                    FOREIGN KEY (hybridizer_id) REFERENCES hybridizer(id),
+                    CHECK(rhodo_kind NOT IN ('SPECIES','NATURAL_HYBRID') OR ten_year_height IS NULL),
+                    CHECK(rhodo_kind NOT IN ('SPECIES','NATURAL_HYBRID') OR hybridizer_id IS NULL),
+                    CHECK(azalea_group IS NULL
+                          OR (rhodo_category = 'AZALEA'
+                              AND rhodo_kind IN ('ARTIFICIAL_HYBRID','CULTIVAR_GROUP'))),
+                    CHECK(rhodo_kind != 'SPECIES' OR is_cultivar_group = 0),
+                    CHECK(rhodo_kind != 'SPECIES_SELECTION' OR is_cultivar_group = 0)
                 )
                 """);
 
@@ -210,7 +220,12 @@ public class Db implements InitializingBean {
         return !columnExists(conn, "rhododendron", "old_id")
             || !columnExists(conn, "botanist", "id")
             || !columnExists(conn, "hybridizer", "old_id")
-            || !columnExists(conn, "photo_details", "id");
+            || !columnExists(conn, "photo_details", "id")
+            || !columnExists(conn, "rhododendron", "rhodo_kind")
+            || !columnExists(conn, "rhododendron", "lepidote")
+            || !columnExists(conn, "rhododendron", "introduced")
+            || columnExists(conn, "rhododendron", "cultivation_since")
+            || columnExists(conn, "rhododendron", "lepedote");
     }
 
     private static void resetSchema(Connection conn) throws SQLException {

@@ -97,9 +97,9 @@
                                              th:value="${rhodo.getTaxonomy() != null ? rhodo.getTaxonomy().getSubsection() : ''}"/></td>
                 </tr>
                 <tr>
-                    <td class="key"><b>In cultivation since</b></td>
-                    <td class="value"><input type="text" name="cultivation_since" class="form-control form-control-sm"
-                                             th:value="${rhodo.getCultivation_since()}"/></td>
+                    <td class="key"><b>Introduced</b></td>
+                    <td class="value"><input type="number" name="introduced" class="form-control form-control-sm"
+                                             th:value="${rhodo.getIntroduced()}"/></td>
                 </tr>
                 <tr>
                     <td class="key"><b>First Described</b></td>
@@ -251,9 +251,9 @@
                 <td class="value" th:if="${rhodo.getParentage().getPollen_parent() == null}">?</td>
             </tr>
         </th:block>
-        <tr th:if="${rhodo.getCultivation_since() != null}">
-            <td class="key"><b>In cultivation since</b></td>
-            <td class="value" th:text="${rhodo.getCultivation_since()}"></td>
+        <tr th:if="${rhodo.getIntroduced() != null}">
+            <td class="key"><b>Introduced</b></td>
+            <td class="value" th:text="${rhodo.getIntroduced()}"></td>
         </tr>
         <tr th:if="${rhodo.getFirst_described() != null}">
             <td class="key"><b>First Described</b></td>
@@ -274,13 +274,13 @@
             <td class="key"><b>Habitat</b></td>
             <td class="value" th:text="${rhodo.getHabit()}"></td>
         </tr>
-        <tr>
+        <tr th:if="${rhodo.getRhodoKind() == null or (rhodo.getRhodoKind().name() != 'SPECIES' and rhodo.getRhodoKind().name() != 'NATURAL_HYBRID')}">
             <td class="key"><b>10 Year Height</b></td>
             <td class="value" th:if="${rhodo.getTen_year_height() != null}"
                 th:text="${rhodo.getTen_year_height()}"></td>
             <td class="value" th:if="${rhodo.getTen_year_height() == null}">?</td>
         </tr>
-        <tr th:if="${rhodo.getObserved_mature_height() != null}">
+        <tr th:if="${rhodo.getObserved_mature_height() != null and (rhodo.getRhodoKind() != null and (rhodo.getRhodoKind().name() == 'SPECIES' or rhodo.getRhodoKind().name() == 'NATURAL_HYBRID'))}">
             <td class="key"><b>Mature Wild Height</b></td>
             <td class="value" th:text="${rhodo.getObserved_mature_height()}"></td>
         </tr>
@@ -313,10 +313,10 @@
             <td class="key"><b>Additional<br/>Parentage Info</b></td>
             <td class="value" th:text="${rhodo.getAdditional_parentage_info()}"></td>
         </tr>
-        <tr th:if="${rhodo.isElepedote() || rhodo.isLepedote()}">
+        <tr th:if="${rhodo.isElepidote() || rhodo.isLepidote()}">
             <td class="key"><b>Type</b></td>
-            <td class="value" th:if="${rhodo.isElepedote()}">Elepedote</td>
-            <td class="value" th:if="${rhodo.isLepedote()}">Lepedote</td>
+            <td class="value" th:if="${rhodo.isElepidote()}">Elepidote</td>
+            <td class="value" th:if="${rhodo.isLepidote()}">Lepidote</td>
         </tr>
         <tr>
             <td class="key"><b>Hardiness</b></td>

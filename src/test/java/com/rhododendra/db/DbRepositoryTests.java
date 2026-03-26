@@ -128,25 +128,25 @@ public class DbRepositoryTests {
 
         rhododendronRepository.updateEditableFields(
             rhodoId,
-            "5m",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
+            "5m",       // tenYearHeight
+            null,       // bloomTime
+            null,       // flowerShape
+            null,       // leafShape
+            null,       // colour
+            null,       // deciduous
+            null,       // hardiness
+            null,       // extraInformation
+            null,       // additionalParentageInfo
+            null,       // introduced (Integer)
+            null,       // firstDescribed
+            null,       // originLocation
+            null,       // habit
+            null,       // observedMatureHeight
+            null,       // azaleaGroup
+            null,       // irrcRegistered
+            null,       // subgenus
+            null,       // section
+            null        // subsection
         );
 
         var loaded = rhododendronRepository.getById(rhodoId);

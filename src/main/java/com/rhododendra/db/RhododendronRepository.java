@@ -31,17 +31,33 @@ public class RhododendronRepository {
         Map<String, Long> photoIdByName,
         Map<String, Long> botanistIdByShort
     ) throws SQLException {
+        Rhododendron.RhodoKind kind = rhodo.getRhodoKind() != null
+            ? rhodo.getRhodoKind()
+            : rhodo.computeRhodoKind();
+        rhodo.setRhodoKind(kind);
+
+        boolean isWild = kind == Rhododendron.RhodoKind.SPECIES || kind == Rhododendron.RhodoKind.NATURAL_HYBRID;
+        String tenYearHeight = isWild ? null : rhodo.getTen_year_height();
+        Long effectiveHybridizerId = isWild ? null : hybridizerId;
+
+        boolean isHybridAzalea = rhodo.getRhodoCategory() == Rhododendron.RhodoCategory.AZALEA
+            && (kind == Rhododendron.RhodoKind.ARTIFICIAL_HYBRID || kind == Rhododendron.RhodoKind.CULTIVAR_GROUP);
+        String azaleaGroup = isHybridAzalea ? rhodo.getAzalea_group() : null;
+
+        String lepidoteStr = rhodo.getLepidote() == null ? "UNKNOWN" : rhodo.getLepidote().name();
+
         var sql = """
             INSERT INTO rhododendron (
                 old_id, name, species_or_cultivar, is_species_selection, is_natural_hybrid, is_cultivar_group,
-                rhodo_category, ten_year_height, bloom_time, flower_shape, leaf_shape,
+                rhodo_category, rhodo_kind, lepidote, introduced,
+                ten_year_height, bloom_time, flower_shape, leaf_shape,
                 hardiness, deciduous, colour, extra_information,
-                irrc_registered, additional_parentage_info, species_id, cultivation_since, lepedote,
+                irrc_registered, additional_parentage_info, species_id,
                 first_described, origin_location, habit, observed_mature_height, azalea_group,
                 subgenus, section, subsection,
                 seed_parent_id, seed_parent_name, pollen_parent_id, pollen_parent_name,
                 hybridizer_id
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(old_id) DO UPDATE SET
                 name = excluded.name,
                 species_or_cultivar = excluded.species_or_cultivar,
@@ -49,6 +65,9 @@ public class RhododendronRepository {
                 is_natural_hybrid = excluded.is_natural_hybrid,
                 is_cultivar_group = excluded.is_cultivar_group,
                 rhodo_category = excluded.rhodo_category,
+                rhodo_kind = excluded.rhodo_kind,
+                lepidote = excluded.lepidote,
+                introduced = excluded.introduced,
                 ten_year_height = excluded.ten_year_height,
                 bloom_time = excluded.bloom_time,
                 flower_shape = excluded.flower_shape,
@@ -59,8 +78,6 @@ public class RhododendronRepository {
                 extra_information = excluded.extra_information,
                 irrc_registered = excluded.irrc_registered,
                 additional_parentage_info = excluded.additional_parentage_info,
-                cultivation_since = excluded.cultivation_since,
-                lepedote = excluded.lepedote,
                 first_described = excluded.first_described,
                 origin_location = excluded.origin_location,
                 habit = excluded.habit,
@@ -77,44 +94,46 @@ public class RhododendronRepository {
         try (var conn = db.getConnection()) {
             conn.setAutoCommit(false);
             try (var ps = conn.prepareStatement(sql)) {
-                ps.setString(1, rhodo.getOldId());
-                ps.setString(2, rhodo.getName());
-                ps.setString(3, rhodo.getSpeciesOrCultivar() == null ? null : rhodo.getSpeciesOrCultivar().name());
-                ps.setInt(4, rhodo.getIs_species_selection() ? 1 : 0);
-                ps.setInt(5, rhodo.getIs_natural_hybrid() ? 1 : 0);
-                ps.setInt(6, rhodo.getIs_cultivar_group() ? 1 : 0);
-                ps.setString(7, rhodo.getRhodoCategory() == null ? null : rhodo.getRhodoCategory().name());
-                ps.setString(8, rhodo.getTen_year_height());
-                ps.setString(9, rhodo.getBloom_time());
-                ps.setString(10, rhodo.getFlower_shape());
-                ps.setString(11, rhodo.getLeaf_shape());
-                ps.setString(12, rhodo.getHardiness());
-                ps.setString(13, rhodo.getDeciduous());
-                ps.setString(14, rhodo.getColour());
-                ps.setString(15, rhodo.getExtra_information());
-                ps.setString(16, rhodo.getIrrc_registered());
-                ps.setString(17, rhodo.getAdditional_parentage_info());
+                int i = 1;
+                ps.setString(i++, rhodo.getOldId());
+                ps.setString(i++, rhodo.getName());
+                ps.setString(i++, rhodo.getSpeciesOrCultivar() == null ? null : rhodo.getSpeciesOrCultivar().name());
+                ps.setInt(i++, rhodo.getIs_species_selection() ? 1 : 0);
+                ps.setInt(i++, rhodo.getIs_natural_hybrid() ? 1 : 0);
+                ps.setInt(i++, rhodo.getIs_cultivar_group() ? 1 : 0);
+                ps.setString(i++, rhodo.getRhodoCategory() == null ? null : rhodo.getRhodoCategory().name());
+                ps.setString(i++, kind.name());
+                ps.setString(i++, lepidoteStr);
+                ps.setObject(i++, rhodo.getIntroduced());
+                ps.setString(i++, tenYearHeight);
+                ps.setString(i++, rhodo.getBloom_time());
+                ps.setString(i++, rhodo.getFlower_shape());
+                ps.setString(i++, rhodo.getLeaf_shape());
+                ps.setString(i++, rhodo.getHardiness());
+                ps.setString(i++, rhodo.getDeciduous());
+                ps.setString(i++, rhodo.getColour());
+                ps.setString(i++, rhodo.getExtra_information());
+                ps.setString(i++, rhodo.getIrrc_registered());
+                ps.setString(i++, rhodo.getAdditional_parentage_info());
                 // Defer FKs to rhododendron(id): filled in updateParentForeignKeys() after all rows exist
-                ps.setObject(18, null);
-                ps.setString(19, rhodo.getCultivation_since());
-                ps.setString(20, rhodo.getLepedote() == null ? null : rhodo.getLepedote().name());
-                ps.setString(21, rhodo.getFirst_described());
-                ps.setString(22, rhodo.getOrigin_location());
-                ps.setString(23, rhodo.getHabit());
-                ps.setString(24, rhodo.getObserved_mature_height());
-                ps.setString(25, rhodo.getAzalea_group());
+                ps.setObject(i++, null);
+                ps.setString(i++, rhodo.getFirst_described());
+                ps.setString(i++, rhodo.getOrigin_location());
+                ps.setString(i++, rhodo.getHabit());
+                ps.setString(i++, rhodo.getObserved_mature_height());
+                ps.setString(i++, azaleaGroup);
 
                 Taxonomy taxonomy = rhodo.getTaxonomy();
-                ps.setString(26, taxonomy == null ? null : taxonomy.getSubgenus());
-                ps.setString(27, taxonomy == null ? null : taxonomy.getSection());
-                ps.setString(28, taxonomy == null ? null : taxonomy.getSubsection());
+                ps.setString(i++, taxonomy == null ? null : taxonomy.getSubgenus());
+                ps.setString(i++, taxonomy == null ? null : taxonomy.getSection());
+                ps.setString(i++, taxonomy == null ? null : taxonomy.getSubsection());
 
                 Parentage parentage = rhodo.getParentage();
-                ps.setObject(29, null);
-                ps.setString(30, parentage == null ? null : parentage.getSeed_parent());
-                ps.setObject(31, null);
-                ps.setString(32, parentage == null ? null : parentage.getPollen_parent());
-                ps.setObject(33, hybridizerId);
+                ps.setObject(i++, null);
+                ps.setString(i++, parentage == null ? null : parentage.getSeed_parent());
+                ps.setObject(i++, null);
+                ps.setString(i++, parentage == null ? null : parentage.getPollen_parent());
+                ps.setObject(i, effectiveHybridizerId);
 
                 ps.executeUpdate();
             }
@@ -275,7 +294,7 @@ public class RhododendronRepository {
         String hardiness,
         String extraInformation,
         String additionalParentageInfo,
-        String cultivationSince,
+        Integer introduced,
         String firstDescribed,
         String originLocation,
         String habit,
@@ -297,7 +316,7 @@ public class RhododendronRepository {
                 hardiness = ?,
                 extra_information = ?,
                 additional_parentage_info = ?,
-                cultivation_since = ?,
+                introduced = ?,
                 first_described = ?,
                 origin_location = ?,
                 habit = ?,
@@ -321,7 +340,7 @@ public class RhododendronRepository {
             ps.setString(i++, blankToNull(hardiness));
             ps.setString(i++, blankToNull(extraInformation));
             ps.setString(i++, blankToNull(additionalParentageInfo));
-            ps.setString(i++, blankToNull(cultivationSince));
+            ps.setObject(i++, introduced);
             ps.setString(i++, blankToNull(firstDescribed));
             ps.setString(i++, blankToNull(originLocation));
             ps.setString(i++, blankToNull(habit));
@@ -447,16 +466,24 @@ public class RhododendronRepository {
                 r.setDeciduous(rs.getString("deciduous"));
                 r.setColour(rs.getString("colour"));
                 r.setExtra_information(rs.getString("extra_information"));
+                var kindStr = rs.getString("rhodo_kind");
+                if (kindStr != null) {
+                    r.setRhodoKind(Rhododendron.RhodoKind.valueOf(kindStr));
+                }
+                var lepStr = rs.getString("lepidote");
+                if (lepStr != null) {
+                    r.setLepidote(Rhododendron.Lepidote.valueOf(lepStr));
+                }
+                var introducedObj = rs.getObject("introduced");
+                if (introducedObj != null) {
+                    r.setIntroduced(rs.getInt("introduced"));
+                }
+
                 r.setIrrc_registered(rs.getString("irrc_registered"));
                 r.setAdditional_parentage_info(rs.getString("additional_parentage_info"));
                 var speciesIdObj = rs.getObject("species_id");
                 if (speciesIdObj != null) {
                     r.setSpecies_id(rs.getLong("species_id"));
-                }
-                r.setCultivation_since(rs.getString("cultivation_since"));
-                var lep = rs.getString("lepedote");
-                if (lep != null) {
-                    r.setLepedote(Rhododendron.Lepedote.valueOf(lep));
                 }
                 r.setFirst_described(rs.getString("first_described"));
                 r.setOrigin_location(rs.getString("origin_location"));

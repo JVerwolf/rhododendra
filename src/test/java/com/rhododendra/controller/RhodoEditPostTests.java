@@ -82,7 +82,7 @@ class RhodoEditPostTests {
                 .param("hardiness", "")
                 .param("extra_information", "")
                 .param("additional_parentage_info", "")
-                .param("cultivation_since", "")
+                .param("introduced", "")
                 .param("first_described", "")
                 .param("origin_location", "")
                 .param("habit", "")

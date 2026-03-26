@@ -40,7 +40,9 @@ public class Rhododendron extends Indexable {
     String species_old_id; // JSON/source id for selection
     Rhododendron selectedSpecies; // Don't store as this info can change, not the source of truth. Only for fetching and putting in model for display.
     String cultivation_since;
-    Lepedote lepedote;
+    Lepidote lepidote;
+    @JsonIgnore
+    Integer introduced;
 
     // Hybrids and Natural Hybrids
     Parentage parentage;
@@ -66,11 +68,28 @@ public class Rhododendron extends Indexable {
     boolean is_natural_hybrid;
     boolean is_cultivar_group;
     RhodoCategory rhodoCategory;
+    @JsonIgnore
+    RhodoKind rhodoKind;
 
     @JsonIgnore
     @Override
     public String primaryIdValue() {
         return id == null ? "" : String.valueOf(id);
+    }
+
+    @JsonIgnore
+    public static RhodoKind deriveRhodoKind(boolean isSpeciesSelection, boolean isNaturalHybrid,
+                                             boolean isCultivarGroup, SpeciesOrCultivar speciesOrCultivar) {
+        if (isCultivarGroup) return RhodoKind.CULTIVAR_GROUP;
+        if (isSpeciesSelection) return RhodoKind.SPECIES_SELECTION;
+        if (isNaturalHybrid) return RhodoKind.NATURAL_HYBRID;
+        if (speciesOrCultivar == SpeciesOrCultivar.SPECIES) return RhodoKind.SPECIES;
+        return RhodoKind.ARTIFICIAL_HYBRID;
+    }
+
+    @JsonIgnore
+    public RhodoKind computeRhodoKind() {
+        return deriveRhodoKind(is_species_selection, is_natural_hybrid, is_cultivar_group, speciesOrCultivar);
     }
 
     public static enum SpeciesOrCultivar {
@@ -84,6 +103,14 @@ public class Rhododendron extends Indexable {
         RHODO,
         VIREYA,
         UNKNOWN
+    }
+
+    public enum RhodoKind {
+        SPECIES,
+        NATURAL_HYBRID,
+        ARTIFICIAL_HYBRID,
+        SPECIES_SELECTION,
+        CULTIVAR_GROUP
     }
 
     public enum SearchFilters {
@@ -237,19 +264,20 @@ public class Rhododendron extends Indexable {
     }
 
 
-    public enum Lepedote {
-        LEPEDOTE,
-        ELEPEDOTE,
+    public enum Lepidote {
+        LEPIDOTE,
+        ELEPIDOTE,
+        UNKNOWN
     }
 
     @JsonIgnore
-    public boolean isLepedote() {
-        return this.lepedote == Lepedote.LEPEDOTE;
+    public boolean isLepidote() {
+        return this.lepidote == Lepidote.LEPIDOTE;
     }
 
     @JsonIgnore
-    public boolean isElepedote() {
-        return this.lepedote == Lepedote.ELEPEDOTE;
+    public boolean isElepidote() {
+        return this.lepidote == Lepidote.ELEPIDOTE;
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -418,6 +446,16 @@ public class Rhododendron extends Indexable {
 
     public void setRhodoCategory(RhodoCategory rhodoCategory) {
         this.rhodoCategory = rhodoCategory;
+    }
+
+    @JsonIgnore
+    public RhodoKind getRhodoKind() {
+        return rhodoKind;
+    }
+
+    @JsonIgnore
+    public void setRhodoKind(RhodoKind rhodoKind) {
+        this.rhodoKind = rhodoKind;
     }
 
     public boolean getIs_natural_hybrid() {
@@ -604,12 +642,22 @@ public class Rhododendron extends Indexable {
         this.cultivation_since = cultivation_since;
     }
 
-    public Lepedote getLepedote() {
-        return lepedote;
+    @JsonIgnore
+    public Integer getIntroduced() {
+        return introduced;
     }
 
-    public void setLepedote(Lepedote lepedote) {
-        this.lepedote = lepedote;
+    @JsonIgnore
+    public void setIntroduced(Integer introduced) {
+        this.introduced = introduced;
+    }
+
+    public Lepidote getLepidote() {
+        return lepidote;
+    }
+
+    public void setLepidote(Lepidote lepidote) {
+        this.lepidote = lepidote;
     }
 
     public Parentage getParentage() {
