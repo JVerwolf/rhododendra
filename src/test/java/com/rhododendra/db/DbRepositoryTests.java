@@ -45,6 +45,7 @@ public class DbRepositoryTests {
             stmt.executeUpdate("DELETE FROM rhododendron_first_described_botanist");
             stmt.executeUpdate("DELETE FROM rhododendron_synonym");
             stmt.executeUpdate("DELETE FROM rhododendron_photo");
+            stmt.executeUpdate("DELETE FROM hybridizer_photo");
             stmt.executeUpdate("DELETE FROM rhododendron");
             stmt.executeUpdate("DELETE FROM hybridizer");
             stmt.executeUpdate("DELETE FROM botanist");
@@ -115,6 +116,40 @@ public class DbRepositoryTests {
         assertThat(loaded.getHybridizer()).isNotNull();
         assertThat(loaded.getHybridizer().getHybridizer_id()).isEqualTo(hybridizerId);
         assertThat(loaded.getHybridizer().getHybridizer()).isEqualTo("Resolved Hybridizer Name");
+    }
+
+    @Test
+    void testHybridizerPhotosPersistedAndLoaded() throws SQLException {
+        var photo = new PhotoDetails();
+        photo.setPhoto("hz-photo.jpg");
+        photo.setPhotoBy("Photographer");
+        photoDetailsRepository.upsert(photo);
+
+        var hybridizer = new Hybridizer();
+        hybridizer.setOldId("hz-photos");
+        hybridizer.setName("Hybridizer With Photo");
+        hybridizer.setPhotos(List.of("hz-photo.jpg"));
+        Long hybridizerId = hybridizerRepository.upsert(hybridizer, null);
+
+        var loaded = hybridizerRepository.getById(hybridizerId);
+        assertThat(loaded).isNotNull();
+        assertThat(loaded.getPhotos()).containsExactly("hz-photo.jpg");
+
+        var loadedByOldId = hybridizerRepository.getByOldId("hz-photos");
+        assertThat(loadedByOldId).isNotNull();
+        assertThat(loadedByOldId.getPhotos()).containsExactly("hz-photo.jpg");
+    }
+
+    @Test
+    void testHybridizerWithoutPhotosReturnsEmptyList() throws SQLException {
+        var hybridizer = new Hybridizer();
+        hybridizer.setOldId("hz-no-photos");
+        hybridizer.setName("Hybridizer No Photo");
+        Long hybridizerId = hybridizerRepository.upsert(hybridizer);
+
+        var loaded = hybridizerRepository.getById(hybridizerId);
+        assertThat(loaded).isNotNull();
+        assertThat(loaded.getPhotos()).isEmpty();
     }
 
     @Test

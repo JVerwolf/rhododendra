@@ -3,7 +3,11 @@ package com.rhododendra.db;
 import com.rhododendra.model.Hybridizer;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 public class HybridizerRepository {
@@ -15,6 +19,10 @@ public class HybridizerRepository {
     }
 
     public Long upsert(Hybridizer hybridizer) throws SQLException {
+        return upsert(hybridizer, null);
+    }
+
+    public Long upsert(Hybridizer hybridizer, Map<String, Long> photoIdByName) throws SQLException {
         var sql = """
             INSERT INTO hybridizer (old_id, name, location)
             VALUES (?, ?, ?)
@@ -22,17 +30,42 @@ public class HybridizerRepository {
                 name = excluded.name,
                 location = excluded.location
             """;
-        try (var conn = db.getConnection();
-             var ps = conn.prepareStatement(sql)) {
-            ps.setString(1, hybridizer.getOldId());
-            ps.setString(2, hybridizer.getName());
-            ps.setString(3, hybridizer.getLocation());
-            ps.executeUpdate();
-            Hybridizer stored = getByOldId(hybridizer.getOldId());
-            if (stored == null || stored.getId() == null) {
+        try (var conn = db.getConnection()) {
+            conn.setAutoCommit(false);
+            try (var ps = conn.prepareStatement(sql)) {
+                ps.setString(1, hybridizer.getOldId());
+                ps.setString(2, hybridizer.getName());
+                ps.setString(3, hybridizer.getLocation());
+                ps.executeUpdate();
+            }
+
+            Long hybridizerId = selectIdByOldId(conn, hybridizer.getOldId());
+            if (hybridizerId == null) {
                 throw new SQLException("Hybridizer upsert failed for old_id=" + hybridizer.getOldId());
             }
-            return stored.getId();
+
+            try (var del = conn.prepareStatement("DELETE FROM hybridizer_photo WHERE hybridizer_id = ?")) {
+                del.setLong(1, hybridizerId);
+                del.executeUpdate();
+            }
+            if (hybridizer.getPhotos() != null && !hybridizer.getPhotos().isEmpty()) {
+                try (var ins = conn.prepareStatement(
+                    "INSERT INTO hybridizer_photo (hybridizer_id, photo_id, pos) VALUES (?,?,?)")) {
+                    int pos = 0;
+                    for (var photoName : hybridizer.getPhotos()) {
+                        Long photoId = resolvePhotoId(conn, photoIdByName, photoName);
+                        if (photoId == null) continue;
+                        ins.setLong(1, hybridizerId);
+                        ins.setLong(2, photoId);
+                        ins.setInt(3, pos++);
+                        ins.addBatch();
+                    }
+                    ins.executeBatch();
+                }
+            }
+
+            conn.commit();
+            return hybridizerId;
         }
     }
 
@@ -48,7 +81,7 @@ public class HybridizerRepository {
                 h.setOldId(rs.getString("old_id"));
                 h.setName(rs.getString("name"));
                 h.setLocation(rs.getString("location"));
-                // photos are handled via join table
+                h.setPhotos(loadPhotos(conn, h.getId()));
                 return h;
             }
         }
@@ -66,9 +99,47 @@ public class HybridizerRepository {
                 h.setOldId(rs.getString("old_id"));
                 h.setName(rs.getString("name"));
                 h.setLocation(rs.getString("location"));
+                h.setPhotos(loadPhotos(conn, h.getId()));
                 return h;
             }
         }
+    }
+
+    private static Long selectIdByOldId(Connection conn, String oldId) throws SQLException {
+        try (var ps = conn.prepareStatement("SELECT id FROM hybridizer WHERE old_id = ? LIMIT 1")) {
+            ps.setString(1, oldId);
+            try (var rs = ps.executeQuery()) {
+                return rs.next() ? rs.getLong("id") : null;
+            }
+        }
+    }
+
+    private static Long resolvePhotoId(Connection conn, Map<String, Long> photoIdByName, String photoName) throws SQLException {
+        if (photoIdByName != null && photoIdByName.containsKey(photoName)) {
+            return photoIdByName.get(photoName);
+        }
+        try (var ps = conn.prepareStatement("SELECT id FROM photo_details WHERE photo = ?")) {
+            ps.setString(1, photoName);
+            try (var rs = ps.executeQuery()) {
+                return rs.next() ? rs.getLong("id") : null;
+            }
+        }
+    }
+
+    private static List<String> loadPhotos(Connection conn, Long id) throws SQLException {
+        var list = new ArrayList<String>();
+        try (var ps = conn.prepareStatement(
+            "SELECT pd.photo FROM hybridizer_photo hp " +
+                "JOIN photo_details pd ON pd.id = hp.photo_id " +
+                "WHERE hp.hybridizer_id = ? ORDER BY hp.pos")) {
+            ps.setLong(1, id);
+            try (var rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(rs.getString("photo"));
+                }
+            }
+        }
+        return list;
     }
 }
 

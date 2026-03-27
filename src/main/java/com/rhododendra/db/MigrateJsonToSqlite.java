@@ -61,17 +61,6 @@ public class MigrateJsonToSqlite {
             }, (left, right) -> right));
         logger.info("Migrated {} botanists", botanists.size());
 
-        List<Hybridizer> hybridizers = jsonLoaderService.loadHybridizers();
-        Map<String, Long> hybridizerOldIdToId = hybridizers.stream()
-            .collect(Collectors.toMap(Hybridizer::getOldId, hybridizer -> {
-                try {
-                    return hybridizerRepository.upsert(hybridizer);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            }, (left, right) -> right));
-        logger.info("Migrated {} hybridizers", hybridizers.size());
-
         List<PhotoDetails> photoDetails = jsonLoaderService.loadPhotoDetails();
         Map<String, Long> photoNameToId = photoDetails.stream()
             .collect(Collectors.toMap(PhotoDetails::getPhoto, photo -> {
@@ -82,6 +71,17 @@ public class MigrateJsonToSqlite {
                 }
             }, (left, right) -> right));
         logger.info("Migrated {} photo details", photoDetails.size());
+
+        List<Hybridizer> hybridizers = jsonLoaderService.loadHybridizers();
+        Map<String, Long> hybridizerOldIdToId = hybridizers.stream()
+            .collect(Collectors.toMap(Hybridizer::getOldId, hybridizer -> {
+                try {
+                    return hybridizerRepository.upsert(hybridizer, photoNameToId);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }, (left, right) -> right));
+        logger.info("Migrated {} hybridizers", hybridizers.size());
 
         List<Rhododendron> rhodos = jsonLoaderService.loadRhodos();
         Map<String, Long> rhodoOldIdToId = rhodos.stream()
