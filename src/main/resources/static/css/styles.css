@@ -13,6 +13,7 @@ html {
 }
 
 .topnav {
+    --search-max-width: 280px;
     overflow: hidden;
     background-color: #FFFFFF;
     border-bottom: 1px solid #dddddd;
@@ -83,6 +84,7 @@ html {
     float: right;
     margin-left: auto;
     padding: 6px 8px;
+    max-width: var(--search-max-width);
 }
 
 .topnav .search-container-mobile {
@@ -138,7 +140,7 @@ html {
         align-items: center;
         justify-content: space-between;
         padding: 0 12px;
-        gap: 12px;
+        gap: 0;
     }
 
     .topnav-toggle {
@@ -174,12 +176,18 @@ html {
 
     .topnav .search-container-mobile {
         display: block;
+        flex: 0 1 auto;
+        min-width: 0;
+        max-width: min(var(--search-max-width), 100%);
+        margin-left: 0;
     }
 
     .topnav .search-container form {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 0;
+        width: 100%;
+        min-width: 0;
     }
 
     .topnav .topnav-links a,
@@ -206,23 +214,28 @@ html {
         display: block;
     }
 
-    .topnav input[type=text] {
-        border: 1px solid #55aaaa;
+    .topnav .search-container form input[type=text] {
+        flex: 1 1 0%;
+        min-width: 0;
         margin-top: 0;
-        min-height: 44px;
-        padding: 8px 10px;
     }
 
     .topnav .search-container button {
+        float: none;
+        flex-shrink: 0;
         margin-top: 0;
         margin-right: 0;
-        min-height: 44px;
-        min-width: 44px;
-        padding: 8px 10px;
     }
 
     .topnav a.active {
         text-align: left;
+    }
+}
+
+@media screen and (max-width: 340px) {
+    .topnav .search-container-mobile button {
+        flex-shrink: 1;
+        min-width: 0;
     }
 }
 
