@@ -51,18 +51,19 @@ html {
 .topnav .nav-auth {
     display: flex;
     align-items: center;
-    padding: 8px 12px;
-    font-size: 15px;
-    margin-left: auto;
+    flex-shrink: 0;
+    padding: 0;
+    font-size: inherit;
 }
 
 .topnav .nav-auth a {
     float: none;
-    padding: 6px 10px;
 }
 
 .topnav .nav-auth-user {
-    margin-right: 8px;
+    padding: 14px 16px;
+    font-size: 17px;
+    margin-right: 0;
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -75,9 +76,21 @@ html {
 }
 
 .topnav .nav-auth-logout-btn {
-    padding: 6px 10px;
-    font-size: 15px;
+    padding: 14px 16px;
+    font-size: 17px;
     vertical-align: baseline;
+    border: none;
+    background: transparent;
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+    line-height: inherit;
+}
+
+.topnav .nav-auth-logout-btn:hover {
+    background-color: #ddd;
+    color: black;
+    text-decoration: none;
 }
 
 .topnav .search-container {
