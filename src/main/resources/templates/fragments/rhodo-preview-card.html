@@ -50,7 +50,7 @@
     <td class="picture-td">
         <th:block th:if="${not #lists.isEmpty(rhodo.getPhotos())}">
             <a th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
-                <img th:src="${rhodo.getPhotos()[0]}" width="400" th:title="'More information'">
+                <img th:src="${rhodo.getPhotos()[0]}" class="preview-card-img" th:title="'More information'">
             </a>
         </th:block>
         <th:block th:if="${#lists.isEmpty(rhodo.getPhotos())}">

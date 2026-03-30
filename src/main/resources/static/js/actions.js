@@ -1,4 +1,5 @@
 const ADVANCED_OPTIONS_STATE = "index_collapse"
+const MOBILE_NAV_BREAKPOINT_PX = 900;
 
 // REF: https://www.w3schools.com/howto/howto_js_collapsible.asp
 function toggle_index_dropdown_state() {
@@ -61,3 +62,32 @@ function getCookie(cname) {
     }
     return null;
 }
+
+function closeMobileNav(topnav, toggleButton) {
+    if (!topnav || !toggleButton) {
+        return;
+    }
+    topnav.classList.remove("is-mobile-open");
+    toggleButton.setAttribute("aria-expanded", "false");
+}
+
+function setupMobileNavToggle() {
+    const topnav = document.querySelector(".topnav");
+    const toggleButton = document.querySelector(".topnav-toggle");
+    if (!topnav || !toggleButton) {
+        return;
+    }
+
+    toggleButton.addEventListener("click", function () {
+        const isOpen = topnav.classList.toggle("is-mobile-open");
+        toggleButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+
+    window.addEventListener("resize", function () {
+        if (window.innerWidth > MOBILE_NAV_BREAKPOINT_PX) {
+            closeMobileNav(topnav, toggleButton);
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", setupMobileNavToggle);

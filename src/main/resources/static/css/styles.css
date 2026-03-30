@@ -5,15 +5,30 @@
 body {
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
+    overflow-x: hidden;
+}
+
+html {
+    overflow-x: hidden;
 }
 
 .topnav {
     overflow: hidden;
     background-color: #FFFFFF;
+    border-bottom: 1px solid #dddddd;
+}
+
+.topnav-main-row {
+    display: none;
+}
+
+.topnav-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .topnav a {
-    float: left;
     display: block;
     color: black;
     text-align: center;
@@ -33,11 +48,11 @@ body {
 }
 
 .topnav .nav-auth {
-    float: right;
     display: flex;
     align-items: center;
-    padding: 8px 12px 0 12px;
+    padding: 8px 12px;
     font-size: 15px;
+    margin-left: auto;
 }
 
 .topnav .nav-auth a {
@@ -66,6 +81,27 @@ body {
 
 .topnav .search-container {
     float: right;
+    margin-left: auto;
+    padding: 6px 8px;
+}
+
+.topnav .search-container-mobile {
+    display: none;
+}
+
+.topnav-toggle {
+    display: none;
+    border: 1px solid #55aaaa;
+    background-color: #ffffff;
+    color: #222222;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.topnav-toggle-icon {
+    font-size: 30px;
+    line-height: 1;
+    display: inline-block;
 }
 
 .topnav input[type=text] {
@@ -91,27 +127,133 @@ body {
     background: #55aaaa;
 }
 
-@media screen and (max-width: 600px) {
-    .topnav .search-container {
-        float: none;
+@media screen and (max-width: 900px) {
+    .topnav {
+        min-height: 96px;
     }
 
-    .topnav a, .topnav input[type=text], .topnav .search-container button {
+    .topnav-main-row {
+        min-height: 96px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        gap: 12px;
+    }
+
+    .topnav-toggle {
+        display: block;
+        min-width: 60px;
+        min-height: 60px;
+        padding: 10px 14px;
+    }
+
+    .topnav-links {
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        border-top: 1px solid #dddddd;
+        padding-bottom: 10px;
+    }
+
+    .topnav.is-mobile-open .topnav-links {
+        display: flex;
+    }
+
+    .topnav .search-container {
+        float: none;
+        margin-left: auto;
+        padding: 0;
+        width: auto;
+    }
+
+    .topnav .search-container-desktop {
+        display: none;
+    }
+
+    .topnav .search-container-mobile {
+        display: block;
+    }
+
+    .topnav .search-container form {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .topnav .topnav-links a,
+    .topnav .topnav-links .nav-auth,
+    .topnav .topnav-links .nav-auth a,
+    .topnav .topnav-links .nav-auth-user,
+    .topnav .topnav-links .nav-auth-logout-btn {
         float: none;
         display: block;
         text-align: left;
         width: 100%;
         margin: 0;
-        padding: 14px;
+        padding: 18px 18px;
+        font-size: 30px;
+        line-height: 1.2;
+    }
+
+    .topnav .topnav-links .nav-auth {
+        margin-left: 0;
+        display: block;
+        padding: 0;
+    }
+
+    .topnav .nav-auth-logout {
+        display: block;
     }
 
     .topnav input[type=text] {
         border: 1px solid #55aaaa;
+        font-size: 28px;
+        margin-top: 0;
+        min-height: 56px;
+        padding: 10px 12px;
+    }
+
+    .topnav .search-container button {
+        margin-top: 0;
+        margin-right: 0;
+        min-height: 56px;
+        min-width: 56px;
+        padding: 10px 12px;
+        font-size: 26px;
+    }
+
+    .topnav a.active {
+        text-align: left;
+    }
+}
+
+@media screen and (min-width: 901px) {
+    .topnav-links {
+        display: flex;
+    }
+
+    .topnav-main-row {
+        display: none;
+    }
+
+    .topnav .search-container {
+        margin-left: auto;
+        order: 100;
+    }
+
+    .topnav .search-container-desktop {
+        display: block;
+    }
+
+    .topnav .search-container-mobile {
+        display: none;
     }
 }
 
 html body {
-    background: #d5edd5;
+    background: #ffffff;
 }
 
 
@@ -332,17 +474,22 @@ input:checked + .slider:before {
 }
 
 div.content {
-    max-width: 800px;
+    width: 100%;
+    max-width: none;
     background-color: #ffffff;
     /*padding-left: 10px;*/
     /*padding-right: 10px;*/
-    margin: 50px auto auto;
+    margin: 50px 0 0;
 }
 
-@media only screen and (hover: none) and (pointer: coarse) {
+@media screen and (min-width: 901px) {
+    html body {
+        background: #d5edd5;
+    }
+
     div.content {
-        max-width: 100%;
-        width: 100%;
+        max-width: 800px;
+        margin: 50px auto 0;
     }
 }
 
@@ -353,13 +500,20 @@ div.content {
 
 .picture-table {
     width: 100%;
+    table-layout: fixed;
+}
+
+.preview-card-img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    display: block;
 }
 
 .picture-td {
-    width: 1px;
-    height: 1px;
-    white-space: nowrap;
+    width: 40%;
     padding: 3px;
+    overflow: hidden;
 }
 
 .picture-td  div {
@@ -478,3 +632,140 @@ h3 {
 /*label.btn {*/
 /*    flex: 0 !important;*/
 /*}*/
+
+@media screen and (max-width: 900px) {
+    /* Index alphabet: square touch cells, equal row/column gap; columns adapt to width */
+    .page-index table.letter-wrap {
+        display: block;
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .page-index .letter-wrap tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .page-index .letter-wrap tr {
+        display: grid;
+        /* Min ~3.5rem keeps ~39px glyphs + margin inside a ≥44px touch target; 1fr grows cells together */
+        grid-template-columns: repeat(auto-fit, minmax(3.5rem, 1fr));
+        gap: 0.5rem;
+        width: 100%;
+        align-content: start;
+    }
+
+    .page-index .letter-wrap td {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+        aspect-ratio: 1;
+        padding: 0;
+        text-align: center;
+    }
+
+    .page-index .letter-wrap td a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        touch-action: manipulation;
+    }
+
+    .page-index .letter-wrap a {
+        font-size: 39px !important;
+        line-height: 1;
+    }
+
+    /* Settings / pages / cards: 1.5× prior desktop-ish baselines (h3 ~18.72px, body ~16px) */
+    .page-index #index_settings_button,
+    .page-index #advanced_index_dropdown h3 {
+        font-size: 1.755rem;
+    }
+
+    .page-index #advanced_index_dropdown h6 {
+        font-size: 1.5rem;
+    }
+
+    .page-index .switch {
+        width: 90px;
+        height: 51px;
+    }
+
+    .page-index .slider.round {
+        border-radius: 51px;
+    }
+
+    .page-index .slider:before {
+        width: 39px;
+        height: 39px;
+        left: 6px;
+        bottom: 6px;
+    }
+
+    .page-index .switch input:checked + .slider:before {
+        transform: translateX(39px);
+    }
+
+    .page-index .btn-group-toggle .btn {
+        font-size: 1.5rem;
+        padding: 12px 16px;
+    }
+
+    .page-index .page-button,
+    .page-index .page-button a,
+    .page-index .page-button b,
+    .page-index .page-button i,
+    .page-index .table-scrollbar td {
+        font-size: 1.5rem;
+    }
+
+    .page-index .table-description-text {
+        font-size: 1.5rem;
+        line-height: 1.35;
+    }
+
+    .page-index .table-description-text h3,
+    .page-index .table-description-text h5,
+    .page-index .table-description-text h6,
+    .page-index .table-description-text p,
+    .page-index .table-description-text a {
+        font-size: 1.5rem;
+    }
+
+    .page-search .content,
+    .page-home .content {
+        font-size: 1.5rem;
+        line-height: 1.35;
+    }
+
+    .page-search .content h1,
+    .page-search .content h2,
+    .page-search .content h3,
+    .page-search .content h5,
+    .page-search .content h6,
+    .page-search .content b,
+    .page-search .content p,
+    .page-search .content a,
+    .page-search .content td,
+    .page-home .content h1,
+    .page-home .content h2,
+    .page-home .content h3,
+    .page-home .content h5,
+    .page-home .content h6,
+    .page-home .content p,
+    .page-home .content a {
+        font-size: 1.5rem;
+    }
+
+    .page-home .container {
+        flex-direction: column;
+    }
+}

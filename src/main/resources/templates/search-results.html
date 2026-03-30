@@ -2,11 +2,12 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="english">
 <head>
     <th:block th:include="~{fragments/head}"></th:block>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="|Search: ${query}|"></title>
     <meta name="description" th:content="|Search results for ${query}|">
 <!--    <link rel="canonical" th:href="|${domain}/search?=${query}|"/>-->
 </head>
-<body>
+<body class="page-search">
 <div th:replace="~{fragments/header}"></div>
 
 <div class="content">
