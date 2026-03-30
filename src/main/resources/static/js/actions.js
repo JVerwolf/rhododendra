@@ -90,4 +90,27 @@ function setupMobileNavToggle() {
     });
 }
 
+function setupScrollToTop() {
+    const button = document.querySelector(".scroll-to-top");
+    if (!button) {
+        return;
+    }
+
+    const SCROLL_REVEAL_PX = 240;
+
+    function updateVisibility() {
+        const show = window.scrollY > SCROLL_REVEAL_PX;
+        button.classList.toggle("scroll-to-top--visible", show);
+    }
+
+    button.addEventListener("click", function () {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    window.addEventListener("scroll", updateVisibility, { passive: true });
+    window.addEventListener("resize", updateVisibility);
+    updateVisibility();
+}
+
 document.addEventListener("DOMContentLoaded", setupMobileNavToggle);
+document.addEventListener("DOMContentLoaded", setupScrollToTop);
