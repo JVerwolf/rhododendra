@@ -334,14 +334,16 @@
     </table>
     <table class="bordered-table picture-table">
         <tr th:each="resolvedPhotoDetail : ${resolvedPhotoDetails}">
-            <td class="picture-td">
-                <a th:href="${resolvedPhotoDetail.getResolvedHiResURL() != null ? resolvedPhotoDetail.getResolvedHiResURL() : resolvedPhotoDetail.getResolvedNormalURL()}">
-                    <img th:src="${resolvedPhotoDetail.getResolvedNormalURL()}"
-                         th:title="|Rhododendron ${rhodo.getName()}. ${resolvedPhotoDetail.getPhotoDetails().getDescription()}. ${resolvedPhotoDetail.getPhotoDetails().getLocation() != null ? 'Location: ' + resolvedPhotoDetail.getPhotoDetails().getLocation()+'.'  : '' } ${resolvedPhotoDetail.getPhotoDetails().getPhotoBy() != null ? 'Photo taken by ' + resolvedPhotoDetail.getPhotoDetails().getPhotoBy()+'.' : ''}|"
-                         width="400">
-                </a>
-            </td>
-            <td class="table-description-text">
+            <td colspan="2" class="picture-table-cell">
+                <div class="picture-table-row-inner picture-table-row-inner--photo-first">
+                    <div class="picture-td picture-table-photo">
+                        <a th:href="${resolvedPhotoDetail.getResolvedHiResURL() != null ? resolvedPhotoDetail.getResolvedHiResURL() : resolvedPhotoDetail.getResolvedNormalURL()}">
+                            <img th:src="${resolvedPhotoDetail.getResolvedNormalURL()}"
+                                 th:title="|Rhododendron ${rhodo.getName()}. ${resolvedPhotoDetail.getPhotoDetails().getDescription()}. ${resolvedPhotoDetail.getPhotoDetails().getLocation() != null ? 'Location: ' + resolvedPhotoDetail.getPhotoDetails().getLocation()+'.'  : '' } ${resolvedPhotoDetail.getPhotoDetails().getPhotoBy() != null ? 'Photo taken by ' + resolvedPhotoDetail.getPhotoDetails().getPhotoBy()+'.' : ''}|"
+                                 width="400">
+                        </a>
+                    </div>
+                    <div class="table-description-text picture-table-text">
                 <dl>
                     <dt>Photo By:</dt>
                     <dd th:if="${resolvedPhotoDetail.getPhotoDetails().getPhotoBy() != null}"
@@ -375,6 +377,8 @@
                     </th:block>
                     <!--                    https://chooser-beta.creativecommons.org/-->
                 </dl>
+                    </div>
+                </div>
             </td>
         </tr>
     </table>
