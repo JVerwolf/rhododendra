@@ -601,7 +601,7 @@ div.content {
 .picture-table-row-inner {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 40%;
-    align-items: center;
+    align-items: stretch;
     box-sizing: border-box;
 }
 
@@ -613,12 +613,20 @@ div.content {
     min-width: 0;
 }
 
+.picture-table-cell h3 {
+    font-size: 28px;
+}
+
 .picture-table-photo {
     min-width: 0;
 }
 
 /* No-photo row: link matches "More information and pictures" alignment (left on narrow viewports). */
 .picture-table-placeholder-link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
     text-align: center;
 }
 
@@ -657,6 +665,8 @@ div.content {
     }
 
     .picture-table .picture-table-placeholder-link {
+        display: block;
+        height: auto;
         text-align: left;
     }
 }
