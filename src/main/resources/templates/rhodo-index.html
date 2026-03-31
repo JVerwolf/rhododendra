@@ -98,7 +98,7 @@
             <a th:if="${nextPage != null}"
                th:href=" @{/rhodo_index(letter=${nextPage.letter()},size=${pageSize},offset=${nextPage.offset()},justPics=${justPics},searchFilters=${searchFilters})}"
                style="display: flex; justify-content: flex-end; padding-right: 5%">
-                <h3>
+                <h3 class="next-page-link">
                     Next Page
                 </h3>
             </a>
@@ -112,7 +112,7 @@
     <a th:if="${nextPage != null}"
        th:href=" @{/rhodo_index(letter=${nextPage.letter()},size=${pageSize},offset=${nextPage.offset()},justPics=${justPics},searchFilters=${searchFilters})}"
        style="display: flex; justify-content: flex-end; padding-right: 5%">
-        <h3>
+        <h3 class="next-page-link">
             Next Page
         </h3>
     </a>

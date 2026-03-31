@@ -37,7 +37,7 @@
         <a th:if="${resultPagePos< resultPages.size()-1}"
            th:href="@{/taxonomic_search(subgenus=${subgenus},section=${section},subsection=${subsection},offset=${resultPages[resultPagePos].endPos+1})}"
            style="display: flex; justify-content: flex-end; padding-right: 5%">
-            <h2>
+            <h2 class="next-page-link">
                 Next Page
             </h2>
         </a>
@@ -49,7 +49,7 @@
         <a th:if="${resultPagePos< resultPages.size()-1}"
            th:href="@{/taxonomic_search(subgenus=${subgenus},section=${section},subsection=${subsection},offset=${resultPages[resultPagePos].endPos+1})}"
            style="display: flex; justify-content: flex-end; padding-right: 5%">
-            <h2>
+            <h2 class="next-page-link">
                 Next Page
             </h2>
         </a>

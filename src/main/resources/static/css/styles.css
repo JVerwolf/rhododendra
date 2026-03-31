@@ -776,6 +776,10 @@ h3 {
     font-size: 18.72px;
 }
 
+.next-page-link {
+    font-size: 28px;
+}
+
 /*for buttons*/
 /*label.btn {*/
 /*    flex: 0 !important;*/
