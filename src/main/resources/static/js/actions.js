@@ -96,10 +96,14 @@ function setupScrollToTop() {
         return;
     }
 
-    const SCROLL_REVEAL_PX = 240;
+    const SCROLL_REVEAL_PX = 120;
 
     function updateVisibility() {
-        const show = window.scrollY > SCROLL_REVEAL_PX;
+        const docEl = document.scrollingElement || document.documentElement;
+        const scrollY = window.scrollY ?? docEl.scrollTop ?? 0;
+        const maxScroll = Math.max(0, docEl.scrollHeight - window.innerHeight);
+        const atBottom = maxScroll > 0 && scrollY >= maxScroll - 2;
+        const show = scrollY > SCROLL_REVEAL_PX || atBottom;
         button.classList.toggle("scroll-to-top--visible", show);
     }
 
@@ -109,6 +113,10 @@ function setupScrollToTop() {
 
     window.addEventListener("scroll", updateVisibility, { passive: true });
     window.addEventListener("resize", updateVisibility);
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("scroll", updateVisibility, { passive: true });
+        window.visualViewport.addEventListener("resize", updateVisibility);
+    }
     updateVisibility();
 }
 

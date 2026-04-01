@@ -196,12 +196,11 @@ public class WebController {
         @RequestParam(value = "size", defaultValue = "50") int size,
         @RequestParam(value = "offset", defaultValue = "0") int offset
     ) throws IOException, ParseException {
-        var set_size = 50;
         var results = RhodoLogicService.searchRhodos(query, size, offset);
         model.addAttribute("rhodos", results.results)
             .addAttribute("resultPages", results.indexPages)
             .addAttribute("resultPagePos", results.indexPagePos)
-            .addAttribute("pageSize", set_size)
+            .addAttribute("pageSize", size)
             .addAttribute("query", query)
             .addAttribute("pageNumbers", IntStream.range(1, results.indexPages.size() + 1).toArray())
             .addAttribute("domain", appSettings.domain);

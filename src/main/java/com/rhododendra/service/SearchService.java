@@ -509,10 +509,12 @@ public class SearchService {
         IndexSearcher searcher = new IndexSearcher(indexReader);
         TopDocs topDocs = performSearch.apply(searcher);
 
-        // Read the Source values via DB hydration.
-        var startPos = Math.min(topDocs.scoreDocs.length, offset); // todo off by 1?
-        var endPos = Math.min(topDocs.scoreDocs.length - 1, offset + pageSize); // todo off by 1?
+        // Read the Source values via DB hydration (inclusive range: pageSize items starting at offset).
+        int len = topDocs.scoreDocs.length;
+        int startPos = offset;
+        int endPos = Math.min(len - 1, offset + pageSize - 1);
         List<Rhododendron> results = new ArrayList<>();
+        if (len > 0 && startPos < len && startPos <= endPos) {
         for (int i = startPos; i <= endPos; i++) {
             var doc = searcher.doc(topDocs.scoreDocs[i].doc);
             var id = doc.get(PRIMARY_ID_KEY);
@@ -526,6 +528,7 @@ public class SearchService {
                     throw new IOException("Failed to load rhododendron from DB for id " + id, e);
                 }
             }
+        }
         }
 
         // Read the index pages.
@@ -544,8 +547,7 @@ public class SearchService {
             }
         );
 
-        var pageNum = offset / pageSize;
-        var indexPagePosition = Math.min(indexPages.size(), pageNum);
+        var indexPagePosition = getPageIndex(offset, pageSize, len);
 
         return new IndexResults<>(
             indexPages,
@@ -564,10 +566,12 @@ public class SearchService {
         IndexSearcher searcher = new IndexSearcher(indexReader);
         TopDocs topDocs = performSearch.apply(searcher);
 
-        var startPos = Math.min(topDocs.scoreDocs.length, offset);
-        var endPos = Math.min(topDocs.scoreDocs.length - 1, offset + pageSize);
+        int hLen = topDocs.scoreDocs.length;
+        int hStart = offset;
+        int hEnd = Math.min(hLen - 1, offset + pageSize - 1);
         List<Hybridizer> results = new ArrayList<>();
-        for (int i = startPos; i <= endPos; i++) {
+        if (hLen > 0 && hStart < hLen && hStart <= hEnd) {
+        for (int i = hStart; i <= hEnd; i++) {
             var doc = searcher.doc(topDocs.scoreDocs[i].doc);
             var id = doc.get(Hybridizer.PRIMARY_ID_KEY);
             if (id != null) {
@@ -580,6 +584,7 @@ public class SearchService {
                     throw new IOException("Failed to load hybridizer from DB for id " + id, e);
                 }
             }
+        }
         }
 
         var indexPages = paginationOffsets(
@@ -597,8 +602,7 @@ public class SearchService {
             }
         );
 
-        var pageNum = offset / pageSize;
-        var indexPagePosition = Math.min(indexPages.size(), pageNum);
+        var indexPagePosition = getPageIndex(offset, pageSize, hLen);
 
         return new IndexResults<>(
             indexPages,
@@ -617,7 +621,7 @@ public class SearchService {
 
     public static <T> List<T> paginationOffsets(int pageSize, int listLength, CheckedBiFunction<Integer, Integer, T, IOException> fun) throws IOException {
         if (listLength == 0) return List.of();
-        var numPages = (listLength / pageSize) + 1;
+        var numPages = (listLength + pageSize - 1) / pageSize;
         List<T> results = new ArrayList<>();
         for (int pageNum = 0; pageNum < numPages; pageNum++) {
             int pageStart = Math.min(pageNum * pageSize, listLength - 1);
