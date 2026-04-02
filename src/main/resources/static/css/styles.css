@@ -188,6 +188,8 @@ html {
 
 @media screen and (max-width: 900px) {
     .topnav {
+        --topnav-mobile-toggle-height: 60px;
+        /* Keep original header band height; only the search/toggle controls use 60px */
         min-height: 96px;
     }
 
@@ -197,13 +199,13 @@ html {
         align-items: center;
         justify-content: space-between;
         padding: 0 12px;
-        gap: 0;
+        gap: 12px;
     }
 
     .topnav-toggle {
         display: block;
-        min-width: 60px;
-        min-height: 60px;
+        min-width: var(--topnav-mobile-toggle-height);
+        min-height: var(--topnav-mobile-toggle-height);
         padding: 10px 14px;
     }
 
@@ -245,6 +247,23 @@ html {
         gap: 0;
         width: 100%;
         min-width: 0;
+    }
+
+    .topnav .search-container-mobile form {
+        align-items: stretch;
+        min-height: var(--topnav-mobile-toggle-height);
+    }
+
+    .topnav .search-container-mobile form input[type=text] {
+        height: var(--topnav-mobile-toggle-height);
+        padding: 0 12px;
+        margin-top: 0;
+    }
+
+    .topnav .search-container-mobile button {
+        height: var(--topnav-mobile-toggle-height);
+        padding: 0 14px;
+        min-width: 48px;
     }
 
     .topnav .topnav-links a,
@@ -317,6 +336,24 @@ html {
 
     .topnav .search-container-mobile {
         display: none;
+    }
+
+    .topnav .search-container-desktop form {
+        display: flex;
+        align-items: center;
+        gap: 0;
+    }
+
+    .topnav .search-container-desktop input[type=text] {
+        margin-top: 0;
+        float: none;
+        flex: 1 1 0%;
+        min-width: 0;
+    }
+
+    .topnav .search-container-desktop button {
+        float: none;
+        margin-top: 0;
     }
 }
 
@@ -788,6 +825,11 @@ h3 {
 /*}*/
 
 @media screen and (max-width: 900px) {
+    /* Tighter gap under the taller mobile header; aligns with description-container padding (20px). */
+    div.content {
+        margin-top: 20px;
+    }
+
     /* Index alphabet: square touch cells, equal row/column gap; columns adapt to width */
     .page-index table.letter-wrap {
         display: block;
