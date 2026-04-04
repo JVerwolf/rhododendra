@@ -648,6 +648,58 @@ div.content {
     grid-template-columns: 40% minmax(0, 1fr);
 }
 
+/* Single colspan cell: draw the center rule on the <td> so it spans the full border box and meets row borders (inner column borders stop short). */
+@media screen and (min-width: 900px) {
+    .picture-table.bordered-table td.picture-table-cell {
+        position: relative;
+        padding: 0;
+        vertical-align: top;
+        overflow: visible;
+    }
+
+    .picture-table td.picture-table-cell::before {
+        content: "";
+        position: absolute;
+        z-index: 1;
+        pointer-events: none;
+        top: -2px;
+        bottom: -2px;
+        width: 0;
+        border-left: 2px solid black;
+        /* minmax(1fr) 40%: boundary at (100% - 40%); 40%|1fr photo-first: boundary at 40% */
+        left: calc(100% - 40%);
+    }
+
+    .picture-table td.picture-table-cell:has(.picture-table-row-inner--photo-first)::before {
+        left: 40%;
+    }
+
+    /*
+     * Base inset 3px on top/right/bottom and on the outer edge of the photo column.
+     * The center rule is 2px wide on the column boundary; add 2px on the divider side only so the
+     * visible white gap beside the line matches the 3px gap on the other sides (flex + img margins unchanged).
+     */
+    .picture-table .picture-table-row-inner:not(.picture-table-row-inner--photo-first) .picture-td.picture-table-photo {
+        padding: 3px 3px 3px calc(3px + 2px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .picture-table .picture-table-row-inner--photo-first .picture-td.picture-table-photo {
+        padding: 3px calc(3px + 2px) 3px 3px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* width:100% + max-width leaves the block narrower than the row — auto margins center it. */
+    .picture-table .preview-card-img {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
 .picture-table-text {
     min-width: 0;
 }
@@ -669,7 +721,7 @@ div.content {
     text-align: center;
 }
 
-/* Same layout for every row: stack below MOBILE_NAV_BREAKPOINT_PX (see actions.js). */
+/* Same layout for every row: stack below MOBILE_NAV_BREAKPOINT_PX (see actions.js); photo above caption. */
 @media screen and (max-width: 899px) {
     .picture-table .picture-table-row-inner {
         display: flex;
@@ -677,14 +729,23 @@ div.content {
         align-items: stretch;
     }
 
-    .picture-table .picture-table-text {
+    .picture-table .picture-table-photo {
         order: 1;
         width: 100%;
     }
 
-    .picture-table .picture-table-photo {
+    .picture-table .picture-table-text {
         order: 2;
         width: 100%;
+    }
+
+    /* No-photo rows: link below text (matches "More information and pictures" placement). */
+    .picture-table .picture-table-row-inner:has(.picture-table-placeholder-link) .picture-table-text {
+        order: 1;
+    }
+
+    .picture-table .picture-table-row-inner:has(.picture-table-placeholder-link) .picture-table-photo {
+        order: 2;
     }
 
     .picture-table .picture-td div {
