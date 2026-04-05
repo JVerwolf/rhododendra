@@ -82,7 +82,8 @@
                 <tr>
                     <td><b>Pages of Results:</b></td>
                     <th:block th:each="page, stat : ${resultPages}">
-                        <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _}"
+                        <td class="page-button"
+                            th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _}"
                             th:styleappend="${'padding:8px'}">
                             <a
                                     th:href="@{/genetic_search(useCase=${useCase},seedParentId=${seedParentId},pollenParentId=${pollenParentId},originalRhodoId=${originalRhodoId},ordered=${ordered},requireSeed=${requireSeed},requirePollen=${requirePollen},offset=${page.startPos})}"

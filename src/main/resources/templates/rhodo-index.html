@@ -23,9 +23,9 @@
             <tr>
                 <th:block th:each="letter, stat : ${letters}">
                     <td th:style="${letter.toLowerCase().equals(currentLetter.toLowerCase()) ? 'background-color: #55aaaa; border-radius: 6px;': _}"
-                        th:styleappend="${'padding:8px'}">
-                        <a th:href="@{/rhodo_index(letter=${letter},justPics=${justPics},searchFilters=${searchFilters})}"
-                           style="font-size: 26px">
+                    >
+                        <a class="index-letter-link"
+                           th:href="@{/rhodo_index(letter=${letter},justPics=${justPics},searchFilters=${searchFilters})}">
                             <b th:text="${letter}"></b>
                         </a>
                     </td>
@@ -79,8 +79,9 @@
 
                             <td class="page-button"
                                 th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa; border-radius: 6px;': _} "
-                                th:styleappend="${'padding:8px'}">
-                                <a th:href=" @{/rhodo_index(letter=${currentLetter},size=${pageSize},offset=${indexPage.startPos},justPics=${justPics},searchFilters=${searchFilters})}">
+                            >
+                                <a class="index-page-link"
+                                   th:href=" @{/rhodo_index(letter=${currentLetter},size=${pageSize},offset=${indexPage.startPos},justPics=${justPics},searchFilters=${searchFilters})}">
                                     <!--                        <b th:text="|${indexPage.startPos+1} - ${indexPage.endPos+1}|"></b>-->
                                     <b th:text="|${stat.index + 1}:|"></b>
                                     <br/>

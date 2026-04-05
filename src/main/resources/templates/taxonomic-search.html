@@ -21,7 +21,8 @@
                 <tr>
                     <td><b>Pages of Results:</b></td>
                     <th:block th:each="page, stat : ${resultPages}">
-                        <td th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _}"
+                        <td class="page-button"
+                            th:style="${stat.index == resultPagePos ? 'background-color: #55aaaa;': _}"
                             th:styleappend="${'padding:8px'}">
                             <a th:href="@{/taxonomic_search(subgenus=${subgenus},section=${section},subsection=${subsection},offset=${page.startPos})}">
                                 <b th:text="${stat.index + 1}"></b>
