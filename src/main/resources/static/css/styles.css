@@ -806,18 +806,38 @@ div.content {
 
 .attributes-detail-table {
     width: 100%;
+    table-layout: auto;
 }
 
 .attributes-detail-table td {
     padding: 8px;
 }
 
+/* Label column: shrink-to-fit on small viewports; value column uses remaining width. */
 .attributes-detail-table td.key {
+    width: 1%;
+    white-space: nowrap;
+    vertical-align: top;
     padding-right: 10px;
 }
 
+/* Desktop: key column ≈ half the photo width below (picture row is 50/50; image ≤ ~400px → ~25% of content). */
+@media screen and (min-width: 901px) {
+    .attributes-detail-table td.key {
+        width: 25%;
+    }
+}
+
 .attributes-detail-table td.value {
+    min-width: 0;
     padding-left: 10px;
+}
+
+/* Very narrow viewports: allow labels to wrap so the table does not force horizontal overflow. */
+@media screen and (max-width: 420px) {
+    .attributes-detail-table td.key {
+        white-space: normal;
+    }
 }
 
 h1 {

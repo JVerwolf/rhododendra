@@ -160,7 +160,7 @@
             </td>
         </tr>
         <tr th:if="${not rhodo.getSynonyms().isEmpty()}">
-            <td><b class="key">Synonyms</b></td>
+            <td class="key"><b>Synonyms</b></td>
             <td class="value">
                 <th:block th:each="synonym, iterStat : ${rhodo.getSynonyms()}">
                         <span th:inline="text">
