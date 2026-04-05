@@ -682,22 +682,37 @@ div.content {
     }
 
     /*
-     * Base inset 3px on top/right/bottom and on the outer edge of the photo column.
-     * The center rule is 2px wide on the column boundary; add 2px on the divider side only so the
-     * visible white gap beside the line matches the 3px gap on the other sides (flex + img margins unchanged).
+     * 3px inset around the image. Rows with the photo on the right (search cards, etc.) need
+     * +2px on the side that meets the center rule — the ::before line is 2px wide and otherwise
+     * eats the visible gap beside the image. Detail pages use photo-first and keep 3px on every side.
      */
     .picture-table .picture-table-row-inner:not(.picture-table-row-inner--photo-first) .picture-td.picture-table-photo {
         padding: 3px 3px 3px calc(3px + 2px);
         display: flex;
         justify-content: center;
         align-items: center;
+        box-sizing: border-box;
     }
 
     .picture-table .picture-table-row-inner--photo-first .picture-td.picture-table-photo {
-        padding: 3px calc(3px + 2px) 3px 3px;
+        padding: 3px;
         display: flex;
         justify-content: center;
         align-items: center;
+        box-sizing: border-box;
+    }
+
+    /* width="400" is wider than half of ~800px content; shrink so padding stays visible on all sides. */
+    .picture-table .picture-td.picture-table-photo > a {
+        display: block;
+        line-height: 0;
+        max-width: 100%;
+    }
+
+    .picture-table .picture-td.picture-table-photo img {
+        display: block;
+        max-width: 100%;
+        height: auto;
     }
 
     /* width:100% + max-width leaves the block narrower than the row — auto margins center it. */
