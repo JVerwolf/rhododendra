@@ -639,13 +639,13 @@ div.content {
 /* One td per row (colspan=2): inner grid keeps a stable table layout. */
 .picture-table-row-inner {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 40%;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: stretch;
     box-sizing: border-box;
 }
 
 .picture-table-row-inner--photo-first {
-    grid-template-columns: 40% minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 /* Single colspan cell: draw the center rule on the <td> so it spans the full border box and meets row borders (inner column borders stop short). */
@@ -666,12 +666,8 @@ div.content {
         bottom: -2px;
         width: 0;
         border-left: 2px solid black;
-        /* minmax(1fr) 40%: boundary at (100% - 40%); 40%|1fr photo-first: boundary at 40% */
-        left: calc(100% - 40%);
-    }
-
-    .picture-table td.picture-table-cell:has(.picture-table-row-inner--photo-first)::before {
-        left: 40%;
+        /* 1fr 1fr columns: boundary at 50% for text|photo and photo|text order */
+        left: 50%;
     }
 
     /*
