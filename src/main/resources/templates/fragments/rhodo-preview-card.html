@@ -45,9 +45,9 @@
                         <br/>
                     </span>
                 </p>
-                <a th:if="${not #lists.isEmpty(rhodo.getPhotos())}" th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
-                    More information and pictures
-                </a>
+                <a class="picture-table-more-link"
+                   th:if="${not #lists.isEmpty(rhodo.getPhotos())}"
+                   th:href="@{'/rhodos/'+ ${rhodo.getId()}}">More information and pictures</a>
             </div>
             <div class="picture-td picture-table-photo">
                 <th:block th:if="${not #lists.isEmpty(rhodo.getPhotos())}">
@@ -56,10 +56,8 @@
                     </a>
                 </th:block>
                 <th:block th:if="${#lists.isEmpty(rhodo.getPhotos())}">
-                    <a class="picture-table-placeholder-link" th:href="@{'/rhodos/'+ ${rhodo.getId()}}">
-                        <div><h6>More
-                            information</h6></div>
-                    </a>
+                    <a class="picture-table-more-link picture-table-placeholder-link"
+                       th:href="@{'/rhodos/'+ ${rhodo.getId()}}">More information</a>
                 </th:block>
             </div>
         </div>

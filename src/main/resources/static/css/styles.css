@@ -703,7 +703,7 @@ div.content {
     }
 
     /* width="400" is wider than half of ~800px content; shrink so padding stays visible on all sides. */
-    .picture-table .picture-td.picture-table-photo > a {
+    .picture-table .picture-td.picture-table-photo > a:has(img) {
         display: block;
         line-height: 0;
         max-width: 100%;
@@ -734,7 +734,7 @@ div.content {
     min-width: 0;
 }
 
-/* No-photo row: link matches "More information and pictures" alignment (left on narrow viewports). */
+/* No-photo row: link matches text-column more-link alignment (left on narrow viewports). */
 .picture-table-placeholder-link {
     display: flex;
     justify-content: center;
@@ -749,6 +749,8 @@ div.content {
         display: flex;
         flex-direction: column;
         align-items: stretch;
+        /* Space before the next row’s image so the more-link isn’t flush against a tappable photo. */
+        padding-bottom: 1rem;
     }
 
     .picture-table .picture-table-photo {
@@ -761,7 +763,7 @@ div.content {
         width: 100%;
     }
 
-    /* No-photo rows: link below text (matches "More information and pictures" placement). */
+    /* No-photo rows: link below text (matches text-column link placement). */
     .picture-table .picture-table-row-inner:has(.picture-table-placeholder-link) .picture-table-text {
         order: 1;
     }
@@ -797,6 +799,12 @@ div.content {
 .bordered-table, .bordered-table td {
     border: 2px solid black;
     border-collapse: collapse;
+}
+
+/* Rhodo detail: attributes and picture are separate tables; one shared edge otherwise reads as a double rule. */
+.attributes-detail-table + .picture-table,
+.attributes-detail-table + .picture-table tr:first-child td {
+    border-top: none;
 }
 
 .table-description-text {
