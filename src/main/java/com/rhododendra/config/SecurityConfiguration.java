@@ -1,5 +1,6 @@
 package com.rhododendra.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -28,20 +29,27 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(
         HttpSecurity http,
+        @Value("${app.sign-in.enabled:false}") boolean signInEnabled,
         OAuth2AuthorizationRequestResolver oauth2AuthorizationRequestResolver,
         AuthenticationSuccessHandler postLoginOAuth2SuccessHandler,
         LogoutSuccessHandler postLogoutSuccessHandler
     ) throws Exception {
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/rhodos/*/edit").authenticated()
-                .anyRequest().permitAll())
-            .oauth2Login(oauth2 -> oauth2
-                .loginPage("/login")
-                .authorizationEndpoint(authorization -> authorization
-                    .authorizationRequestResolver(oauth2AuthorizationRequestResolver))
-                .successHandler(postLoginOAuth2SuccessHandler))
-            .logout(logout -> logout.logoutSuccessHandler(postLogoutSuccessHandler));
+        if (signInEnabled) {
+            http
+                .authorizeHttpRequests(auth -> auth
+                    .requestMatchers(HttpMethod.POST, "/rhodos/*/edit").authenticated()
+                    .anyRequest().permitAll())
+                .oauth2Login(oauth2 -> oauth2
+                    .loginPage("/login")
+                    .authorizationEndpoint(authorization -> authorization
+                        .authorizationRequestResolver(oauth2AuthorizationRequestResolver))
+                    .successHandler(postLoginOAuth2SuccessHandler))
+                .logout(logout -> logout.logoutSuccessHandler(postLogoutSuccessHandler));
+        } else {
+            http.authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, "/rhodos/*/edit").denyAll()
+                .anyRequest().permitAll());
+        }
         return http.build();
     }
 }

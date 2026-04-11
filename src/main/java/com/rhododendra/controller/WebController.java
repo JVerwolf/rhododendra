@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -76,6 +77,9 @@ public class WebController {
         @RequestParam(name = "continue", required = false) String continueTarget,
         HttpSession session
     ) {
+        if (!appSettings.isSignInEnabled()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
         model.addAttribute("domain", appSettings.domain);
         if (continueTarget != null && PostLoginRedirect.isSafeRedirect(continueTarget)) {
             session.setAttribute(PostLoginRedirect.SESSION_ATTRIBUTE, continueTarget);

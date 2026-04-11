@@ -7,6 +7,17 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice
 public class PostLoginNavigationAdvice {
 
+    private final AppSettings appSettings;
+
+    public PostLoginNavigationAdvice(AppSettings appSettings) {
+        this.appSettings = appSettings;
+    }
+
+    @ModelAttribute("signInEnabled")
+    public boolean signInEnabled() {
+        return appSettings.isSignInEnabled();
+    }
+
     /**
      * Path (+ optional query) within the web app, for {@code /login?continue=…} so post-OAuth redirect returns here.
      */

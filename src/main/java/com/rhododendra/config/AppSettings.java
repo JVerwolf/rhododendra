@@ -7,4 +7,11 @@ import org.springframework.context.annotation.Configuration;
 public class AppSettings {
     @Value("${domain}")
     public String domain;
+
+    @Value("${app.sign-in.enabled:false}")
+    private boolean signInEnabled;
+
+    public boolean isSignInEnabled() {
+        return signInEnabled;
+    }
 }

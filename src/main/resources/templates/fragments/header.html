@@ -17,7 +17,7 @@
         <a th:href="@{/about}">About</a>
         <a th:href="@{/contact}">Contact</a>
         <a th:href="@{/links}">Links</a>
-        <div class="nav-auth" sec:authorize="!isAuthenticated()">
+        <div class="nav-auth" sec:authorize="!isAuthenticated()" th:if="${signInEnabled}">
             <a th:href="@{/login(continue=${signInContinueUrl})}">Sign in</a>
         </div>
         <div class="nav-auth" sec:authorize="isAuthenticated()">
