@@ -2,6 +2,12 @@
 
 Spring Boot site for [rhododendra.com](https://rhododendra.com): rhododendron data is stored in **SQLite** (source of truth), with **Apache Lucene** used for search and indexing.
 
+## License
+
+Rhododendra is [free software](https://www.gnu.org/philosophy/free-sw.en.html) released under the [GNU General Public License v3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html) (**GPL-3.0-or-later**). You may use, modify, and redistribute it commercially; if you distribute modified versions, the GPL requires you to share the corresponding source under the same license. See the [`LICENSE`](LICENSE) file for the full legal text.
+
+Contributions are accepted under the same terms.
+
 ## Requirements
 
 - **Java 17** (see `java` version in `build.gradle.kts`)
