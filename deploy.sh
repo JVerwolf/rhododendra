@@ -100,7 +100,9 @@ elif [[ "$ENVIRONMENT" == "staging" ]]; then
 fi
 
 REMOTE_TARGET="${REMOTE_USER}@${HOST}"
-SSH_OPTS=(-i "$SSH_KEY")
+# Fail fast instead of hanging on password prompts; don’t wait forever on a dead host.
+# Encrypted keys still need ssh-agent (BatchMode cannot prompt for key passphrase).
+SSH_OPTS=(-i "$SSH_KEY" -o BatchMode=yes -o ConnectTimeout=20)
 
 # ---------------------------------------------------------------------------
 # Preflight: fail fast if the build or required scripts are missing locally
@@ -144,16 +146,28 @@ echo "Deploying to $ENVIRONMENT ($REMOTE_TARGET)"
 echo "Remote base: $REMOTE_BASE_DIR"
 echo "Remote app dir: $REMOTE_APP_DIR"
 echo "Remote data dir: $REMOTE_DATA_DIR"
+echo ""
 
 # ---------------------------------------------------------------------------
 # Remote: ensure target directories exist before copying files
 # ---------------------------------------------------------------------------
-ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" "mkdir -p \"$REMOTE_APP_DIR\" \"$REMOTE_DATA_DIR\" \"$REMOTE_BIN_DIR\" \"$REMOTE_INDEX_DIR\""
+echo "[deploy] Creating remote directories..."
+echo "[deploy] Connecting via SSH to ${REMOTE_TARGET} (mkdir); if this hangs, the server is not reachable on port 22."
+if ! ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" "mkdir -p \"$REMOTE_APP_DIR\" \"$REMOTE_DATA_DIR\" \"$REMOTE_BIN_DIR\" \"$REMOTE_INDEX_DIR\""; then
+  echo ""
+  echo "Deploy failed: could not run SSH on ${REMOTE_TARGET}."
+  echo "If you saw a timeout: the instance may be stopped, the public IP may have changed, port 22 may be"
+  echo "blocked for your IP (security group), or you may need VPN/bastion access."
+  echo "Sanity-check: ssh -i <your-private-key> ${REMOTE_TARGET} true"
+  exit 1
+fi
+echo "[deploy] Remote directories OK."
 
 # ---------------------------------------------------------------------------
 # Optional: backup current remote DB before we might replace it (see SYNC_DB block below)
 # ---------------------------------------------------------------------------
 if [[ "$BACKUP_REMOTE" == "true" ]]; then
+  echo "[deploy] Backing up remote DB if present..."
   TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
   ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" \
     "if [ -f \"$REMOTE_DB_PATH\" ]; then cp \"$REMOTE_DB_PATH\" \"$REMOTE_DB_PATH.$TIMESTAMP.bak\"; fi"
@@ -162,32 +176,40 @@ fi
 # ---------------------------------------------------------------------------
 # Upload application JAR and helper scripts (start/stop live under bin/)
 # ---------------------------------------------------------------------------
+echo "[deploy] Uploading JAR..."
 scp "${SSH_OPTS[@]}" "$LOCAL_JAR" "$REMOTE_TARGET:$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar"
+echo "[deploy] Uploading start.sh and stop.sh..."
 scp "${SSH_OPTS[@]}" "$SCRIPT_DIR/start.sh" "$REMOTE_TARGET:$REMOTE_BIN_DIR/start.sh"
 scp "${SSH_OPTS[@]}" "$SCRIPT_DIR/stop.sh" "$REMOTE_TARGET:$REMOTE_BIN_DIR/stop.sh"
 
 # ---------------------------------------------------------------------------
 # Lucene: mirror local index/ to the server; --delete removes stale segment files remotely
 # ---------------------------------------------------------------------------
-rsync -az --delete -e "ssh -i \"$SSH_KEY\"" "$LOCAL_INDEX_DIR/" "$REMOTE_TARGET:$REMOTE_INDEX_DIR/"
+echo "[deploy] Syncing Lucene index (this can take a while; per-file progress below)..."
+# Keep ssh flags in sync with SSH_OPTS (rsync invokes ssh separately).
+rsync -az --delete --progress \
+  -e "ssh -i \"$SSH_KEY\" -o BatchMode=yes -o ConnectTimeout=20" \
+  "$LOCAL_INDEX_DIR/" "$REMOTE_TARGET:$REMOTE_INDEX_DIR/"
 
 # ---------------------------------------------------------------------------
 # Optional: copy local SQLite database to the server (same path start.sh uses via --db.path)
 # ---------------------------------------------------------------------------
 if [[ "$SYNC_DB" == "true" ]]; then
+  echo "[deploy] Uploading SQLite database..."
   scp "${SSH_OPTS[@]}" "$LOCAL_DB_PATH" "$REMOTE_TARGET:$REMOTE_DB_PATH"
 fi
 
 # ---------------------------------------------------------------------------
 # Remote: make scripts executable
 # ---------------------------------------------------------------------------
+echo "[deploy] chmod scripts on server..."
 ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" \
   "chmod +x \"$REMOTE_BIN_DIR/start.sh\" \"$REMOTE_BIN_DIR/stop.sh\""
 
 # ---------------------------------------------------------------------------
 # Remote restart: stop old JVM, then start with PROFILE matching prod or staging
 # ---------------------------------------------------------------------------
-echo "Restarting remote server..."
+echo "[deploy] Restarting remote server..."
 ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" \
   "REMOTE_BASE_DIR=\"$REMOTE_BASE_DIR\" REMOTE_APP_DIR=\"$REMOTE_APP_DIR\" JAR_PATH=\"$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar\" \"$REMOTE_BIN_DIR/stop.sh\""
 ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" \

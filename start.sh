@@ -17,10 +17,18 @@ LOG_PATH="${LOG_PATH:-$REMOTE_APP_DIR/log.log}"
 mkdir -p "$REMOTE_APP_DIR" "$REMOTE_DATA_DIR"
 cd "$REMOTE_DATA_DIR"
 
-while sudo lsof -i :80; do
+# Wait for port 80 (bound wait so a stuck old JVM does not hang forever after deploy).
+for _ in {1..600}; do
+  if ! sudo lsof -i :80 >/dev/null 2>&1; then
+    break
+  fi
   echo "Waiting for open port 80..."
   sleep 0.1
 done
+if sudo lsof -i :80 >/dev/null 2>&1; then
+  echo "Port 80 still in use after 60s. Stop the old app (e.g. run bin/stop.sh) and retry."
+  exit 1
+fi
 
 # Indexes are resolved from the current working directory (`./index`).
 sudo nohup java \

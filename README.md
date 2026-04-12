@@ -110,6 +110,16 @@ SYNC_DB=true \
 Notes:
 
 - Properties files are packaged in the JAR; deploy does not copy `application*.properties` separately.
+- The script prints `[deploy] …` steps as it runs. **Syncing the Lucene index** (`rsync`) is often the slow part; you will see per-file progress there.
+- SSH is invoked with **BatchMode** (no password prompts) and a **connect timeout**, so a bad key or network fails instead of hanging. If your private key is **passphrase-protected**, load it into `ssh-agent` first (`ssh-add`); BatchMode cannot prompt for a passphrase.
+
+**SSH “Connection timed out” / banner exchange errors:** that means your machine never got a working SSH session to the host (not an application bug in Rhododendra). Check in order: EC2 instance is **running**, you’re using the **current** public IP or Elastic IP (IPs change if the instance was replaced), the **security group** allows inbound **TCP 22** from **your current public IP** (or `0.0.0.0/0` only if you accept that risk), and whether you must use **VPN** or a **bastion**. Confirm with:
+
+```bash
+ssh -i /path/to/ssh_private_key ec2-user@<instance-host-or-ip> true
+```
+
+Override the host in deploy without editing the script: `PROD_HOST=x.x.x.x ./deploy.sh prod /path/to/ssh_private_key` (and `STAGING_HOST=...` for staging).
 
 ### `start.sh` and `stop.sh` (on the server)
 
@@ -119,13 +129,13 @@ Notes:
 
 - Ensures `app/` and `data/` exist under `REMOTE_BASE_DIR`.
 - Changes working directory to `REMOTE_DATA_DIR` so Lucene resolves `./index` to `…/data/index` (same tree `deploy.sh` syncs to).
-- Waits until nothing is listening on port **80** (same behavior as before SSL termination / binding on 80).
+- Waits until nothing is listening on port **80** (same behavior as before SSL termination / binding on 80), up to **60 seconds**, then exits with an error so a stuck process cannot loop forever.
 - Runs `java` with `-Dspring.profiles.active=$PROFILE` (default **`prod`**), `-jar` pointing at the deployed JAR, and `--db.path=$REMOTE_DB_PATH`.
 - Appends stdout/stderr to `LOG_PATH` (default `…/app/log.log`) via `nohup`.
 
 **`stop.sh`** — stops the Rhododendra JVM only:
 
-- Finds processes with `pgrep` matching `java` and the deployed JAR path (`JAR_PATH`), so other services on port 80 are not killed blindly.
+- Finds processes with `pgrep` matching `java` and the deployed JAR **file name** (e.g. `rhododendra-0.0.1-SNAPSHOT.jar`), not the full path, so it still matches older invocations where the JAR lived directly under `~` before the `app/` layout.
 - Sends `SIGTERM`, waits briefly, then `SIGKILL` if needed.
 
 **Environment variables** (all optional; defaults match the layout above):
