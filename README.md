@@ -67,6 +67,91 @@ To build a runnable JAR:
 java -jar build/libs/rhododendra-0.0.1-SNAPSHOT.jar
 ```
 
+## Deploying to EC2
+
+`deploy.sh` now deploys app binaries separately from runtime data paths, so SQLite and Lucene can live outside the app directory.
+
+**SSH key:** pass the path to your SSH **private** key as a **positional argument** only (see below). There is no default key path and no environment-variable override in `deploy.sh`.
+
+Default remote layout:
+
+- app files: `/home/ec2-user/rhododendra/app`
+- scripts: `/home/ec2-user/rhododendra/bin`
+- data root: `/home/ec2-user/rhododendra/data`
+- SQLite: `/home/ec2-user/rhododendra/data/rhododendra.sqlite`
+- Lucene indexes: `/home/ec2-user/rhododendra/data/index`
+
+Basic deploy:
+
+```bash
+# Production — key is the only argument (environment defaults to prod)
+./deploy.sh /path/to/ssh_private_key
+
+# Production (explicit) or staging — two arguments
+./deploy.sh prod /path/to/ssh_private_key
+./deploy.sh staging /path/to/ssh_private_key
+```
+
+Optional DB sync (run from an interactive terminal; you will be prompted to type `yes` before the remote database is overwritten):
+
+```bash
+SYNC_DB=true ./deploy.sh staging /path/to/ssh_private_key
+```
+
+Useful overrides:
+
+```bash
+REMOTE_BASE_DIR=/home/ec2-user/rhododendra \
+LOCAL_DB_PATH=./data/rhododendra.sqlite \
+SYNC_DB=true \
+./deploy.sh prod /path/to/ssh_private_key
+```
+
+Notes:
+
+- Properties files are packaged in the JAR; deploy does not copy `application*.properties` separately.
+
+### `start.sh` and `stop.sh` (on the server)
+
+`deploy.sh` copies these to the remote `bin/` directory (default: `/home/ec2-user/rhododendra/bin/`). They are meant to run **on the EC2 instance** (or via `ssh`); they are not required for local development.
+
+**`start.sh`** — starts the app in the background:
+
+- Ensures `app/` and `data/` exist under `REMOTE_BASE_DIR`.
+- Changes working directory to `REMOTE_DATA_DIR` so Lucene resolves `./index` to `…/data/index` (same tree `deploy.sh` syncs to).
+- Waits until nothing is listening on port **80** (same behavior as before SSL termination / binding on 80).
+- Runs `java` with `-Dspring.profiles.active=$PROFILE` (default **`prod`**), `-jar` pointing at the deployed JAR, and `--db.path=$REMOTE_DB_PATH`.
+- Appends stdout/stderr to `LOG_PATH` (default `…/app/log.log`) via `nohup`.
+
+**`stop.sh`** — stops the Rhododendra JVM only:
+
+- Finds processes with `pgrep` matching `java` and the deployed JAR path (`JAR_PATH`), so other services on port 80 are not killed blindly.
+- Sends `SIGTERM`, waits briefly, then `SIGKILL` if needed.
+
+**Environment variables** (all optional; defaults match the layout above):
+
+| Variable | Used by | Default | Purpose |
+|----------|---------|---------|---------|
+| `PROFILE` | start | `prod` | Spring profile (`prod` or `staging`). |
+| `REMOTE_BASE_DIR` | both | `/home/ec2-user/rhododendra` | Root for `app/`, `data/`, `bin/`. |
+| `REMOTE_APP_DIR` | both | `$REMOTE_BASE_DIR/app` | JAR and log location. |
+| `REMOTE_DATA_DIR` | start | `$REMOTE_BASE_DIR/data` | Working directory at runtime; holds DB + `index/`. |
+| `REMOTE_DB_PATH` | start | `$REMOTE_DATA_DIR/rhododendra.sqlite` | Passed to Spring as `--db.path`. |
+| `JAR_PATH` | both | `$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar` | Which JAR to start / which process to stop. |
+| `LOG_PATH` | start | `$REMOTE_APP_DIR/log.log` | Server log file for the `nohup` process. |
+
+Examples over SSH (`YOUR_HOST` is the instance hostname or IP; use your own key path with `-i`):
+
+```bash
+# Stop then start production (defaults)
+ssh -i /path/to/ssh_private_key ec2-user@YOUR_HOST \
+  '/home/ec2-user/rhododendra/bin/stop.sh && /home/ec2-user/rhododendra/bin/start.sh'
+
+# Staging profile
+ssh -i /path/to/ssh_private_key ec2-user@YOUR_HOST \
+  'PROFILE=staging /home/ec2-user/rhododendra/bin/start.sh'
+```
+
 ## Running tests
 
 ```bash
