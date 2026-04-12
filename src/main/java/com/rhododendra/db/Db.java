@@ -37,6 +37,11 @@ public class Db implements InitializingBean {
     @Value("${db.path:./data/rhododendra.sqlite}")
     private String dbPath;
 
+    /** Resolved database file path (same value Spring uses for {@link #getConnection()}). */
+    public String getDbPath() {
+        return dbPath;
+    }
+
     public Connection getConnection() throws SQLException {
         ensureParentDirectoryExists(dbPath);
         var url = "jdbc:sqlite:" + dbPath;

@@ -49,6 +49,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.Objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -70,8 +71,13 @@ public class SearchService {
         RhododendronRepository rhododendronRepository,
         HybridizerRepository hybridizerRepository,
         BotanistRepository botanistRepository,
-        PhotoDetailsRepository photoDetailsRepository
+        PhotoDetailsRepository photoDetailsRepository,
+        IndexService indexService
     ) {
+        Objects.requireNonNull(
+            indexService,
+            "IndexService must be constructed first so Lucene index paths are initialized"
+        );
         SearchService.rhododendronRepository = rhododendronRepository;
         SearchService.hybridizerRepository = hybridizerRepository;
         SearchService.botanistRepository = botanistRepository;
@@ -81,7 +87,7 @@ public class SearchService {
     public static List<Botanist> searchBotanists(String queryString) {
         try {
             var query = new QueryParser(Botanist.FULL_NAME_KEY, new StandardAnalyzer()).parse(queryString);
-            Directory indexDirectory = FSDirectory.open(Paths.get(BOTANIST_INDEX_PATH));
+            Directory indexDirectory = FSDirectory.open(Paths.get(IndexService.botanistIndexPath()));
             IndexReader indexReader = DirectoryReader.open(indexDirectory);
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, 10);
@@ -269,7 +275,7 @@ public class SearchService {
     public static List<PhotoDetails> searchPhotoDetails(String queryString) {
         try {
             var query = new QueryParser(PhotoDetails.PHOTO_BY, new StandardAnalyzer()).parse(queryString);
-            Directory indexDirectory = FSDirectory.open(Paths.get(PHOTO_DETAIL_INDEX_PATH));
+            Directory indexDirectory = FSDirectory.open(Paths.get(IndexService.photoDetailIndexPath()));
             IndexReader indexReader = DirectoryReader.open(indexDirectory);
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, 10);
@@ -295,7 +301,7 @@ public class SearchService {
     public static List<String> getAllRhodoIds() {
         Query query = new MatchAllDocsQuery();
         try {
-            Directory indexDirectory = FSDirectory.open(Paths.get(RHODO_INDEX_PATH));
+            Directory indexDirectory = FSDirectory.open(Paths.get(IndexService.rhodoIndexPath()));
             IndexReader indexReader = DirectoryReader.open(indexDirectory);
             IndexSearcher searcher = new IndexSearcher(indexReader);
             TopDocs topDocs = searcher.search(query, Integer.MAX_VALUE);
@@ -524,7 +530,7 @@ public class SearchService {
         int offset,
         CheckedFunction<IndexSearcher, TopDocs, IOException> performSearch
     ) throws IOException {
-        Directory indexDirectory = FSDirectory.open(Paths.get(RHODO_INDEX_PATH));
+        Directory indexDirectory = FSDirectory.open(Paths.get(IndexService.rhodoIndexPath()));
         IndexReader indexReader = DirectoryReader.open(indexDirectory);
         IndexSearcher searcher = new IndexSearcher(indexReader);
         TopDocs topDocs = performSearch.apply(searcher);
@@ -581,7 +587,7 @@ public class SearchService {
         int offset,
         CheckedFunction<IndexSearcher, TopDocs, IOException> performSearch
     ) throws IOException {
-        Directory indexDirectory = FSDirectory.open(Paths.get(HYBRIDIZER_INDEX_PATH));
+        Directory indexDirectory = FSDirectory.open(Paths.get(IndexService.hybridizerIndexPath()));
         IndexReader indexReader = DirectoryReader.open(indexDirectory);
         IndexSearcher searcher = new IndexSearcher(indexReader);
         TopDocs topDocs = performSearch.apply(searcher);

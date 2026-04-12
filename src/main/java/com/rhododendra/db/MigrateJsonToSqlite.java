@@ -152,7 +152,7 @@ public class MigrateJsonToSqlite {
     }
 
     private void rebuildDatabaseFile() throws SQLException {
-        String dbPath = System.getProperty("db.path");
+        String dbPath = db.getDbPath();
         if (dbPath != null && !dbPath.isBlank() && !dbPath.startsWith(":")) {
             File dbFile = new File(dbPath);
             if (dbFile.exists() && !dbFile.delete()) {

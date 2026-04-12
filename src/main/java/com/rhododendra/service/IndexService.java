@@ -38,8 +38,10 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.SQLException;
@@ -52,12 +54,24 @@ import java.util.stream.Collectors;
 
 @Service
 public class IndexService {
-    public static final String BASE_INDEX_PATH = "index";
-    public static final String BOTANIST_INDEX_PATH = BASE_INDEX_PATH + "/botanists";
-    public static final String PHOTO_DETAIL_INDEX_PATH = BASE_INDEX_PATH + "/photo_details";
-    public static final String RHODO_INDEX_PATH = BASE_INDEX_PATH + "/rhodos";
-    public static final String HYBRIDIZER_INDEX_PATH = BASE_INDEX_PATH + "/hybridizers";
 
+    private static volatile String indexBaseDir = "index";
+
+    public static String botanistIndexPath() {
+        return indexBaseDir + "/botanists";
+    }
+
+    public static String photoDetailIndexPath() {
+        return indexBaseDir + "/photo_details";
+    }
+
+    public static String rhodoIndexPath() {
+        return indexBaseDir + "/rhodos";
+    }
+
+    public static String hybridizerIndexPath() {
+        return indexBaseDir + "/hybridizers";
+    }
 
     //Additional Search/Index keys
     public static final String LETTER_KEY = "letter";
@@ -85,13 +99,34 @@ public class IndexService {
         HybridizerRepository hybridizerRepository,
         BotanistRepository botanistRepository,
         PhotoDetailsRepository photoDetailsRepository,
-        com.rhododendra.db.Db db
+        com.rhododendra.db.Db db,
+        @Value("${lucene.index.base:index}") String luceneIndexBase
     ) {
         IndexService.rhododendronRepository = rhododendronRepository;
         IndexService.hybridizerRepository = hybridizerRepository;
         IndexService.botanistRepository = botanistRepository;
         IndexService.photoDetailsRepository = photoDetailsRepository;
         IndexService.db = db;
+        String normalized = luceneIndexBase == null ? "index" : luceneIndexBase.strip();
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        if (normalized.isEmpty()) {
+            normalized = "index";
+        }
+        IndexService.indexBaseDir = normalized;
+        ensureLuceneBaseParentExists(normalized);
+    }
+
+    private static void ensureLuceneBaseParentExists(String indexBase) {
+        if (indexBase.startsWith(":")) {
+            return;
+        }
+        File file = new File(indexBase);
+        File parent = file.getParentFile();
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
     }
 
     public static String generateRhodoNameForIndexing(Rhododendron rhodo, Map<Long, Rhododendron> idToRhodoMap) {
@@ -115,7 +150,7 @@ public class IndexService {
 
         index(
             rhodos,
-            RHODO_INDEX_PATH,
+            rhodoIndexPath(),
             Rhododendron.PRIMARY_ID_KEY,
             (document, rhodo) -> {
                 // TODO combine PAGINATION_DESCRIPTOR_KEY with the name key below?
@@ -179,7 +214,7 @@ public class IndexService {
         List<Hybridizer> hybridizers = loadAllHybridizersFromDb();
         index(
             hybridizers,
-            HYBRIDIZER_INDEX_PATH,
+            hybridizerIndexPath(),
             Hybridizer.PRIMARY_ID_KEY,
             (document, hybridizer) -> {
                 document.add(new SortedDocValuesField(Hybridizer.NAME_KEY_FOR_SORT, new BytesRef(hybridizer.getName())));
@@ -193,7 +228,7 @@ public class IndexService {
         List<PhotoDetails> photos = loadAllPhotoDetailsFromDb();
         index(
             photos,
-            PHOTO_DETAIL_INDEX_PATH,
+            photoDetailIndexPath(),
             PhotoDetails.PRIMARY_ID_KEY,
             (document, photoDetails) -> {
                 if (photoDetails.getPhotoBy() != null) {
@@ -208,7 +243,7 @@ public class IndexService {
         List<Botanist> botanists = loadAllBotanistsFromDb();
         index(
             botanists,
-            BOTANIST_INDEX_PATH,
+            botanistIndexPath(),
             Botanist.PRIMARY_ID_KEY,
             (document, botanist) -> {
                 document.add(new TextField(Botanist.FULL_NAME_KEY, botanist.getFullName(), Field.Store.NO));

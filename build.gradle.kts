@@ -33,6 +33,16 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	// Absolute paths so IDE runs still isolate SQLite + Lucene under build/ (matches test application.properties intent).
+	// @TestPropertySource on a test class overrides these defaults when it sets db.path.
+	systemProperty(
+		"db.path",
+		layout.buildDirectory.file("test-rhododendra.sqlite").get().asFile.absolutePath
+	)
+	systemProperty(
+		"lucene.index.base",
+		layout.buildDirectory.dir("test-lucene").get().asFile.absolutePath
+	)
 }
 
 tasks.register<JavaExec>("migrateAndIndex") {
