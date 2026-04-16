@@ -1,6 +1,6 @@
 # Rhododendra
 
-Spring Boot site for [rhododendra.com](https://rhododendra.com): rhododendron data is stored in **SQLite** (source of truth), with **Apache Lucene** used for search and indexing.
+Spring Boot site for [rhododendra.com](https://rhododendra.com): rhododendron data is stored in **PostgreSQL**, with **Apache Lucene** used for search and indexing.
 
 ## License
 
@@ -12,6 +12,61 @@ Contributions are accepted under the same terms.
 
 - **Java 17** (see `java` version in `build.gradle.kts`)
 - Uses the **Gradle wrapper** (`./gradlew`); no separate Gradle install required
+- **PostgreSQL 16** — supported for local development (macOS) and production EC2 (**Amazon Linux 2023** packages). The app only needs a JDBC URL; install and run the server separately. Details: [PostgreSQL setup](#postgresql-setup).
+
+- Integration tests use **embedded PostgreSQL 16** (Zonky) automatically — no local Postgres install required for `./gradlew test`.
+
+## PostgreSQL setup
+
+**Version:** standardize on **PostgreSQL 16** (matches the embedded test binaries in `build.gradle.kts` and `postgresql16-*` on Amazon Linux 2023).
+
+Override connection with `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and `SPRING_DATASOURCE_PASSWORD` when the database is remote or credentials differ.
+
+### macOS (Homebrew)
+
+1. Install and start the server (user service, survives reboots when Brew services are enabled):
+
+   ```bash
+   brew install postgresql@16
+   brew services start postgresql@16
+   ```
+
+2. Ensure client tools and `psql` resolve to this version (Apple Silicon example):
+
+   ```bash
+   export PATH="/opt/homebrew/opt/postgresql@16/bin:$PATH"
+   ```
+
+3. Create role and database (adjust password for your environment):
+
+   ```bash
+   createuser rhododendra 2>/dev/null || true
+   createdb -O rhododendra rhododendra 2>/dev/null || true
+   psql -c "ALTER USER rhododendra WITH PASSWORD 'rhododendra';" postgres
+   ```
+
+4. Check readiness: `pg_isready -h localhost -p 5432` (use `brew info postgresql@16` if your port differs from 5432).
+
+### Amazon Linux 2023 (EC2 or AL2023 host)
+
+Use the idempotent script (installs `postgresql16-server`, initializes if needed, enables `postgresql-16`):
+
+```bash
+sudo ./scripts/setup-postgres-amazon-linux-2023.sh
+```
+
+To create the `rhododendra` role and database in the same step, set a strong password first:
+
+```bash
+export POSTGRES_APP_PASSWORD='your-strong-secret'
+sudo -E ./scripts/setup-postgres-amazon-linux-2023.sh
+```
+
+The script is intended for Amazon Linux 2023 only. To run it on another OS (unsupported), set `FORCE=1` before `sudo -E`.
+
+Then set `SPRING_DATASOURCE_PASSWORD` (or `start.sh` on the server) to match. For same-instance deployments, keep JDBC at `jdbc:postgresql://localhost:5432/rhododendra` and restrict PostgreSQL to local connections in `pg_hba.conf` unless you intentionally expose the port (use security groups and TLS for remote databases).
+
+**Note:** [`setup.sh`](setup.sh) does **not** install PostgreSQL automatically (certbot/Java-focused); use the script above or your own automation. The script is **idempotent** (safe to re-run: skips existing cert, venv, and certbot renew cron entry).
 
 ## Running the server (local)
 
@@ -75,7 +130,7 @@ java -jar build/libs/rhododendra-0.0.1-SNAPSHOT.jar
 
 ## Deploying to EC2
 
-`deploy.sh` now deploys app binaries separately from runtime data paths, so SQLite and Lucene can live outside the app directory.
+`deploy.sh` deploys app binaries separately from runtime data paths; **PostgreSQL runs as its own service** on the server (or elsewhere). Lucene indexes live under the remote `data/` tree.
 
 **SSH key:** pass the path to your SSH **private** key as a **positional argument** only (see below). There is no default key path and no environment-variable override in `deploy.sh`.
 
@@ -84,8 +139,8 @@ Default remote layout:
 - app files: `/home/ec2-user/rhododendra/app`
 - scripts: `/home/ec2-user/rhododendra/bin`
 - data root: `/home/ec2-user/rhododendra/data`
-- SQLite: `/home/ec2-user/rhododendra/data/rhododendra.sqlite`
 - Lucene indexes: `/home/ec2-user/rhododendra/data/index`
+- PostgreSQL: installed on the instance (or another host); set `SPRING_DATASOURCE_*` for `start.sh` (see below)
 
 Basic deploy:
 
@@ -98,20 +153,7 @@ Basic deploy:
 ./deploy.sh staging /path/to/ssh_private_key
 ```
 
-Optional DB sync (run from an interactive terminal; you will be prompted to type `yes` before the remote database is overwritten):
-
-```bash
-SYNC_DB=true ./deploy.sh staging /path/to/ssh_private_key
-```
-
-Useful overrides:
-
-```bash
-REMOTE_BASE_DIR=/home/ec2-user/rhododendra \
-LOCAL_DB_PATH=./data/rhododendra.sqlite \
-SYNC_DB=true \
-./deploy.sh prod /path/to/ssh_private_key
-```
+Database backups use PostgreSQL tools: [`scripts/pg_backup.sh`](scripts/pg_backup.sh) (`pg_dump` custom format) and restore with [`scripts/pg_restore.sh`](scripts/pg_restore.sh). Deploy does not copy a database file.
 
 Notes:
 
@@ -136,7 +178,7 @@ Override the host in deploy without editing the script: `PROD_HOST=x.x.x.x ./dep
 - Ensures `app/` and `data/` exist under `REMOTE_BASE_DIR`.
 - Changes working directory to `REMOTE_DATA_DIR` so Lucene resolves `./index` to `…/data/index` (same tree `deploy.sh` syncs to).
 - Waits until nothing is listening on port **80** (same behavior as before SSL termination / binding on 80), up to **60 seconds**, then exits with an error so a stuck process cannot loop forever.
-- Runs `java` with `-Dspring.profiles.active=$PROFILE` (default **`prod`**), `-jar` pointing at the deployed JAR, and `--db.path=$REMOTE_DB_PATH`.
+- Runs `java` with `-Dspring.profiles.active=$PROFILE` (default **`prod`**) and `-jar` pointing at the deployed JAR. **PostgreSQL** is configured with environment variables `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and optionally `SPRING_DATASOURCE_PASSWORD` (omit the last to use the password baked into `application.properties` in the JAR, which defaults to `rhododendra` for local-style installs only—set a real secret in production).
 - Appends stdout/stderr to `LOG_PATH` (default `…/app/log.log`) via `nohup`.
 
 **`stop.sh`** — stops the Rhododendra JVM only:
@@ -151,8 +193,10 @@ Override the host in deploy without editing the script: `PROD_HOST=x.x.x.x ./dep
 | `PROFILE` | start | `prod` | Spring profile (`prod` or `staging`). |
 | `REMOTE_BASE_DIR` | both | `/home/ec2-user/rhododendra` | Root for `app/`, `data/`, `bin/`. |
 | `REMOTE_APP_DIR` | both | `$REMOTE_BASE_DIR/app` | JAR and log location. |
-| `REMOTE_DATA_DIR` | start | `$REMOTE_BASE_DIR/data` | Working directory at runtime; holds DB + `index/`. |
-| `REMOTE_DB_PATH` | start | `$REMOTE_DATA_DIR/rhododendra.sqlite` | Passed to Spring as `--db.path`. |
+| `REMOTE_DATA_DIR` | start | `$REMOTE_BASE_DIR/data` | Working directory at runtime; holds `index/` (Lucene). |
+| `SPRING_DATASOURCE_URL` | start | `jdbc:postgresql://localhost:5432/rhododendra` | JDBC URL (use host/port for a dedicated DB server). |
+| `SPRING_DATASOURCE_USERNAME` | start | `rhododendra` | PostgreSQL user. |
+| `SPRING_DATASOURCE_PASSWORD` | start | *(unset)* | If unset, Spring uses `application.properties` default; set in production. |
 | `JAR_PATH` | both | `$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar` | Which JAR to start / which process to stop. |
 | `LOG_PATH` | start | `$REMOTE_APP_DIR/log.log` | Server log file for the `nohup` process. |
 
@@ -176,11 +220,11 @@ ssh -i /path/to/ssh_private_key ec2-user@YOUR_HOST \
 
 Test reports: `build/reports/tests/test/index.html`.
 
-Tests use their own config under `src/test/resources/application.properties` (test DB path, JSON fixtures, etc.).
+Tests use `src/test/resources/application.properties` (JSON fixtures, Lucene paths) and **embedded PostgreSQL** (Zonky) for JDBC.
 
 ## Data migration and Lucene indexing
 
-Load JSON from a data directory into **SQLite**, then rebuild **Lucene** indexes under `./index/`:
+Load JSON from a data directory into **PostgreSQL**, then rebuild **Lucene** indexes under `./index/`:
 
 ```bash
 ./gradlew migrateAndIndex
@@ -203,35 +247,39 @@ Migration reads **only** these paths, all relative to the directory set by `data
 
 Rhododendron rows are the **concatenation** of `species.json` + `hybrids.json` + `azaleas.json` + `vireyas.json` + `azaleodendrons.json` in that order. Empty arrays (`[]`) are valid for any file that has no rows.
 
-**Load order into SQLite:** botanists → hybridizers → photo details → rhodos (combined list above).
+**Load order into PostgreSQL:** botanists → hybridizers → photo details → rhodos (combined list above).
 
 **Gradle property overrides** (optional):
 
-| Property      | Role |
-|---------------|------|
+| Property | Role |
+|----------|------|
 | `dataJsonDir` | Root directory containing the migration JSON files listed in the table above |
-| `dbPath`      | SQLite database file path |
-| `domain`      | Site URL used by app settings (e.g. sitemap-style links) |
+| `springDatasourceUrl` | JDBC URL (falls back to `SPRING_DATASOURCE_URL` env or `jdbc:postgresql://localhost:5432/rhododendra`) |
+| `springDatasourceUsername` | DB user (env `SPRING_DATASOURCE_USERNAME` or `rhododendra`) |
+| `springDatasourcePassword` | DB password (env `SPRING_DATASOURCE_PASSWORD` or `rhododendra`) |
+| `domain` | Site URL used by app settings (e.g. sitemap-style links) |
 
 **Examples:**
 
 ```bash
-# Custom JSON source and DB location
-./gradlew migrateAndIndex -PdataJsonDir=/path/to/scraper/outputs/data -PdbPath=/tmp/rhododendra.sqlite
+# Custom JSON source and JDBC target
+./gradlew migrateAndIndex -PdataJsonDir=/path/to/scraper/outputs/data -PspringDatasourceUrl=jdbc:postgresql://localhost:5432/rhododendra
 
 # Local domain while developing
 ./gradlew migrateAndIndex -Pdomain=http://localhost:8090
 ```
 
-**Defaults** for `migrateAndIndex` are defined in [`build.gradle.kts`](build.gradle.kts) (including a default `dataJsonDir` path). Runtime defaults for `bootRun` are in `application.properties` (`db.path`, `data.jsonDir`).
+**Defaults** for `migrateAndIndex` are defined in [`build.gradle.kts`](build.gradle.kts) (including a default `dataJsonDir` path). Runtime defaults for `bootRun` are in `application.properties` (`spring.datasource.*`, `data.jsonDir`).
 
-More detail: [`HELP.md`](HELP.md).
+One-time migration from the old SQLite workflow is summarized in [`scripts/one_time_sqlite_to_postgres.sh`](scripts/one_time_sqlite_to_postgres.sh).
 
 ## Configuration (overview)
 
 | Key / topic | Purpose |
 |-------------|---------|
-| `db.path` | SQLite file (e.g. `./data/rhododendra.sqlite`) |
+| `spring.datasource.url` / `SPRING_DATASOURCE_URL` | JDBC URL (include host/port for a remote PostgreSQL server) |
+| `spring.datasource.username` / `SPRING_DATASOURCE_USERNAME` | Database user |
+| `spring.datasource.password` / `SPRING_DATASOURCE_PASSWORD` | Database password |
 | `data.jsonDir` | Root directory for migration JSON inputs |
 | `domain` | Public site URL for the running app |
 | Lucene indexes | Written under `./index/` (see `IndexService`) |
@@ -239,7 +287,7 @@ More detail: [`HELP.md`](HELP.md).
 Edit `src/main/resources/application.properties` or pass overrides on the command line, e.g.:
 
 ```bash
-./gradlew bootRun --args='--db.path=./data/rhododendra.sqlite --data.jsonDir=/path/to/json'
+./gradlew bootRun --args='--spring.datasource.url=jdbc:postgresql://db.example.com:5432/rhododendra --data.jsonDir=/path/to/json'
 ```
 
 (Spring relaxed binding applies to property names.)

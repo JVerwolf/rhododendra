@@ -20,7 +20,7 @@
 
 package com.rhododendra.cli;
 
-import com.rhododendra.db.MigrateJsonToSqlite;
+import com.rhododendra.db.MigrateJsonToDatabase;
 import com.rhododendra.service.IndexService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,11 +39,11 @@ public class MigrateAndIndexConfiguration {
     private static final Logger log = LoggerFactory.getLogger(MigrateAndIndexConfiguration.class);
 
     @Bean
-    public ApplicationRunner migrateAndIndexRunner(MigrateJsonToSqlite migrateJsonToSqlite) {
+    public ApplicationRunner migrateAndIndexRunner(MigrateJsonToDatabase migrateJsonToDatabase) {
         return args -> {
-            log.info("Starting migrate profile: JSON → SQLite, then Lucene reindex");
+            log.info("Starting migrate profile: JSON → PostgreSQL, then Lucene reindex");
             try {
-                migrateJsonToSqlite.runMigration();
+                migrateJsonToDatabase.runMigration();
             } catch (IOException | SQLException e) {
                 log.error("Migration failed", e);
                 throw new IllegalStateException("Migration failed", e);

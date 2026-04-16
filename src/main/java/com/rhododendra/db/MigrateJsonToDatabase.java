@@ -3,19 +3,6 @@
  * Copyright (C) 2026 Rhododendra contributors
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 package com.rhododendra.db;
@@ -29,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -39,9 +25,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
-public class MigrateJsonToSqlite {
+public class MigrateJsonToDatabase {
 
-    private static final Logger logger = LoggerFactory.getLogger(MigrateJsonToSqlite.class);
+    private static final Logger logger = LoggerFactory.getLogger(MigrateJsonToDatabase.class);
 
     private final JSONLoaderService jsonLoaderService;
     private final RhododendronRepository rhododendronRepository;
@@ -50,7 +36,7 @@ public class MigrateJsonToSqlite {
     private final PhotoDetailsRepository photoDetailsRepository;
     private final Db db;
 
-    public MigrateJsonToSqlite(
+    public MigrateJsonToDatabase(
         JSONLoaderService jsonLoaderService,
         RhododendronRepository rhododendronRepository,
         HybridizerRepository hybridizerRepository,
@@ -67,8 +53,8 @@ public class MigrateJsonToSqlite {
     }
 
     public void runMigration() throws IOException, SQLException {
-        logger.info("Starting JSON → SQLite migration");
-        rebuildDatabaseFile();
+        logger.info("Starting JSON → PostgreSQL migration");
+        rebuildDatabaseForMigration();
 
         List<Botanist> botanists = jsonLoaderService.loadBotanists();
         Map<String, Long> botanistShortToId = botanists.stream()
@@ -130,7 +116,7 @@ public class MigrateJsonToSqlite {
         }
         logger.info("Migrated {} rhododendrons", rhodos.size());
 
-        logger.info("JSON → SQLite migration completed");
+        logger.info("JSON → PostgreSQL migration completed");
     }
 
     private static final Pattern TRAILING_YEAR = Pattern.compile("(\\d{4})\\s*$");
@@ -151,15 +137,8 @@ public class MigrateJsonToSqlite {
         return null;
     }
 
-    private void rebuildDatabaseFile() throws SQLException {
-        String dbPath = db.getDbPath();
-        if (dbPath != null && !dbPath.isBlank() && !dbPath.startsWith(":")) {
-            File dbFile = new File(dbPath);
-            if (dbFile.exists() && !dbFile.delete()) {
-                throw new SQLException("Could not delete database file: " + dbFile.getAbsolutePath());
-            }
-        }
+    private void rebuildDatabaseForMigration() throws SQLException {
+        db.dropAllTables();
         db.createSchema();
     }
 }
-

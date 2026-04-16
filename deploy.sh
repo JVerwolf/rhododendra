@@ -1,15 +1,12 @@
 #!/bin/bash
 #
-# Deploy Rhododendra to EC2: upload JAR + scripts, sync Lucene index, optionally sync SQLite,
-# then stop the running app and start the new build.
+# Deploy Rhododendra to EC2: upload JAR + scripts, sync Lucene index, then restart the app.
+# PostgreSQL runs on the server separately; configure SPRING_DATASOURCE_* there (see README).
 #
 # Examples (SSH private key path is always a positional argument — required):
 #   ./deploy.sh /path/to/ssh_private_key              # prod (default)
 #   ./deploy.sh prod /path/to/ssh_private_key
 #   ./deploy.sh staging /path/to/ssh_private_key
-#   SYNC_DB=true ./deploy.sh prod /path/to/ssh_private_key
-#   SYNC_DB=true LOCAL_DB_PATH=/path/to/db.sqlite ./deploy.sh staging /path/to/ssh_private_key
-#   BACKUP_REMOTE=false ./deploy.sh prod /path/to/ssh_private_key
 #
 # Exit on error, treat unset variables as errors, and fail pipelines on first failing command.
 set -euo pipefail
@@ -20,15 +17,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ---------------------------------------------------------------------------
 # Arguments and toggles
 # ---------------------------------------------------------------------------
-# Positional args:
-#   ./deploy.sh <path-to-ssh-private-key>                     → environment prod
-#   ./deploy.sh <prod|staging> <path-to-ssh-private-key>
-# SYNC_DB=true copies local SQLite to the server after deploy (optional; large / sensitive).
-# Requires an interactive terminal: you must type yes when prompted (no automated bypass).
-SYNC_DB="${SYNC_DB:-false}"
-# If true, copy existing remote DB to a timestamped .bak before any new upload overwrites it.
-BACKUP_REMOTE="${BACKUP_REMOTE:-true}"
-
 # Required positional arguments: SSH private key path (and optional prod|staging).
 case $# in
   0)
@@ -76,17 +64,15 @@ PROD_HOST="${PROD_HOST:-54.212.15.213}"
 # ---------------------------------------------------------------------------
 LOCAL_JAR="${LOCAL_JAR:-$SCRIPT_DIR/build/libs/rhododendra-0.0.1-SNAPSHOT.jar}"
 LOCAL_INDEX_DIR="${LOCAL_INDEX_DIR:-$SCRIPT_DIR/index}"
-LOCAL_DB_PATH="${LOCAL_DB_PATH:-$SCRIPT_DIR/data/rhododendra.sqlite}"
 
 # ---------------------------------------------------------------------------
-# Remote layout: JAR and log under app/; SQLite + Lucene index under data/
+# Remote layout: JAR and log under app/; Lucene index under data/
 # ---------------------------------------------------------------------------
 REMOTE_BASE_DIR="${REMOTE_BASE_DIR:-/home/ec2-user/rhododendra}"
 REMOTE_APP_DIR="${REMOTE_APP_DIR:-$REMOTE_BASE_DIR/app}"
 REMOTE_DATA_DIR="${REMOTE_DATA_DIR:-$REMOTE_BASE_DIR/data}"
 REMOTE_BIN_DIR="${REMOTE_BIN_DIR:-$REMOTE_BASE_DIR/bin}"
 REMOTE_INDEX_DIR="${REMOTE_INDEX_DIR:-$REMOTE_DATA_DIR/index}"
-REMOTE_DB_PATH="${REMOTE_DB_PATH:-$REMOTE_DATA_DIR/rhododendra.sqlite}"
 
 # ---------------------------------------------------------------------------
 # Map environment name to EC2 host and Spring profile (prod vs staging SSL/domain in the JAR)
@@ -114,34 +100,6 @@ for required in "$LOCAL_JAR" "$LOCAL_INDEX_DIR" "$SCRIPT_DIR/start.sh" "$SCRIPT_
   fi
 done
 
-# If DB sync is requested, require the local database file to exist.
-if [[ "$SYNC_DB" == "true" ]] && [[ ! -f "$LOCAL_DB_PATH" ]]; then
-  echo "SYNC_DB=true but DB file does not exist: $LOCAL_DB_PATH"
-  exit 1
-fi
-
-# ---------------------------------------------------------------------------
-# Remote DB overwrite: always confirm before replacing the server database (SYNC_DB=true)
-# ---------------------------------------------------------------------------
-if [[ "$SYNC_DB" == "true" ]]; then
-  if [[ ! -t 0 ]]; then
-    echo "SYNC_DB=true requires an interactive terminal so you can confirm overwriting the remote database."
-    echo "Run this script from a real shell (not piped or CI) when using SYNC_DB=true."
-    exit 1
-  fi
-  echo ""
-  echo "WARNING: This deploy will REPLACE the remote SQLite database at:"
-  echo "  ${REMOTE_TARGET}:${REMOTE_DB_PATH}"
-  echo "with your local file:"
-  echo "  ${LOCAL_DB_PATH}"
-  echo ""
-  read -r -p "Type exactly 'yes' to proceed with remote database overwrite: " _db_confirm
-  if [[ "${_db_confirm}" != "yes" ]]; then
-    echo "Aborted (remote database was not overwritten)."
-    exit 1
-  fi
-fi
-
 echo "Deploying to $ENVIRONMENT ($REMOTE_TARGET)"
 echo "Remote base: $REMOTE_BASE_DIR"
 echo "Remote app dir: $REMOTE_APP_DIR"
@@ -164,16 +122,6 @@ fi
 echo "[deploy] Remote directories OK."
 
 # ---------------------------------------------------------------------------
-# Optional: backup current remote DB before we might replace it (see SYNC_DB block below)
-# ---------------------------------------------------------------------------
-if [[ "$BACKUP_REMOTE" == "true" ]]; then
-  echo "[deploy] Backing up remote DB if present..."
-  TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
-  ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" \
-    "if [ -f \"$REMOTE_DB_PATH\" ]; then cp \"$REMOTE_DB_PATH\" \"$REMOTE_DB_PATH.$TIMESTAMP.bak\"; fi"
-fi
-
-# ---------------------------------------------------------------------------
 # Upload application JAR and helper scripts (start/stop live under bin/)
 # ---------------------------------------------------------------------------
 echo "[deploy] Uploading JAR..."
@@ -192,14 +140,6 @@ rsync -az --delete --progress \
   "$LOCAL_INDEX_DIR/" "$REMOTE_TARGET:$REMOTE_INDEX_DIR/"
 
 # ---------------------------------------------------------------------------
-# Optional: copy local SQLite database to the server (same path start.sh uses via --db.path)
-# ---------------------------------------------------------------------------
-if [[ "$SYNC_DB" == "true" ]]; then
-  echo "[deploy] Uploading SQLite database..."
-  scp "${SSH_OPTS[@]}" "$LOCAL_DB_PATH" "$REMOTE_TARGET:$REMOTE_DB_PATH"
-fi
-
-# ---------------------------------------------------------------------------
 # Remote: make scripts executable
 # ---------------------------------------------------------------------------
 echo "[deploy] chmod scripts on server..."
@@ -213,7 +153,6 @@ echo "[deploy] Restarting remote server..."
 ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" \
   "REMOTE_BASE_DIR=\"$REMOTE_BASE_DIR\" REMOTE_APP_DIR=\"$REMOTE_APP_DIR\" JAR_PATH=\"$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar\" \"$REMOTE_BIN_DIR/stop.sh\""
 ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" \
-  "PROFILE=\"$PROFILE\" REMOTE_BASE_DIR=\"$REMOTE_BASE_DIR\" REMOTE_APP_DIR=\"$REMOTE_APP_DIR\" REMOTE_DATA_DIR=\"$REMOTE_DATA_DIR\" REMOTE_DB_PATH=\"$REMOTE_DB_PATH\" JAR_PATH=\"$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar\" LOG_PATH=\"$REMOTE_APP_DIR/log.log\" \"$REMOTE_BIN_DIR/start.sh\""
+  "PROFILE=\"$PROFILE\" REMOTE_BASE_DIR=\"$REMOTE_BASE_DIR\" REMOTE_APP_DIR=\"$REMOTE_APP_DIR\" REMOTE_DATA_DIR=\"$REMOTE_DATA_DIR\" JAR_PATH=\"$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar\" LOG_PATH=\"$REMOTE_APP_DIR/log.log\" \"$REMOTE_BIN_DIR/start.sh\""
 
 echo "Deploy complete."
-

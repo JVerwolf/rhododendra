@@ -20,6 +20,8 @@
 
 package com.rhododendra.service;
 
+import com.rhododendra.AbstractPostgresSpringBootTest;
+import com.rhododendra.db.MigrateJsonToDatabase;
 import com.rhododendra.model.Botanist;
 import com.rhododendra.model.Rhododendron;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -40,18 +42,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class ServiceTests {
+public class ServiceTests extends AbstractPostgresSpringBootTest {
 
     @Autowired
     JSONLoaderService jsonLoaderService;
 
     @Autowired
-    com.rhododendra.db.MigrateJsonToSqlite migrateJsonToSqlite;
+    MigrateJsonToDatabase migrateJsonToDatabase;
 
     @BeforeAll
     void beforeAll() throws IOException {
         try {
-            migrateJsonToSqlite.runMigration();
+            migrateJsonToDatabase.runMigration();
         } catch (SQLException e) {
             throw new IOException(e);
         }

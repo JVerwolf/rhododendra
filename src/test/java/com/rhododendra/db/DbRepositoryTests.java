@@ -20,6 +20,7 @@
 
 package com.rhododendra.db;
 
+import com.rhododendra.AbstractPostgresSpringBootTest;
 import com.rhododendra.model.Botanist;
 import com.rhododendra.model.Hybridizer;
 import com.rhododendra.model.PhotoDetails;
@@ -28,18 +29,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
-
 import java.sql.SQLException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@TestPropertySource(properties = {
-    "db.path=build/test-rhododendra.sqlite"
-})
-public class DbRepositoryTests {
+public class DbRepositoryTests extends AbstractPostgresSpringBootTest {
 
     @Autowired
     private Db db;

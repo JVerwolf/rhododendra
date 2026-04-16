@@ -20,6 +20,7 @@
 
 package com.rhododendra.controller;
 
+import com.rhododendra.AbstractPostgresSpringBootTest;
 import com.rhododendra.db.Db;
 import com.rhododendra.db.RhododendronRepository;
 import com.rhododendra.model.Rhododendron;
@@ -29,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.sql.SQLException;
@@ -43,10 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(properties = {
-    "db.path=build/test-rhododendra-edit-post.sqlite"
-})
-class RhodoEditPostTests {
+class RhodoEditPostTests extends AbstractPostgresSpringBootTest {
 
     private static final String RHODO_OLD_ID = "edit-post-r1";
     private Long rhodoId;

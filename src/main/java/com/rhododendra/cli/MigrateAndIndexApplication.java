@@ -26,7 +26,7 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 
 /**
- * Headless entry point for migrating JSON → SQLite and rebuilding Lucene indexes.
+ * Headless entry point for migrating JSON → PostgreSQL and rebuilding Lucene indexes.
  * Run via: {@code ./gradlew migrateAndIndex}
  */
 public final class MigrateAndIndexApplication {
