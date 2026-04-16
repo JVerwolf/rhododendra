@@ -68,6 +68,8 @@ sudo -E ./scripts/setup-postgres-amazon-linux-2023.sh
 
 The script is intended for Amazon Linux 2023 only. To run it on another OS (unsupported), set `FORCE=1` before `sudo -E`.
 
+After `systemctl` reports the service active, the script waits on `pg_isready` (defaults: `PGHOST=localhost`, `PGPORT=5432`; override if your listen address or port differs). With `POSTGRES_APP_PASSWORD` set, re-runs are idempotent: they refresh the role password and run `ALTER DATABASE … OWNER TO rhododendra` if the database already exists.
+
 Then set `SPRING_DATASOURCE_PASSWORD` (or `start.sh` on the server) to match. For same-instance deployments, keep JDBC at `jdbc:postgresql://localhost:5432/rhododendra` and restrict PostgreSQL to local connections in `pg_hba.conf` unless you intentionally expose the port (use security groups and TLS for remote databases).
 
 **Note:** [`setup.sh`](setup.sh) does **not** install PostgreSQL automatically (certbot/Java-focused); use the script above or your own automation. The script is **idempotent** (safe to re-run: skips existing cert, venv, and certbot renew cron entry).
