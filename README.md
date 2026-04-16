@@ -24,6 +24,10 @@ Override connection with `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, 
 
 ### macOS (Homebrew)
 
+**Idempotent one-shot:** from the repo root, run `./scripts/setup-postgres-macos.sh` (installs `postgresql@16` if needed, starts the service, ensures the `rhododendra` role and database, checks readiness). Safe to re-run.
+
+Or follow the manual steps:
+
 1. Install and start the server (user service, survives reboots when Brew services are enabled):
 
    ```bash
