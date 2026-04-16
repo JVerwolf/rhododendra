@@ -12,7 +12,7 @@
 #   PGHOST / PGPORT — override if PostgreSQL listens somewhere other than localhost:5432.
 #
 # Usage:
-#   ./scripts/setup-postgres-macos.sh
+#   ./scripts/dev/setup-postgres-macos.sh
 #
 set -euo pipefail
 

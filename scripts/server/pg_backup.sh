@@ -4,7 +4,7 @@
 # Run on the machine where PostgreSQL is installed (local dev or EC2).
 #
 # Usage:
-#   PGDATABASE=rhododendra PGUSER=rhododendra ./scripts/pg_backup.sh /path/to/backup.dump
+#   PGDATABASE=rhododendra PGUSER=rhododendra ./scripts/server/pg_backup.sh /path/to/backup.dump
 #
 set -euo pipefail
 OUT="${1:?output file path required}"

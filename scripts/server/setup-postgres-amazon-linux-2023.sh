@@ -12,9 +12,11 @@
 #   PGHOST / PGPORT — used only for pg_isready readiness checks (default localhost:5432).
 #     Admin SQL still uses the local Unix socket as the postgres OS user (peer auth).
 #
-# Usage:
-#   sudo ./scripts/setup-postgres-amazon-linux-2023.sh
-#   sudo -E env POSTGRES_APP_PASSWORD='your-strong-secret' ./scripts/setup-postgres-amazon-linux-2023.sh
+# Usage (from repo checkout):
+#   sudo ./scripts/server/setup-postgres-amazon-linux-2023.sh
+#   sudo -E env POSTGRES_APP_PASSWORD='your-strong-secret' ./scripts/server/setup-postgres-amazon-linux-2023.sh
+#
+# On EC2 after deploy, the same file is copied to REMOTE_BIN_DIR (default ~/rhododendra/bin/).
 #
 # On a non-Amazon-Linux-2023 system this script exits with an error unless you set
 #   FORCE=1

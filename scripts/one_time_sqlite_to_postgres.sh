@@ -11,7 +11,7 @@
 #    to PostgreSQL, or export CSV from SQLite and import with COPY. Schema types differ; prefer (1)
 #    when the JSON directory is available.
 #
-# 3) Backups after cutover: use pg_dump (see scripts/pg_backup.sh).
+# 3) Backups after cutover: use pg_dump (see scripts/server/pg_backup.sh).
 #
 echo "This script documents migration options; read the comments in the source."
 exit 0

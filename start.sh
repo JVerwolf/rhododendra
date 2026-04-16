@@ -16,6 +16,13 @@ LOG_PATH="${LOG_PATH:-$REMOTE_APP_DIR/log.log}"
 SPRING_DATASOURCE_URL="${SPRING_DATASOURCE_URL:-jdbc:postgresql://localhost:5432/rhododendra}"
 SPRING_DATASOURCE_USERNAME="${SPRING_DATASOURCE_USERNAME:-rhododendra}"
 
+JAR_BASENAME="$(basename "$JAR_PATH")"
+JAR_BASENAME_REGEX="${JAR_BASENAME//./\\.}"
+if pgrep -f "java.*${JAR_BASENAME_REGEX}" >/dev/null 2>&1; then
+  echo "Rhododendra already running (matched JAR ${JAR_BASENAME})."
+  exit 0
+fi
+
 mkdir -p "$REMOTE_APP_DIR" "$REMOTE_DATA_DIR"
 cd "$REMOTE_DATA_DIR"
 

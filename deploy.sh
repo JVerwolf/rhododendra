@@ -3,6 +3,9 @@
 # Deploy Rhododendra to EC2: upload JAR + scripts, sync Lucene index, then restart the app.
 # PostgreSQL runs on the server separately; configure SPRING_DATASOURCE_* there (see README).
 #
+# Optional overrides (defaults under scripts/server/): LOCAL_SERVER_SCRIPTS_DIR, SETUP_EC2_LOCAL,
+# SETUP_POSTGRES_LOCAL, PG_BACKUP_LOCAL, PG_RESTORE_LOCAL
+#
 # Examples (SSH private key path is always a positional argument — required):
 #   ./deploy.sh /path/to/ssh_private_key              # prod (default)
 #   ./deploy.sh prod /path/to/ssh_private_key
@@ -64,6 +67,11 @@ PROD_HOST="${PROD_HOST:-54.212.15.213}"
 # ---------------------------------------------------------------------------
 LOCAL_JAR="${LOCAL_JAR:-$SCRIPT_DIR/build/libs/rhododendra-0.0.1-SNAPSHOT.jar}"
 LOCAL_INDEX_DIR="${LOCAL_INDEX_DIR:-$SCRIPT_DIR/index}"
+LOCAL_SERVER_SCRIPTS_DIR="${LOCAL_SERVER_SCRIPTS_DIR:-$SCRIPT_DIR/scripts/server}"
+SETUP_EC2_LOCAL="${SETUP_EC2_LOCAL:-$LOCAL_SERVER_SCRIPTS_DIR/setup-ec2.sh}"
+SETUP_POSTGRES_LOCAL="${SETUP_POSTGRES_LOCAL:-$LOCAL_SERVER_SCRIPTS_DIR/setup-postgres-amazon-linux-2023.sh}"
+PG_BACKUP_LOCAL="${PG_BACKUP_LOCAL:-$LOCAL_SERVER_SCRIPTS_DIR/pg_backup.sh}"
+PG_RESTORE_LOCAL="${PG_RESTORE_LOCAL:-$LOCAL_SERVER_SCRIPTS_DIR/pg_restore.sh}"
 
 # ---------------------------------------------------------------------------
 # Remote layout: JAR and log under app/; Lucene index under data/
@@ -93,7 +101,15 @@ SSH_OPTS=(-i "$SSH_KEY" -o BatchMode=yes -o ConnectTimeout=20)
 # ---------------------------------------------------------------------------
 # Preflight: fail fast if the build or required scripts are missing locally
 # ---------------------------------------------------------------------------
-for required in "$LOCAL_JAR" "$LOCAL_INDEX_DIR" "$SCRIPT_DIR/start.sh" "$SCRIPT_DIR/stop.sh"; do
+for required in \
+  "$LOCAL_JAR" \
+  "$LOCAL_INDEX_DIR" \
+  "$SCRIPT_DIR/start.sh" \
+  "$SCRIPT_DIR/stop.sh" \
+  "$SETUP_EC2_LOCAL" \
+  "$SETUP_POSTGRES_LOCAL" \
+  "$PG_BACKUP_LOCAL" \
+  "$PG_RESTORE_LOCAL"; do
   if [[ ! -e "$required" ]]; then
     echo "Missing required file or directory: $required"
     exit 1
@@ -126,9 +142,13 @@ echo "[deploy] Remote directories OK."
 # ---------------------------------------------------------------------------
 echo "[deploy] Uploading JAR..."
 scp "${SSH_OPTS[@]}" "$LOCAL_JAR" "$REMOTE_TARGET:$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar"
-echo "[deploy] Uploading start.sh and stop.sh..."
+echo "[deploy] Uploading start.sh, stop.sh, and server maintenance scripts..."
 scp "${SSH_OPTS[@]}" "$SCRIPT_DIR/start.sh" "$REMOTE_TARGET:$REMOTE_BIN_DIR/start.sh"
 scp "${SSH_OPTS[@]}" "$SCRIPT_DIR/stop.sh" "$REMOTE_TARGET:$REMOTE_BIN_DIR/stop.sh"
+scp "${SSH_OPTS[@]}" "$SETUP_EC2_LOCAL" "$REMOTE_TARGET:$REMOTE_BIN_DIR/setup-ec2.sh"
+scp "${SSH_OPTS[@]}" "$SETUP_POSTGRES_LOCAL" "$REMOTE_TARGET:$REMOTE_BIN_DIR/setup-postgres-amazon-linux-2023.sh"
+scp "${SSH_OPTS[@]}" "$PG_BACKUP_LOCAL" "$REMOTE_TARGET:$REMOTE_BIN_DIR/pg_backup.sh"
+scp "${SSH_OPTS[@]}" "$PG_RESTORE_LOCAL" "$REMOTE_TARGET:$REMOTE_BIN_DIR/pg_restore.sh"
 
 # ---------------------------------------------------------------------------
 # Lucene: mirror local index/ to the server; --delete removes stale segment files remotely
@@ -144,7 +164,7 @@ rsync -az --delete --progress \
 # ---------------------------------------------------------------------------
 echo "[deploy] chmod scripts on server..."
 ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" \
-  "chmod +x \"$REMOTE_BIN_DIR/start.sh\" \"$REMOTE_BIN_DIR/stop.sh\""
+  "chmod +x \"${REMOTE_BIN_DIR}/start.sh\" \"${REMOTE_BIN_DIR}/stop.sh\" \"${REMOTE_BIN_DIR}/setup-ec2.sh\" \"${REMOTE_BIN_DIR}/setup-postgres-amazon-linux-2023.sh\" \"${REMOTE_BIN_DIR}/pg_backup.sh\" \"${REMOTE_BIN_DIR}/pg_restore.sh\""
 
 # ---------------------------------------------------------------------------
 # Remote restart: stop old JVM, then start with PROFILE matching prod or staging

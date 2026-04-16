@@ -16,6 +16,20 @@ Contributions are accepted under the same terms.
 
 - Integration tests use **embedded PostgreSQL 16** (Zonky) automatically — no local Postgres install required for `./gradlew test`.
 
+## Shell scripts
+
+Scripts are grouped by **where they run**. Paths are from the repository root unless noted.
+
+| Script | Environment | Purpose |
+|--------|-------------|---------|
+| [`deploy.sh`](deploy.sh) | **Developer / operator machine** (with repo + build) | Uploads JAR, Lucene `index/`, and shell helpers to EC2 over SSH, then restarts the app. |
+| [`scripts/dev/setup-postgres-macos.sh`](scripts/dev/setup-postgres-macos.sh) | **macOS dev** | Idempotent Homebrew PostgreSQL 16 and `rhododendra` role/database. |
+| [`scripts/server/setup-postgres-amazon-linux-2023.sh`](scripts/server/setup-postgres-amazon-linux-2023.sh) | **EC2 / Amazon Linux 2023** | Idempotent PostgreSQL 16 install and optional app role/DB. Same file is copied to `bin/` on each deploy. |
+| [`scripts/server/setup-ec2.sh`](scripts/server/setup-ec2.sh) | **EC2** | Java 17, certbot, TLS certificate, renew cron. Copied to remote `bin/setup-ec2.sh` on deploy. |
+| [`start.sh`](start.sh) / [`stop.sh`](stop.sh) | **EC2** (copied to `bin/` by deploy) | Start/stop the Spring Boot JAR. |
+| [`scripts/server/pg_backup.sh`](scripts/server/pg_backup.sh) / [`scripts/server/pg_restore.sh`](scripts/server/pg_restore.sh) | **Any host with PostgreSQL client tools** (dev or server) | Logical backup (`pg_dump -Fc`) and restore (`pg_restore --clean`). Copied to remote `bin/` on deploy. |
+| [`scripts/one_time_sqlite_to_postgres.sh`](scripts/one_time_sqlite_to_postgres.sh) | *Documentation only* | Prints migration options; does not modify data. |
+
 ## PostgreSQL setup
 
 **Version:** standardize on **PostgreSQL 16** (matches the embedded test binaries in `build.gradle.kts` and `postgresql16-*` on Amazon Linux 2023).
@@ -24,7 +38,7 @@ Override connection with `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, 
 
 ### macOS (Homebrew)
 
-**Idempotent one-shot:** from the repo root, run `./scripts/setup-postgres-macos.sh` (installs `postgresql@16` if needed, starts the service, ensures the `rhododendra` role and database, checks readiness). Safe to re-run.
+**Idempotent one-shot:** from the repo root, run `./scripts/dev/setup-postgres-macos.sh` (installs `postgresql@16` if needed, starts the service, ensures the `rhododendra` role and database, checks readiness). Safe to re-run.
 
 Or follow the manual steps:
 
@@ -56,14 +70,14 @@ Or follow the manual steps:
 Use the idempotent script (installs `postgresql16-server`, initializes if needed, enables `postgresql-16`):
 
 ```bash
-sudo ./scripts/setup-postgres-amazon-linux-2023.sh
+sudo ./scripts/server/setup-postgres-amazon-linux-2023.sh
 ```
 
 To create the `rhododendra` role and database in the same step, set a strong password first:
 
 ```bash
 export POSTGRES_APP_PASSWORD='your-strong-secret'
-sudo -E ./scripts/setup-postgres-amazon-linux-2023.sh
+sudo -E ./scripts/server/setup-postgres-amazon-linux-2023.sh
 ```
 
 The script is intended for Amazon Linux 2023 only. To run it on another OS (unsupported), set `FORCE=1` before `sudo -E`.
@@ -72,7 +86,7 @@ After `systemctl` reports the service active, the script waits on `pg_isready` (
 
 Then set `SPRING_DATASOURCE_PASSWORD` (or `start.sh` on the server) to match. For same-instance deployments, keep JDBC at `jdbc:postgresql://localhost:5432/rhododendra` and restrict PostgreSQL to local connections in `pg_hba.conf` unless you intentionally expose the port (use security groups and TLS for remote databases).
 
-**Note:** [`setup.sh`](setup.sh) does **not** install PostgreSQL automatically (certbot/Java-focused); use the script above or your own automation. The script is **idempotent** (safe to re-run: skips existing cert, venv, and certbot renew cron entry).
+**Note:** [`scripts/server/setup-ec2.sh`](scripts/server/setup-ec2.sh) does **not** install PostgreSQL automatically (certbot/Java-focused); use the script above or your own automation. It is **idempotent** (safe to re-run: skips existing cert, venv, and certbot renew cron entry). By default it **skips** `yum update` so repeat runs stay predictable; set `RHODODENDRA_RUN_OS_UPDATE=1` when you intentionally want a full OS package refresh first.
 
 ## Running the server (local)
 
@@ -138,6 +152,8 @@ java -jar build/libs/rhododendra-0.0.1-SNAPSHOT.jar
 
 `deploy.sh` deploys app binaries separately from runtime data paths; **PostgreSQL runs as its own service** on the server (or elsewhere). Lucene indexes live under the remote `data/` tree.
 
+**First-time server setup (order):** install and configure PostgreSQL (for example [`scripts/server/setup-postgres-amazon-linux-2023.sh`](scripts/server/setup-postgres-amazon-linux-2023.sh)), optionally run host bootstrap [`scripts/server/setup-ec2.sh`](scripts/server/setup-ec2.sh) for Java/TLS, set `SPRING_DATASOURCE_*` on the instance or in your process environment, then use `deploy.sh` for application rollout. `deploy.sh` does not execute those bootstrap steps automatically (no surprise `sudo` on production).
+
 **SSH key:** pass the path to your SSH **private** key as a **positional argument** only (see below). There is no default key path and no environment-variable override in `deploy.sh`.
 
 Default remote layout:
@@ -147,6 +163,8 @@ Default remote layout:
 - data root: `/home/ec2-user/rhododendra/data`
 - Lucene indexes: `/home/ec2-user/rhododendra/data/index`
 - PostgreSQL: installed on the instance (or another host); set `SPRING_DATASOURCE_*` for `start.sh` (see below)
+
+Each deploy copies into `bin/`: `start.sh`, `stop.sh`, `setup-ec2.sh`, `setup-postgres-amazon-linux-2023.sh`, `pg_backup.sh`, and `pg_restore.sh`, so the instance keeps current copies without a separate `git pull`. Override local sources with `SETUP_EC2_LOCAL`, `SETUP_POSTGRES_LOCAL`, `PG_BACKUP_LOCAL`, and `PG_RESTORE_LOCAL` if needed.
 
 Basic deploy:
 
@@ -159,12 +177,12 @@ Basic deploy:
 ./deploy.sh staging /path/to/ssh_private_key
 ```
 
-Database backups use PostgreSQL tools: [`scripts/pg_backup.sh`](scripts/pg_backup.sh) (`pg_dump` custom format) and restore with [`scripts/pg_restore.sh`](scripts/pg_restore.sh). Deploy does not copy a database file.
+Database backups use PostgreSQL tools: [`scripts/server/pg_backup.sh`](scripts/server/pg_backup.sh) (`pg_dump` custom format) and restore with [`scripts/server/pg_restore.sh`](scripts/server/pg_restore.sh). Deploy does **not** copy database dump files or PostgreSQL data—only the helper scripts.
 
 Notes:
 
 - Properties files are packaged in the JAR; deploy does not copy `application*.properties` separately.
-- The script prints `[deploy] …` steps as it runs. **Syncing the Lucene index** (`rsync`) is often the slow part; you will see per-file progress there.
+- The script prints `[deploy] …` steps as it runs. **Syncing the Lucene index** (`rsync --delete`) is often the slow part; you will see per-file progress there. The remote `data/index/` tree is made to **match** your local `index/` directory, including deletions of stale segment files. If your local `index/` is empty or wrong, the deploy will **wipe** the server’s search index to match—verify `index/` before deploying.
 - SSH is invoked with **BatchMode** (no password prompts) and a **connect timeout**, so a bad key or network fails instead of hanging. If your private key is **passphrase-protected**, load it into `ssh-agent` first (`ssh-add`); BatchMode cannot prompt for a passphrase.
 
 **SSH “Connection timed out” / banner exchange errors:** that means your machine never got a working SSH session to the host (not an application bug in Rhododendra). Check in order: EC2 instance is **running**, you’re using the **current** public IP or Elastic IP (IPs change if the instance was replaced), the **security group** allows inbound **TCP 22** from **your current public IP** (or `0.0.0.0/0` only if you accept that risk), and whether you must use **VPN** or a **bastion**. Confirm with:
@@ -177,10 +195,11 @@ Override the host in deploy without editing the script: `PROD_HOST=x.x.x.x ./dep
 
 ### `start.sh` and `stop.sh` (on the server)
 
-`deploy.sh` copies these to the remote `bin/` directory (default: `/home/ec2-user/rhododendra/bin/`). They are meant to run **on the EC2 instance** (or via `ssh`); they are not required for local development.
+`deploy.sh` copies these (and the other `scripts/server/*.sh` helpers listed above) to the remote `bin/` directory (default: `/home/ec2-user/rhododendra/bin/`). They are meant to run **on the EC2 instance** (or via `ssh`); they are not required for local development.
 
 **`start.sh`** — starts the app in the background:
 
+- If a JVM is already running whose command line matches the deployed JAR file name, prints a message and **exits 0** (idempotent; avoids a second process on re-run).
 - Ensures `app/` and `data/` exist under `REMOTE_BASE_DIR`.
 - Changes working directory to `REMOTE_DATA_DIR` so Lucene resolves `./index` to `…/data/index` (same tree `deploy.sh` syncs to).
 - Waits until nothing is listening on port **80** (same behavior as before SSL termination / binding on 80), up to **60 seconds**, then exits with an error so a stuck process cannot loop forever.
