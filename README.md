@@ -173,19 +173,55 @@ java -jar build/libs/rhododendra-0.0.1-SNAPSHOT.jar
 
 **First-time server setup (order):** install and configure PostgreSQL (for example [`scripts/server/setup-postgres-amazon-linux-2023.sh`](scripts/server/setup-postgres-amazon-linux-2023.sh)), optionally run host bootstrap [`scripts/server/setup-ec2.sh`](scripts/server/setup-ec2.sh) for Java/TLS, configure **secrets on the instance** (see *Secrets on the server* below), then use `deploy.sh` for application rollout. `deploy.sh` does not execute those bootstrap steps automatically (no surprise `sudo` on production).
 
-**Secrets on the server:** `deploy.sh` only uploads the JAR, `start.sh` / `stop.sh`, and server helper scripts—it must **not** upload credential files from git (there should be none). On the EC2 host, create a root-owned env file **outside** the app tree, for example:
+**Secrets on the server:** `deploy.sh` can install `/etc/rhododendra/rhododendra.env` on the remote host **from a dev-side file that is never committed**. The secrets source on your machine is one file per environment:
+
+- Default path: **`~/.config/rhododendra/<env>.env`** (e.g. `~/.config/rhododendra/prod.env`).
+- Override with `--secrets-file /path/to/file` or `RHODODENDRA_SECRETS_FILE=/path` env var.
+- File **must** be mode **`0600`** on your laptop; `deploy.sh` refuses to upload if it is world/group-readable.
+
+One-time setup on the dev machine:
 
 ```bash
-sudo mkdir -p /etc/rhododendra
-sudo install -o root -g root -m 0600 /dev/null /etc/rhododendra/rhododendra.env
-sudo nano /etc/rhododendra/rhododendra.env   # add KEY=value lines; see .env.example
+mkdir -p ~/.config/rhododendra
+umask 077
+cp .env.example ~/.config/rhododendra/prod.env   # starts from the template
+chmod 600 ~/.config/rhododendra/prod.env
+$EDITOR ~/.config/rhododendra/prod.env           # fill in real values
 ```
 
-[`start.sh`](start.sh) loads **`/etc/rhododendra/rhododendra.env`** by default when that path is readable (override with **`RHODODENDRA_ENV_FILE`**). Use the same variable names as [`.env.example`](.env.example), including **`SPRING_DATASOURCE_PASSWORD`** (required for `prod` and `staging` profiles).
+**How the upload works** ([scripts/server/deploy-secrets.sh](scripts/server/deploy-secrets.sh)):
 
-**Stronger option:** store values in **AWS Systems Manager Parameter Store** (`SecureString`) or **Secrets Manager**, attach an **IAM instance profile** to the EC2 role with least-privilege read access, and use a small boot script or `ExecStartPre` to materialize `/etc/rhododendra/rhododendra.env` or export into the service environment—still no secrets in git.
+1. **Local preflight**: file exists, regular, readable, mode `0600`, and contains `SPRING_DATASOURCE_PASSWORD` (required for `prod`/`staging`). Values are never printed.
+2. **Upload** to a per-run staging path under the SSH user's `$HOME` (mode `0600`); a `trap` removes it on every exit path so plaintext never lingers.
+3. **Backup + atomic replace** on the server: existing `/etc/rhododendra/rhododendra.env` is copied to `rhododendra.env.bak.<UTC-timestamp>` (root-owned, `0600`), then `sudo install` writes the new file in place (atomic rename). The `--keep-backups` flag (default **5**) prunes older backups.
+4. **Verify** ownership/mode is `root root 600`; if the install fails, the newest backup is restored automatically.
+5. **No restart** here — `deploy.sh` restarts the JVM at the end so the new values are picked up without a second round-trip.
 
-For a **systemd-managed** process instead of `nohup`, see [`scripts/server/rhododendra.service.example`](scripts/server/rhododendra.service.example).
+[`start.sh`](start.sh) loads **`/etc/rhododendra/rhododendra.env`** when readable (override with **`RHODODENDRA_ENV_FILE`**). Use the same variable names as [`.env.example`](.env.example), including **`SPRING_DATASOURCE_PASSWORD`** (required for `prod` and `staging` profiles).
+
+**Common flows:**
+
+```bash
+./deploy.sh prod /path/to/key                             # deploys code + secrets
+./deploy.sh --skip-secrets prod /path/to/key              # code only
+./deploy.sh --secrets-file /other/path prod /path/to/key  # custom source
+./scripts/server/deploy-secrets.sh --env prod --ssh-key /path/to/key --dry-run
+./scripts/server/deploy-secrets.sh --env prod --ssh-key /path/to/key  # secrets only
+```
+
+**Rotate secrets:** edit `~/.config/rhododendra/<env>.env`, re-run `./deploy.sh`. The file is the same each time → idempotent; a new timestamped backup is created and the app restarts onto the new values.
+
+**Roll back on the server** (if a new secrets file broke auth):
+
+```bash
+sudo ls -1t /etc/rhododendra/rhododendra.env.bak.* | head -n 5   # pick a backup
+sudo install -o root -g root -m 0600 <backup> /etc/rhododendra/rhododendra.env
+sudo /home/ec2-user/rhododendra/bin/stop.sh && sudo /home/ec2-user/rhododendra/bin/start.sh
+```
+
+**Stronger option:** store values in **AWS Systems Manager Parameter Store** (`SecureString`) or **Secrets Manager** and materialize `/etc/rhododendra/rhododendra.env` via `ExecStartPre`; still no secrets in git. On Lightsail, instance roles are not available natively, so this typically uses an IAM user with a least-privilege read policy.
+
+For a **systemd-managed** process instead of `nohup`, see [`scripts/server/rhododendra.service.example`](scripts/server/rhododendra.service.example). Host hardening (dedicated Linux user, SSH/sudo lockdown) is deliberately **separate work** — the secrets deploy does not touch SSH config, sudoers, firewall rules, or user accounts.
 
 **SSH key:** pass the path to your SSH **private** key as a **positional argument** only (see below). There is no default key path and no environment-variable override in `deploy.sh`.
 
@@ -197,7 +233,7 @@ Default remote layout:
 - Lucene indexes: `/home/ec2-user/rhododendra/data/index`
 - PostgreSQL: installed on the instance (or another host); set `SPRING_DATASOURCE_*` for `start.sh` (see below)
 
-Each deploy copies into `bin/`: `start.sh`, `stop.sh`, `setup-ec2.sh`, `setup-postgres-amazon-linux-2023.sh`, `pg_backup.sh`, and `pg_restore.sh`, so the instance keeps current copies without a separate `git pull`. Override local sources with `SETUP_EC2_LOCAL`, `SETUP_POSTGRES_LOCAL`, `PG_BACKUP_LOCAL`, and `PG_RESTORE_LOCAL` if needed.
+Each deploy copies into `bin/`: `start.sh`, `stop.sh`, `setup-ec2.sh`, `setup-postgres-amazon-linux-2023.sh`, `pg_backup.sh`, and `pg_restore.sh`, so the instance keeps current copies without a separate `git pull`. Override local sources with `SETUP_EC2_LOCAL`, `SETUP_POSTGRES_LOCAL`, `PG_BACKUP_LOCAL`, `PG_RESTORE_LOCAL`, and `DEPLOY_SECRETS_LOCAL` if needed. [`scripts/server/deploy-secrets.sh`](scripts/server/deploy-secrets.sh) runs from the **dev machine** and is not copied into remote `bin/`.
 
 Basic deploy:
 

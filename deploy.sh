@@ -12,6 +12,11 @@
 #   ./deploy.sh prod /path/to/ssh_private_key
 #   ./deploy.sh staging /path/to/ssh_private_key
 #
+# Optional flags (any order; must appear BEFORE positionals are parsed):
+#   --skip-secrets                Do not push /etc/rhododendra/rhododendra.env this run.
+#   --secrets-file <path>         Override the local secrets source file.
+#                                 Default: ~/.config/rhododendra/<env>.env
+#
 # Exit on error, treat unset variables as errors, and fail pipelines on first failing command.
 set -euo pipefail
 
@@ -21,11 +26,31 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ---------------------------------------------------------------------------
 # Arguments and toggles
 # ---------------------------------------------------------------------------
+# Parse optional --flags first, then the remaining positional args keep the
+# prior contract: [<prod|staging>] <ssh-key-path>.
+SKIP_SECRETS=0
+SECRETS_FILE=""
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --skip-secrets)   SKIP_SECRETS=1; shift ;;
+    --secrets-file)   SECRETS_FILE="${2:-}"; shift 2 ;;
+    -h|--help)
+      echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] [<prod|staging>] <path-to-ssh-private-key>"
+      exit 0
+      ;;
+    --) shift; while [[ $# -gt 0 ]]; do POSITIONAL+=( "$1" ); shift; done ;;
+    -*) echo "Unknown flag: $1"; exit 1 ;;
+    *)  POSITIONAL+=( "$1" ); shift ;;
+  esac
+done
+set -- "${POSITIONAL[@]}"
+
 # Required positional arguments: SSH private key path (and optional prod|staging).
 case $# in
   0)
-    echo "Usage: ./deploy.sh <path-to-ssh-private-key>"
-    echo "       ./deploy.sh <prod|staging> <path-to-ssh-private-key>"
+    echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] <path-to-ssh-private-key>"
+    echo "       ./deploy.sh [--skip-secrets] [--secrets-file <path>] <prod|staging> <path-to-ssh-private-key>"
     exit 1
     ;;
   1)
@@ -37,15 +62,15 @@ case $# in
     SSH_KEY_ARG="${2}"
     if [[ "$ENVIRONMENT" != "prod" && "$ENVIRONMENT" != "staging" ]]; then
       echo "Invalid environment: $ENVIRONMENT (expected prod or staging)"
-      echo "Usage: ./deploy.sh <path-to-ssh-private-key>"
-      echo "       ./deploy.sh <prod|staging> <path-to-ssh-private-key>"
+      echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] <path-to-ssh-private-key>"
+      echo "       ./deploy.sh [--skip-secrets] [--secrets-file <path>] <prod|staging> <path-to-ssh-private-key>"
       exit 1
     fi
     ;;
   *)
     echo "Too many arguments."
-    echo "Usage: ./deploy.sh <path-to-ssh-private-key>"
-    echo "       ./deploy.sh <prod|staging> <path-to-ssh-private-key>"
+    echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] <path-to-ssh-private-key>"
+    echo "       ./deploy.sh [--skip-secrets] [--secrets-file <path>] <prod|staging> <path-to-ssh-private-key>"
     exit 1
     ;;
 esac
@@ -73,6 +98,17 @@ SETUP_EC2_LOCAL="${SETUP_EC2_LOCAL:-$LOCAL_SERVER_SCRIPTS_DIR/setup-ec2.sh}"
 SETUP_POSTGRES_LOCAL="${SETUP_POSTGRES_LOCAL:-$LOCAL_SERVER_SCRIPTS_DIR/setup-postgres-amazon-linux-2023.sh}"
 PG_BACKUP_LOCAL="${PG_BACKUP_LOCAL:-$LOCAL_SERVER_SCRIPTS_DIR/pg_backup.sh}"
 PG_RESTORE_LOCAL="${PG_RESTORE_LOCAL:-$LOCAL_SERVER_SCRIPTS_DIR/pg_restore.sh}"
+DEPLOY_SECRETS_LOCAL="${DEPLOY_SECRETS_LOCAL:-$LOCAL_SERVER_SCRIPTS_DIR/deploy-secrets.sh}"
+
+# Default dev-side secrets source (NOT in the repo). One file per environment so
+# a prod deploy cannot accidentally pick up staging credentials and vice versa.
+# Override with `--secrets-file <path>` or RHODODENDRA_SECRETS_FILE env var.
+if [[ -z "$SECRETS_FILE" && -n "${RHODODENDRA_SECRETS_FILE:-}" ]]; then
+  SECRETS_FILE="$RHODODENDRA_SECRETS_FILE"
+fi
+if [[ -z "$SECRETS_FILE" ]]; then
+  SECRETS_FILE="$HOME/.config/rhododendra/${ENVIRONMENT:-prod}.env"
+fi
 
 # ---------------------------------------------------------------------------
 # Remote layout: JAR and log under app/; Lucene index under data/
@@ -110,17 +146,49 @@ for required in \
   "$SETUP_EC2_LOCAL" \
   "$SETUP_POSTGRES_LOCAL" \
   "$PG_BACKUP_LOCAL" \
-  "$PG_RESTORE_LOCAL"; do
+  "$PG_RESTORE_LOCAL" \
+  "$DEPLOY_SECRETS_LOCAL"; do
   if [[ ! -e "$required" ]]; then
     echo "Missing required file or directory: $required"
     exit 1
   fi
 done
 
+# Secrets preflight: catch a missing/unreadable/broken local file BEFORE we
+# touch the server. We invoke deploy-secrets.sh in --dry-run mode so the *same*
+# validation logic (mode 0600, required keys, parseability) runs here. Any
+# subsequent failure during the real upload is then limited to remote/transport
+# problems, which deploy-secrets.sh handles with backup+restore.
+if (( SKIP_SECRETS == 0 )); then
+  if [[ ! -r "$SECRETS_FILE" ]]; then
+    echo ""
+    echo "Secrets file missing or unreadable: $SECRETS_FILE"
+    echo "  - Create it outside the repo (mode 0600) with the keys from .env.example, or"
+    echo "  - Pass --secrets-file <path> to point at a different file, or"
+    echo "  - Pass --skip-secrets to deploy code only (leaves existing server secrets intact)."
+    exit 1
+  fi
+  echo "[deploy] Validating secrets file (dry-run)..."
+  if ! "$DEPLOY_SECRETS_LOCAL" \
+      --env "$ENVIRONMENT" \
+      --ssh-key "$SSH_KEY" \
+      --secrets-file "$SECRETS_FILE" \
+      --dry-run; then
+    echo ""
+    echo "Secrets preflight failed; aborting before any remote changes."
+    exit 1
+  fi
+fi
+
 echo "Deploying to $ENVIRONMENT ($REMOTE_TARGET)"
 echo "Remote base: $REMOTE_BASE_DIR"
 echo "Remote app dir: $REMOTE_APP_DIR"
 echo "Remote data dir: $REMOTE_DATA_DIR"
+if (( SKIP_SECRETS )); then
+  echo "Secrets:     SKIPPED (--skip-secrets); previous server file is unchanged"
+else
+  echo "Secrets:     $SECRETS_FILE -> $REMOTE_TARGET:/etc/rhododendra/rhododendra.env"
+fi
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -150,6 +218,25 @@ scp "${SSH_OPTS[@]}" "$SETUP_EC2_LOCAL" "$REMOTE_TARGET:$REMOTE_BIN_DIR/setup-ec
 scp "${SSH_OPTS[@]}" "$SETUP_POSTGRES_LOCAL" "$REMOTE_TARGET:$REMOTE_BIN_DIR/setup-postgres-amazon-linux-2023.sh"
 scp "${SSH_OPTS[@]}" "$PG_BACKUP_LOCAL" "$REMOTE_TARGET:$REMOTE_BIN_DIR/pg_backup.sh"
 scp "${SSH_OPTS[@]}" "$PG_RESTORE_LOCAL" "$REMOTE_TARGET:$REMOTE_BIN_DIR/pg_restore.sh"
+
+# ---------------------------------------------------------------------------
+# Secrets: push the dev-side env file to /etc/rhododendra/rhododendra.env with
+# root:root 0600, backup-before-replace, and cleanup on failure. Runs BEFORE the
+# JVM restart so start.sh picks up the new values immediately. If this step
+# fails, we abort the deploy and the JVM keeps running on the previous JAR and
+# previous secrets (deploy-secrets.sh restores its own backup on remote errors).
+# ---------------------------------------------------------------------------
+if (( SKIP_SECRETS == 0 )); then
+  echo "[deploy] Pushing secrets to /etc/rhododendra/rhododendra.env..."
+  "$DEPLOY_SECRETS_LOCAL" \
+    --env "$ENVIRONMENT" \
+    --ssh-key "$SSH_KEY" \
+    --secrets-file "$SECRETS_FILE" \
+    --host "$HOST" \
+    --remote-user "$REMOTE_USER"
+else
+  echo "[deploy] Skipping secrets upload (--skip-secrets)."
+fi
 
 # ---------------------------------------------------------------------------
 # Lucene: mirror local index/ to the server; --delete removes stale segment files remotely
