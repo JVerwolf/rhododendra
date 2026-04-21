@@ -2,7 +2,10 @@
 #
 # Run on EC2 (after deploy): start Rhododendra in the background with nohup.
 # Uses REMOTE_DATA_DIR as cwd so Lucene ./index matches …/data/index.
-# PostgreSQL connection is passed via SPRING_DATASOURCE_* (see README).
+#
+# Optional secrets file (not in git): RHODODENDRA_ENV_FILE (default
+# /etc/rhododendra/rhododendra.env). If readable, it is sourced before building
+# the environment passed to Java (SPRING_DATASOURCE_* and OAuth client vars).
 #
 set -euo pipefail
 
@@ -13,8 +16,17 @@ REMOTE_DATA_DIR="${REMOTE_DATA_DIR:-$REMOTE_BASE_DIR/data}"
 JAR_PATH="${JAR_PATH:-$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar}"
 LOG_PATH="${LOG_PATH:-$REMOTE_APP_DIR/log.log}"
 
+RHODODENDRA_ENV_FILE="${RHODODENDRA_ENV_FILE:-/etc/rhododendra/rhododendra.env}"
+
 SPRING_DATASOURCE_URL="${SPRING_DATASOURCE_URL:-jdbc:postgresql://localhost:5432/rhododendra}"
 SPRING_DATASOURCE_USERNAME="${SPRING_DATASOURCE_USERNAME:-rhododendra}"
+
+if [[ -r "$RHODODENDRA_ENV_FILE" ]]; then
+  set -a
+  # shellcheck source=/dev/null
+  source "$RHODODENDRA_ENV_FILE"
+  set +a
+fi
 
 JAR_BASENAME="$(basename "$JAR_PATH")"
 JAR_BASENAME_REGEX="${JAR_BASENAME//./\\.}"
@@ -32,6 +44,11 @@ DS_ENV+=( "SPRING_DATASOURCE_USERNAME=$SPRING_DATASOURCE_USERNAME" )
 if [[ -n "${SPRING_DATASOURCE_PASSWORD:-}" ]]; then
   DS_ENV+=( "SPRING_DATASOURCE_PASSWORD=$SPRING_DATASOURCE_PASSWORD" )
 fi
+for name in GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET FACEBOOK_CLIENT_ID FACEBOOK_CLIENT_SECRET; do
+  if [[ -n "${!name:-}" ]]; then
+    DS_ENV+=( "${name}=${!name}" )
+  fi
+done
 
 # Wait for port 80 (bound wait so a stuck old JVM does not hang forever after deploy).
 for _ in {1..600}; do

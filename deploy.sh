@@ -1,7 +1,8 @@
 #!/bin/bash
 #
 # Deploy Rhododendra to EC2: upload JAR + scripts, sync Lucene index, then restart the app.
-# PostgreSQL runs on the server separately; configure SPRING_DATASOURCE_* there (see README).
+# PostgreSQL runs on the server separately; configure secrets on the host (see README).
+# Never add credential files to git or scp them from here — use /etc/… or AWS SSM/Secrets Manager.
 #
 # Optional overrides (defaults under scripts/server/): LOCAL_SERVER_SCRIPTS_DIR, SETUP_EC2_LOCAL,
 # SETUP_POSTGRES_LOCAL, PG_BACKUP_LOCAL, PG_RESTORE_LOCAL

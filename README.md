@@ -103,6 +103,31 @@ By default the app reads [`src/main/resources/application.properties`](src/main/
 
 Open [http://localhost:8090](http://localhost:8090).
 
+### Secrets and environment (local)
+
+Database passwords, OAuth client secrets, and other sensitive values **must not** be committed. The repo includes [`.env.example`](.env.example) with the variable names Spring expects (same names as in [`application.properties`](src/main/resources/application.properties)). Copy it to **`.env`** or **`.env.local`** in the project root (both are [gitignored](.gitignore)) and fill in real values.
+
+**Run with a local env file:**
+
+```bash
+chmod +x scripts/dev/run-with-env.sh   # once
+./scripts/dev/run-with-env.sh
+```
+
+By default that script loads **`.env`**. To use another path: `RHODODENDRA_ENV_FILE=/path/to/file ./scripts/dev/run-with-env.sh`.
+
+**Manual alternative:**
+
+```bash
+set -a && source .env && set +a && ./gradlew bootRun
+```
+
+**Production-like profile locally:** `application-prod.properties` and `application-staging.properties` require **`SPRING_DATASOURCE_PASSWORD`** (no default baked in). Put it in `.env` when testing `prod` / `staging` profiles.
+
+**On EC2 (production):** keep secrets **on the server** (or in AWS SSM Parameter Store / Secrets Manager with an instance IAM role). Do **not** add secrets to `deploy.sh` or `rsync` / `scp` them from your laptop—deploy only builds artifacts from git. See [Deploying to EC2](#deploying-to-ec2) → *Secrets on the server*.
+
+**Optional hardening:** run the JVM as a **dedicated Linux user** (not shared `ec2-user`), use **systemd** with `EnvironmentFile=` instead of ad-hoc `nohup`, and restrict who can SSH or `sudo` on the box. Example unit: [`scripts/server/rhododendra.service.example`](scripts/server/rhododendra.service.example). For **privileged ports** (for example 80 and 443) without running the JVM as root, use `AmbientCapabilities=CAP_NET_BIND_SERVICE` on that user or terminate TLS on a reverse proxy.
+
 ### Local sign-in (Google / Facebook OAuth)
 
 Sign-in uses Spring Security OAuth2; the app does **not** store passwords. Credentials come from environment variables (see [`application.properties`](src/main/resources/application.properties) for the exact property names Spring maps them to).
@@ -115,13 +140,7 @@ Sign-in uses Spring Security OAuth2; the app does **not** store passwords. Crede
    `http://localhost:8090/login/oauth2/code/google`
 
 3. If you browse the app as `http://127.0.0.1:8090` instead of `localhost`, add a second redirect URI with `127.0.0.1`—Google treats hostnames literally.
-4. Set real values locally (example):
-
-   ```bash
-   export GOOGLE_CLIENT_ID="your-id.apps.googleusercontent.com"
-   export GOOGLE_CLIENT_SECRET="your-secret"
-   ./gradlew bootRun
-   ```
+4. Set real values in **`.env`** (see [Secrets and environment (local)](#secrets-and-environment-local)) or export in your shell, then run `./scripts/dev/run-with-env.sh` or `./gradlew bootRun`.
 
    Unset variables fall back to dummy placeholders and **will not** work with Google. If the consent screen is in **Testing** mode, add your Google account under **Test users**.
 
@@ -135,10 +154,10 @@ Sign-in uses Spring Security OAuth2; the app does **not** store passwords. Crede
 
 **After logout:** each “Continue with …” link sends extra OAuth parameters so Google shows an **account chooser** (`prompt=select_account`) and Facebook prompts for **login again** (`auth_type=reauthenticate`). That avoids the browser silently reusing the last Google/Facebook session without letting you pick a different account or provider. Implementation: [`ReauthenticationOAuth2AuthorizationRequestResolver`](src/main/java/com/rhododendra/config/ReauthenticationOAuth2AuthorizationRequestResolver.java).
 
-To use another profile (e.g. production SSL settings in `application-prod.properties`):
+To use another profile (e.g. production SSL settings in `application-prod.properties`), set **`SPRING_DATASOURCE_PASSWORD`** (and any OAuth vars you need) first—for example via `.env` and:
 
 ```bash
-./gradlew bootRun --args='--spring.profiles.active=prod'
+./scripts/dev/run-with-env.sh --args='--spring.profiles.active=prod'
 ```
 
 To build a runnable JAR:
@@ -152,7 +171,21 @@ java -jar build/libs/rhododendra-0.0.1-SNAPSHOT.jar
 
 `deploy.sh` deploys app binaries separately from runtime data paths; **PostgreSQL runs as its own service** on the server (or elsewhere). Lucene indexes live under the remote `data/` tree.
 
-**First-time server setup (order):** install and configure PostgreSQL (for example [`scripts/server/setup-postgres-amazon-linux-2023.sh`](scripts/server/setup-postgres-amazon-linux-2023.sh)), optionally run host bootstrap [`scripts/server/setup-ec2.sh`](scripts/server/setup-ec2.sh) for Java/TLS, set `SPRING_DATASOURCE_*` on the instance or in your process environment, then use `deploy.sh` for application rollout. `deploy.sh` does not execute those bootstrap steps automatically (no surprise `sudo` on production).
+**First-time server setup (order):** install and configure PostgreSQL (for example [`scripts/server/setup-postgres-amazon-linux-2023.sh`](scripts/server/setup-postgres-amazon-linux-2023.sh)), optionally run host bootstrap [`scripts/server/setup-ec2.sh`](scripts/server/setup-ec2.sh) for Java/TLS, configure **secrets on the instance** (see *Secrets on the server* below), then use `deploy.sh` for application rollout. `deploy.sh` does not execute those bootstrap steps automatically (no surprise `sudo` on production).
+
+**Secrets on the server:** `deploy.sh` only uploads the JAR, `start.sh` / `stop.sh`, and server helper scripts—it must **not** upload credential files from git (there should be none). On the EC2 host, create a root-owned env file **outside** the app tree, for example:
+
+```bash
+sudo mkdir -p /etc/rhododendra
+sudo install -o root -g root -m 0600 /dev/null /etc/rhododendra/rhododendra.env
+sudo nano /etc/rhododendra/rhododendra.env   # add KEY=value lines; see .env.example
+```
+
+[`start.sh`](start.sh) loads **`/etc/rhododendra/rhododendra.env`** by default when that path is readable (override with **`RHODODENDRA_ENV_FILE`**). Use the same variable names as [`.env.example`](.env.example), including **`SPRING_DATASOURCE_PASSWORD`** (required for `prod` and `staging` profiles).
+
+**Stronger option:** store values in **AWS Systems Manager Parameter Store** (`SecureString`) or **Secrets Manager**, attach an **IAM instance profile** to the EC2 role with least-privilege read access, and use a small boot script or `ExecStartPre` to materialize `/etc/rhododendra/rhododendra.env` or export into the service environment—still no secrets in git.
+
+For a **systemd-managed** process instead of `nohup`, see [`scripts/server/rhododendra.service.example`](scripts/server/rhododendra.service.example).
 
 **SSH key:** pass the path to your SSH **private** key as a **positional argument** only (see below). There is no default key path and no environment-variable override in `deploy.sh`.
 
@@ -203,7 +236,8 @@ Override the host in deploy without editing the script: `PROD_HOST=x.x.x.x ./dep
 - Ensures `app/` and `data/` exist under `REMOTE_BASE_DIR`.
 - Changes working directory to `REMOTE_DATA_DIR` so Lucene resolves `./index` to `…/data/index` (same tree `deploy.sh` syncs to).
 - Waits until nothing is listening on port **80** (same behavior as before SSL termination / binding on 80), up to **60 seconds**, then exits with an error so a stuck process cannot loop forever.
-- Runs `java` with `-Dspring.profiles.active=$PROFILE` (default **`prod`**) and `-jar` pointing at the deployed JAR. **PostgreSQL** is configured with environment variables `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and optionally `SPRING_DATASOURCE_PASSWORD` (omit the last to use the password baked into `application.properties` in the JAR, which defaults to `rhododendra` for local-style installs only—set a real secret in production).
+- If **`RHODODENDRA_ENV_FILE`** (default **`/etc/rhododendra/rhododendra.env`**) exists and is readable, **sources** it before starting Java so you can keep DB and OAuth variables off git (see [Secrets on the server](#deploying-to-ec2)).
+- Runs `java` with `-Dspring.profiles.active=$PROFILE` (default **`prod`**) and `-jar` pointing at the deployed JAR. Forwards **`SPRING_DATASOURCE_*`** and, when set, **`GOOGLE_*`** / **`FACEBOOK_*`** into the process environment. With **`prod`** or **`staging`**, Spring requires **`SPRING_DATASOURCE_PASSWORD`** (no default in those profiles)—set it in the env file or shell.
 - Appends stdout/stderr to `LOG_PATH` (default `…/app/log.log`) via `nohup`.
 
 **`stop.sh`** — stops the Rhododendra JVM only:
@@ -221,7 +255,8 @@ Override the host in deploy without editing the script: `PROD_HOST=x.x.x.x ./dep
 | `REMOTE_DATA_DIR` | start | `$REMOTE_BASE_DIR/data` | Working directory at runtime; holds `index/` (Lucene). |
 | `SPRING_DATASOURCE_URL` | start | `jdbc:postgresql://localhost:5432/rhododendra` | JDBC URL (use host/port for a dedicated DB server). |
 | `SPRING_DATASOURCE_USERNAME` | start | `rhododendra` | PostgreSQL user. |
-| `SPRING_DATASOURCE_PASSWORD` | start | *(unset)* | If unset, Spring uses `application.properties` default; set in production. |
+| `SPRING_DATASOURCE_PASSWORD` | start | *(unset)* | Required for **`prod`** / **`staging`** (set on the server). Optional for **`local`** (falls back to `application.properties`). |
+| `RHODODENDRA_ENV_FILE` | start | `/etc/rhododendra/rhododendra.env` | If this path is **readable**, it is sourced (`KEY=value`) before `java` starts. |
 | `JAR_PATH` | both | `$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar` | Which JAR to start / which process to stop. |
 | `LOG_PATH` | start | `$REMOTE_APP_DIR/log.log` | Server log file for the `nohup` process. |
 
@@ -302,6 +337,7 @@ One-time migration from the old SQLite workflow is summarized in [`scripts/one_t
 
 | Key / topic | Purpose |
 |-------------|---------|
+| [`.env.example`](.env.example) / local `.env` | Template and gitignored file for secrets and overrides (see [Secrets and environment (local)](#secrets-and-environment-local)). |
 | `spring.datasource.url` / `SPRING_DATASOURCE_URL` | JDBC URL (include host/port for a remote PostgreSQL server) |
 | `spring.datasource.username` / `SPRING_DATASOURCE_USERNAME` | Database user |
 | `spring.datasource.password` / `SPRING_DATASOURCE_PASSWORD` | Database password |

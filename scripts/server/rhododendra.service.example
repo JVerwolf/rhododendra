@@ -1,0 +1,33 @@
+# Example systemd unit — copy to /etc/systemd/system/rhododendra.service and adjust paths.
+# Prefer running as a dedicated user (not ec2-user); create user/group and app dirs first.
+#
+# Secrets: use EnvironmentFile= pointing at a root-owned file outside git, e.g.
+#   sudo install -o root -g root -m 0600 rhododendra.env /etc/rhododendra/rhododendra.env
+#
+# For HTTPS on ports 80/443 without running Java as root, either:
+#   - set AmbientCapabilities=CAP_NET_BIND_SERVICE on the service user, or
+#   - terminate TLS on nginx/caddy and proxy to the app on a high port.
+#
+# After installing:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now rhododendra
+
+[Unit]
+Description=Rhododendra Spring Boot site
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=rhododendra
+Group=rhododendra
+WorkingDirectory=/var/lib/rhododendra/data
+EnvironmentFile=-/etc/rhododendra/rhododendra.env
+# Uncomment if the JVM must bind to ports < 1024 as non-root:
+# AmbientCapabilities=CAP_NET_BIND_SERVICE
+# CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+ExecStart=/usr/bin/java -Dspring.profiles.active=prod -jar /var/lib/rhododendra/app/rhododendra-0.0.1-SNAPSHOT.jar
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
