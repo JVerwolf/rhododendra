@@ -158,11 +158,20 @@ esac
 
 # Parse keys without sourcing (avoid executing anything from the file locally).
 # Lines starting with # or blank are ignored; keys must match shell-style names.
+# Any line that is not a comment/blank and is not a valid KEY=... assignment is
+# reported by line number only — we never echo the content, since a malformed
+# line could still contain secret material.
 PRESENT_KEYS=()
+LINENO_COUNTER=0
+UNKNOWN_LINES=0
 while IFS= read -r line || [[ -n "$line" ]]; do
+  LINENO_COUNTER=$((LINENO_COUNTER + 1))
   [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
   if [[ "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)= ]]; then
     PRESENT_KEYS+=( "${BASH_REMATCH[1]}" )
+  else
+    echo "[secrets] Warning: $SECRETS_FILE line $LINENO_COUNTER is not a KEY=value assignment; ignored." >&2
+    UNKNOWN_LINES=$((UNKNOWN_LINES + 1))
   fi
 done < "$SECRETS_FILE"
 
@@ -193,11 +202,14 @@ REMOTE_TARGET="${REMOTE_USER}@${HOST}"
 SSH_OPTS=(-i "$SSH_KEY" -o BatchMode=yes -o ConnectTimeout=20)
 
 echo "[secrets] Environment:    $ENVIRONMENT"
-echo "[secrets] Remote target:  $REMOTE_TARGET"
+echo "[secrets] Remote host:    $REMOTE_TARGET"
 echo "[secrets] Local file:     $SECRETS_FILE (mode $LOCAL_MODE)"
-echo "[secrets] Remote target:  $REMOTE_ENV_FILE (root:root 0600)"
+echo "[secrets] Remote path:    $REMOTE_ENV_FILE (root:root 0600)"
 echo "[secrets] Keys present:   ${PRESENT_KEYS[*]:-<none>}"
 echo "[secrets] Keep backups:   $KEEP_BACKUPS"
+if (( UNKNOWN_LINES > 0 )); then
+  echo "[secrets] Warnings:       $UNKNOWN_LINES unparseable line(s) ignored (see above)."
+fi
 
 if (( DRY_RUN )); then
   echo "[secrets] --dry-run: validated locally; not uploading."
@@ -210,7 +222,19 @@ fi
 # secrets until the next manual cleanup).
 # ---------------------------------------------------------------------------
 # $$ is the local PID; good enough as a per-run identifier on the remote home.
-REMOTE_STAGING="\$HOME/.rhododendra-secrets.$$.env"
+#
+# Two forms of the staging path are intentional:
+#   - REMOTE_STAGING_NAME is a bare, home-relative filename. We pass this to
+#     scp because OpenSSH 9.0+ defaults scp to the SFTP protocol, which does
+#     NOT perform shell expansion on remote paths. A literal "$HOME/…"
+#     destination would fail on any modern macOS / Linux box; a relative path
+#     is resolved by SFTP against the user's home directory, which is exactly
+#     what we want.
+#   - REMOTE_STAGING is the explicit "$HOME/…" form we pass to ssh, where the
+#     remote shell does expand $HOME. That avoids depending on the remote
+#     shell's working directory.
+REMOTE_STAGING_NAME=".rhododendra-secrets.$$.env"
+REMOTE_STAGING="\$HOME/${REMOTE_STAGING_NAME}"
 cleanup_remote_staging() {
   # Best-effort: if the SSH session or key is broken we cannot clean up, but we
   # tried. Never fail the script from the trap.
@@ -221,7 +245,7 @@ trap cleanup_remote_staging EXIT
 echo "[secrets] Uploading to remote staging path..."
 # scp does not set a fine-grained remote mode, so we explicitly chmod after
 # upload before doing anything sudo-related with the file.
-scp "${SSH_OPTS[@]}" "$SECRETS_FILE" "${REMOTE_TARGET}:${REMOTE_STAGING}"
+scp "${SSH_OPTS[@]}" "$SECRETS_FILE" "${REMOTE_TARGET}:${REMOTE_STAGING_NAME}"
 ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" "chmod 600 $REMOTE_STAGING"
 
 # ---------------------------------------------------------------------------

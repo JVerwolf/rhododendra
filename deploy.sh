@@ -44,7 +44,12 @@ while [[ $# -gt 0 ]]; do
     *)  POSITIONAL+=( "$1" ); shift ;;
   esac
 done
-set -- "${POSITIONAL[@]}"
+# Guard the `set --` against an empty array. macOS ships bash 3.2, where
+# "${POSITIONAL[@]}" on an empty array fails under `set -u`; on empty, we want
+# to fall through to the 0-args case below with a friendly usage message.
+if (( ${#POSITIONAL[@]} > 0 )); then
+  set -- "${POSITIONAL[@]}"
+fi
 
 # Required positional arguments: SSH private key path (and optional prod|staging).
 case $# in
