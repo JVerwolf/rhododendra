@@ -12,7 +12,7 @@ Contributions are accepted under the same terms.
 
 - **Java 17** (see `java` version in `build.gradle.kts`)
 - Uses the **Gradle wrapper** (`./gradlew`); no separate Gradle install required
-- **PostgreSQL 16** — supported for local development (macOS) and production EC2 (**Amazon Linux 2023** packages). The app only needs a JDBC URL; install and run the server separately. Details: [PostgreSQL setup](#postgresql-setup).
+- **PostgreSQL** — supported for local development (macOS) and production EC2 (**Amazon Linux 2023** packages). The app only needs a JDBC URL; install and run the server separately. Details: [PostgreSQL setup](#postgresql-setup).
 
 - Integration tests use **embedded PostgreSQL 16** (Zonky) automatically — no local Postgres install required for `./gradlew test`.
 
@@ -24,7 +24,7 @@ Scripts are grouped by **where they run**. Paths are from the repository root un
 |--------|-------------|---------|
 | [`deploy.sh`](deploy.sh) | **Developer / operator machine** (with repo + build) | Uploads JAR, Lucene `index/`, and shell helpers to EC2 over SSH, then restarts the app. |
 | [`scripts/dev/setup-postgres-macos.sh`](scripts/dev/setup-postgres-macos.sh) | **macOS dev** | Idempotent Homebrew PostgreSQL 16 and `rhododendra` role/database. |
-| [`scripts/server/setup-postgres-amazon-linux-2023.sh`](scripts/server/setup-postgres-amazon-linux-2023.sh) | **EC2 / Amazon Linux 2023** | Idempotent PostgreSQL 16 install and optional app role/DB. Same file is copied to `bin/` on each deploy. |
+| [`scripts/server/setup-postgres-amazon-linux-2023.sh`](scripts/server/setup-postgres-amazon-linux-2023.sh) | **EC2 / Amazon Linux 2023** | Idempotent PostgreSQL install (defaults to 15 on AL2023 today) and optional app role/DB. Same file is copied to `bin/` on each deploy. |
 | [`scripts/server/setup-ec2.sh`](scripts/server/setup-ec2.sh) | **EC2** | Java 17, certbot, TLS certificate, renew cron. Copied to remote `bin/setup-ec2.sh` on deploy. |
 | [`start.sh`](start.sh) / [`stop.sh`](stop.sh) | **EC2** (copied to `bin/` by deploy) | Start/stop the Spring Boot JAR. |
 | [`scripts/server/pg_backup.sh`](scripts/server/pg_backup.sh) / [`scripts/server/pg_restore.sh`](scripts/server/pg_restore.sh) | **Any host with PostgreSQL client tools** (dev or server) | Logical backup (`pg_dump -Fc`) and restore (`pg_restore --clean`). Copied to remote `bin/` on deploy. |
@@ -32,7 +32,7 @@ Scripts are grouped by **where they run**. Paths are from the repository root un
 
 ## PostgreSQL setup
 
-**Version:** standardize on **PostgreSQL 16** (matches the embedded test binaries in `build.gradle.kts` and `postgresql16-*` on Amazon Linux 2023).
+**Version:** local/test tooling targets **PostgreSQL 16**. On Amazon Linux 2023, the server setup script defaults to **PostgreSQL 15** (`postgresql15-*`) and can be overridden with `PG_MAJOR`.
 
 Override connection with `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, and `SPRING_DATASOURCE_PASSWORD` when the database is remote or credentials differ.
 
@@ -67,10 +67,16 @@ Or follow the manual steps:
 
 ### Amazon Linux 2023 (EC2 or AL2023 host)
 
-Use the idempotent script (installs `postgresql16-server`, initializes if needed, enables `postgresql-16`):
+Use the idempotent script (installs `postgresql15-server` by default, initializes if needed, and enables `postgresql.service`):
 
 ```bash
 sudo ./scripts/server/setup-postgres-amazon-linux-2023.sh
+```
+
+To target a different PostgreSQL major (for example 16 on an image/repo set that provides it), override `PG_MAJOR`:
+
+```bash
+sudo -E env PG_MAJOR=16 ./scripts/server/setup-postgres-amazon-linux-2023.sh
 ```
 
 To create the `rhododendra` role and database in the same step, set a strong password first:
