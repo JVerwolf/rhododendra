@@ -11,11 +11,15 @@
 #   ./deploy.sh /path/to/ssh_private_key              # prod (default)
 #   ./deploy.sh prod /path/to/ssh_private_key
 #   ./deploy.sh staging /path/to/ssh_private_key
+#   SYNC_LOCAL_DB=1 ./deploy.sh staging /path/to/key   # deploy then overwrite remote DB from local pg_dump
+#   ./deploy.sh --sync-local-db staging /path/to/key   # same
 #
 # Optional flags (any order; must appear BEFORE positionals are parsed):
 #   --skip-secrets                Do not push /etc/rhododendra/rhododendra.env this run.
 #   --secrets-file <path>         Override the local secrets source file.
 #                                 Default: ~/.config/rhododendra/<env>.env
+#   --sync-local-db               After deploy, run scripts/server/sync-local-db-to-remote.sh
+#                                 (same as SYNC_LOCAL_DB=1). Overwrites remote PostgreSQL from local pg_dump.
 #
 # Exit on error, treat unset variables as errors, and fail pipelines on first failing command.
 set -euo pipefail
@@ -28,6 +32,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # ---------------------------------------------------------------------------
 # Parse optional --flags first, then the remaining positional args keep the
 # prior contract: [<prod|staging>] <ssh-key-path>.
+SYNC_LOCAL_DB="${SYNC_LOCAL_DB:-0}"
 SKIP_SECRETS=0
 SECRETS_FILE=""
 POSITIONAL=()
@@ -35,12 +40,13 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --skip-secrets)   SKIP_SECRETS=1; shift ;;
     --secrets-file)   SECRETS_FILE="${2:-}"; shift 2 ;;
+    --sync-local-db)  SYNC_LOCAL_DB=1; shift ;;
     -h|--help)
-      echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] [<prod|staging>] <path-to-ssh-private-key>"
+      echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] [--sync-local-db] [<prod|staging>] <path-to-ssh-private-key>"
       exit 0
       ;;
     --) shift; while [[ $# -gt 0 ]]; do POSITIONAL+=( "$1" ); shift; done ;;
-    -*) echo "Unknown flag: $1"; exit 1 ;;
+    -*) echo "Unknown flag: $1 (try --skip-secrets, --secrets-file, --sync-local-db)"; exit 1 ;;
     *)  POSITIONAL+=( "$1" ); shift ;;
   esac
 done
@@ -54,8 +60,8 @@ fi
 # Required positional arguments: SSH private key path (and optional prod|staging).
 case $# in
   0)
-    echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] <path-to-ssh-private-key>"
-    echo "       ./deploy.sh [--skip-secrets] [--secrets-file <path>] <prod|staging> <path-to-ssh-private-key>"
+    echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] [--sync-local-db] <path-to-ssh-private-key>"
+    echo "       ./deploy.sh [--skip-secrets] [--secrets-file <path>] [--sync-local-db] <prod|staging> <path-to-ssh-private-key>"
     exit 1
     ;;
   1)
@@ -67,15 +73,15 @@ case $# in
     SSH_KEY_ARG="${2}"
     if [[ "$ENVIRONMENT" != "prod" && "$ENVIRONMENT" != "staging" ]]; then
       echo "Invalid environment: $ENVIRONMENT (expected prod or staging)"
-      echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] <path-to-ssh-private-key>"
-      echo "       ./deploy.sh [--skip-secrets] [--secrets-file <path>] <prod|staging> <path-to-ssh-private-key>"
+      echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] [--sync-local-db] <path-to-ssh-private-key>"
+      echo "       ./deploy.sh [--skip-secrets] [--secrets-file <path>] [--sync-local-db] <prod|staging> <path-to-ssh-private-key>"
       exit 1
     fi
     ;;
   *)
     echo "Too many arguments."
-    echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] <path-to-ssh-private-key>"
-    echo "       ./deploy.sh [--skip-secrets] [--secrets-file <path>] <prod|staging> <path-to-ssh-private-key>"
+    echo "Usage: ./deploy.sh [--skip-secrets] [--secrets-file <path>] [--sync-local-db] <path-to-ssh-private-key>"
+    echo "       ./deploy.sh [--skip-secrets] [--secrets-file <path>] [--sync-local-db] <prod|staging> <path-to-ssh-private-key>"
     exit 1
     ;;
 esac
@@ -269,3 +275,9 @@ ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" \
   "PROFILE=\"$PROFILE\" REMOTE_BASE_DIR=\"$REMOTE_BASE_DIR\" REMOTE_APP_DIR=\"$REMOTE_APP_DIR\" REMOTE_DATA_DIR=\"$REMOTE_DATA_DIR\" JAR_PATH=\"$REMOTE_APP_DIR/rhododendra-0.0.1-SNAPSHOT.jar\" LOG_PATH=\"$REMOTE_APP_DIR/log.log\" \"$REMOTE_BIN_DIR/start.sh\""
 
 echo "Deploy complete."
+
+if [[ "$SYNC_LOCAL_DB" == "1" ]]; then
+  echo "[deploy] SYNC_LOCAL_DB: syncing local PostgreSQL to ${ENVIRONMENT}..."
+  SYNC_ARGS=( "$SCRIPT_DIR/scripts/server/sync-local-db-to-remote.sh" --secrets-file "$SECRETS_FILE" "$ENVIRONMENT" "$SSH_KEY" )
+  "${SYNC_ARGS[@]}"
+fi
